@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Core", "src\OptLab.Core\OptLab.Core.csproj", "{84EFDC39-984F-47BC-A90F-B950D8402053}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Broker", "src\OptLab.Broker\OptLab.Broker.csproj", "{85E35385-641A-4B40-81AE-9A8D8243D1FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.App", "src\OptLab.App\OptLab.App.csproj", "{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84EFDC39-984F-47BC-A90F-B950D8402053}.Debug|x64.ActiveCfg = Debug|x64
+		{84EFDC39-984F-47BC-A90F-B950D8402053}.Debug|x64.Build.0 = Debug|x64
+		{84EFDC39-984F-47BC-A90F-B950D8402053}.Release|x64.ActiveCfg = Release|x64
+		{84EFDC39-984F-47BC-A90F-B950D8402053}.Release|x64.Build.0 = Release|x64
+		{85E35385-641A-4B40-81AE-9A8D8243D1FC}.Debug|x64.ActiveCfg = Debug|x64
+		{85E35385-641A-4B40-81AE-9A8D8243D1FC}.Debug|x64.Build.0 = Debug|x64
+		{85E35385-641A-4B40-81AE-9A8D8243D1FC}.Release|x64.ActiveCfg = Release|x64
+		{85E35385-641A-4B40-81AE-9A8D8243D1FC}.Release|x64.Build.0 = Release|x64
+		{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}.Debug|x64.ActiveCfg = Debug|x64
+		{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}.Debug|x64.Build.0 = Debug|x64
+		{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}.Release|x64.ActiveCfg = Release|x64
+		{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+EndGlobal
+

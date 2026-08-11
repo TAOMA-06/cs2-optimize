@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "cs2-sensitivity",
+  "name": "CS2 SENS / LAB",
+  "version": "1.0.0",
+  "kind": "Calibration",
+  "entryPoint": "../cs2-sensitivity-lab.html",
+  "minimumHostVersion": "0.1.0",
+  "permissions": [
+    {
+      "id": "local-calibration-history",
+      "level": "None",
+      "rationale": "模块仅在本机记录由用户主动完成的校准结果。"
+    }
+  ],
+  "workflows": [],
+  "contentHash": "__PACKAGE_HASH__",
+  "signature": {
+    "algorithm": "RSA-PSS-SHA256",
+    "keyId": "__PUBLISHER_KEY_ID__",
+    "value": "__DETACHED_SIGNATURE__"
+  }
+}
+

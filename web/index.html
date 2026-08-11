@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#10130f">
+  <title>OPT / LAB — Windows 游戏优化工作台</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="side-rail" aria-label="OPT / LAB 主导航">
+      <a class="brand" href="#overview" data-navigate="overview" aria-label="OPT / LAB 总览">
+        <span class="brand-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-type"><strong>OPT / LAB</strong><small>WINDOWS PERFORMANCE</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="工作区">
+        <button class="nav-item is-active" data-view="overview" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>
+          <span>总览</span>
+        </button>
+        <button class="nav-item" data-view="modules" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.5 7.8 12 12.6l8.5-4.8L12 3Zm-8.5 9.3L12 17l8.5-4.7M3.5 16.7 12 21l8.5-4.3"/></svg>
+          <span>优化方案</span>
+          <b class="nav-count">01</b>
+        </button>
+        <button class="nav-item" data-view="recovery" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.7M20 4v7h-7"/></svg>
+          <span>恢复中心</span>
+          <b class="nav-count is-empty" id="recoveryNavCount">00</b>
+        </button>
+        <button class="nav-item" data-view="history" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16M8 15v-3m4 3V8m4 7v-5"/></svg>
+          <span>运行记录</span>
+        </button>
+      </nav>
+
+      <div class="rail-footer">
+        <div class="machine-chip" aria-label="本机模式">
+          <span class="machine-led" aria-hidden="true"></span>
+          <div><small>EXECUTION MODE</small><strong>LOCAL ONLY</strong></div>
+        </div>
+        <button class="nav-item settings-nav" data-view="settings" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12 .9 2.1 2.2.5 1.9-1.2 1.9 1.9-1.2 1.9.5 2.2 2.1.9v2.6l-2.1.9-.5 2.2 1.2 1.9-1.9 1.9-1.9-1.2-2.2.5-.9 2.1H10l-.9-2.1-2.2-.5-1.9 1.2-1.9-1.9 1.2-1.9-.5-2.2-2.1-.9v-2.6l2.1-.9.5-2.2-1.2-1.9 1.9-1.9 1.9 1.2 2.2-.5L10 3.5h2Z"/></svg>
+          <span>设置</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="workspace-head" id="workspaceHead">
+        <div class="head-location">
+          <span class="head-kicker" id="headKicker">WORKSTATION / OVERVIEW</span>
+          <h1 id="headTitle">本机状态</h1>
+        </div>
+        <div class="head-actions">
+          <span class="update-channel"><i aria-hidden="true"></i> OFFICIAL MODULE CHANNEL</span>
+          <button class="icon-button" data-view="settings" type="button" aria-label="打开设置">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12 .9 2.1 2.2.5 1.9-1.2 1.9 1.9-1.2 1.9.5 2.2 2.1.9v2.6l-2.1.9-.5 2.2 1.2 1.9-1.9 1.9-1.9-1.2-2.2.5-.9 2.1H10l-.9-2.1-2.2-.5-1.9 1.2-1.9-1.9 1.2-1.9-.5-2.2-2.1-.9v-2.6l2.1-.9.5-2.2-1.2-1.9 1.9-1.9 1.9 1.2 2.2-.5L10 3.5h2Z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="view is-active" data-view-panel="overview" aria-labelledby="overviewHeading">
+        <div class="status-tape" aria-label="当前执行状态">
+          <div class="tape-main">
+            <span class="tape-index">STATUS / 0.1</span>
+            <h2 id="overviewHeading">没有正在运行的系统优化。</h2>
+            <p>本机保持原状。只有你在方案页明确启动并确认后，OPT / LAB 才会创建可恢复的变更。</p>
+          </div>
+          <div class="tape-signals" aria-label="状态指标">
+            <div><span>ACTIVE CHANGES</span><strong id="activeChangeMetric">00</strong></div>
+            <div><span>CALIBRATIONS</span><strong id="calibrationMetric">00</strong></div>
+            <div><span>RECOVERY STATE</span><strong id="recoveryMetric">CLEAR</strong></div>
+          </div>
+          <div class="tape-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="overview-grid">
+          <article class="panel focus-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">READY NOW</span><h3>从一项可验证的校准开始</h3></div>
+              <span class="panel-code">MOD / 01</span>
+            </div>
+            <p class="panel-copy">CS2 SENS / LAB 已接入。它不读取你的游戏文件，也不修改鼠标或系统设置；完成测试后会把可复制的 CS2 命令保存到本机记录。</p>
+            <div class="calibration-readout" id="latestCalibrationReadout">
+              <span>LAST RESULT</span>
+              <strong>尚无校准记录</strong>
+              <small>使用你的实际鼠标与 DPI 开始第一次测试。</small>
+            </div>
+            <div class="panel-actions">
+              <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">打开 CS2 灵敏度实验室 <span aria-hidden="true">→</span></button>
+              <button class="text-button" data-view="history" type="button">查看本机记录</button>
+            </div>
+          </article>
+
+          <article class="panel contract-panel">
+            <div class="panel-head">
+              <div><span class="eyebrow">AUTOMATION CONTRACT</span><h3>系统动作先经过恢复链路</h3></div>
+              <span class="panel-code">CORE / READY</span>
+            </div>
+            <ol class="contract-flow">
+              <li><span>01</span><div><strong>检测</strong><small>确认系统、模块版本与前置条件。</small></div></li>
+              <li><span>02</span><div><strong>快照</strong><small>在写入前记录每个可恢复原值。</small></div></li>
+              <li><span>03</span><div><strong>验证</strong><small>只有验证成功才显示为已生效。</small></div></li>
+              <li><span>04</span><div><strong>恢复</strong><small>在恢复中心逐项或整组撤销。</small></div></li>
+            </ol>
+            <p class="quiet-note">目前没有发布会改动 Windows 或完美平台的规则。</p>
+          </article>
+        </div>
+
+        <section class="section-block" aria-labelledby="moduleSnapshotHeading">
+          <div class="section-head">
+            <div><span class="eyebrow">MODULE SNAPSHOT</span><h2 id="moduleSnapshotHeading">已装载能力</h2></div>
+            <button class="text-button" data-view="modules" type="button">进入方案库</button>
+          </div>
+          <div class="module-snapshot-list">
+            <article class="snapshot-row">
+              <div class="snapshot-state is-ready">READY</div>
+              <div class="snapshot-title"><strong>CS2 SENS / LAB</strong><span>个人灵敏度校准 · 离线网页模块</span></div>
+              <div class="snapshot-permission">NO ADMIN</div>
+              <button class="row-action" data-open-module="cs2-sensitivity" type="button">打开 <span aria-hidden="true">↗</span></button>
+            </article>
+            <article class="snapshot-row is-muted">
+              <div class="snapshot-state">LOCKED</div>
+              <div class="snapshot-title"><strong>系统优化规则</strong><span>签名、快照与恢复引擎已就绪；规则尚未发布。</span></div>
+              <div class="snapshot-permission">NO RULES</div>
+              <span class="row-action is-disabled">等待验证</span>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" data-view-panel="modules" aria-labelledby="modulesHeading">
+        <div class="section-head module-library-head">
+          <div><span class="eyebrow">OFFICIAL MODULES / LOCAL FIRST</span><h2 id="modulesHeading">优化方案</h2></div>
+          <p>只有经签名校验、明确说明影响范围并提供恢复策略的模块才能进入这里。</p>
+        </div>
+
+        <div class="module-library">
+          <article class="module-card module-card-featured">
+            <div class="module-card-top"><span class="module-tag">CALIBRATION</span><span class="module-state"><i></i> READY</span></div>
+            <div class="module-ident"><span class="module-mark mark-cross" aria-hidden="true"></span><div><h3>CS2 SENS / LAB</h3><p>Counter-Strike 2 个人灵敏度校准</p></div></div>
+            <p class="module-description">整合 DPI、鼠标空间、习惯与三项鼠标测试，输出一条可直接复制到 CS2 控制台的灵敏度命令。</p>
+            <dl class="module-facts"><div><dt>权限</dt><dd>无管理员权限</dd></div><div><dt>数据</dt><dd>仅本机保存</dd></div><div><dt>恢复</dt><dd>不修改系统</dd></div></dl>
+            <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">开始校准 <span aria-hidden="true">→</span></button>
+          </article>
+
+          <article class="module-card module-card-contract">
+            <div class="module-card-top"><span class="module-tag">SYSTEM OPTIMIZATION</span><span class="module-state is-pending">AUDIT REQUIRED</span></div>
+            <div class="module-ident"><span class="module-mark mark-grid" aria-hidden="true"></span><div><h3>自动化优化底座</h3><p>为未来 Windows 与游戏平台模块准备</p></div></div>
+            <p class="module-description">该载体已经具备权限、事务、验证、恢复与签名模块边界；具体优化规则尚未通过兼容性审计，因此不会提前执行。</p>
+            <dl class="module-facts"><div><dt>动作</dt><dd>尚未发布</dd></div><div><dt>策略</dt><dd>持续至手动恢复</dd></div><div><dt>权限</dt><dd>按动作请求</dd></div></dl>
+            <button class="button button-secondary" type="button" disabled title="等待单独的规则审计">规则审核中</button>
+          </article>
+        </div>
+
+        <aside class="module-policy">
+          <span>MODULE POLICY</span>
+          <p>网页界面没有系统权限。即使将来模块涉及平台占用、启动项或进程优先级，它也只能提交声明式计划，由 Windows Broker 对白名单动作进行验证、执行和恢复。</p>
+        </aside>
+      </section>
+
+      <section class="view module-view" data-view-panel="module" aria-labelledby="moduleHeading">
+        <div class="module-host-head">
+          <button class="back-button" data-view="modules" type="button"><span aria-hidden="true">←</span> 返回方案库</button>
+          <div class="module-host-title"><span class="eyebrow">MODULE / CS2-SENSITIVITY</span><h2 id="moduleHeading">CS2 SENS / LAB</h2></div>
+          <div class="module-host-state"><span><i></i> LOCAL MODULE</span><small>NO SYSTEM CHANGES</small></div>
+        </div>
+        <div class="module-frame-wrap">
+          <div class="module-frame-loading" id="moduleFrameLoading"><span class="loader-mark" aria-hidden="true"></span><p>正在加载离线校准模块…</p></div>
+          <iframe id="moduleFrame" title="CS2 SENS / LAB 校准模块" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="recovery" aria-labelledby="recoveryHeading">
+        <div class="section-head recovery-head">
+          <div><span class="eyebrow">RECOVERY LEDGER</span><h2 id="recoveryHeading">恢复中心</h2></div>
+          <p>只显示真实由 OPT / LAB 创建并验证过的变更。未完成事务会在这里阻止新的自动化操作。</p>
+        </div>
+        <div class="recovery-status" id="recoveryStatus">
+          <span class="recovery-seal" aria-hidden="true">✓</span>
+          <div><strong>当前没有需要恢复的系统变更。</strong><p>CS2 灵敏度模块只生成命令，不会出现在恢复清单中。</p></div>
+        </div>
+        <div class="recovery-list" id="recoveryList"></div>
+      </section>
+
+      <section class="view" data-view-panel="history" aria-labelledby="historyHeading">
+        <div class="section-head history-head">
+          <div><span class="eyebrow">LOCAL ACTIVITY LOG</span><h2 id="historyHeading">运行记录</h2></div>
+          <button class="text-button" id="clearHistory" type="button">清空校准记录</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+
+      <section class="view" data-view-panel="settings" aria-labelledby="settingsHeading">
+        <div class="section-head settings-head">
+          <div><span class="eyebrow">LOCAL CONTROL PLANE</span><h2 id="settingsHeading">设置</h2></div>
+          <p>所有默认值以离线、安全和可解释为优先。</p>
+        </div>
+        <div class="settings-stack">
+          <article class="setting-row"><div><strong>官方模块更新</strong><p>仅检查已签名的官方模块更新；不会在有活动事务时安装。</p></div><label class="toggle"><input id="updatesToggle" type="checkbox" checked><span></span></label></article>
+          <article class="setting-row"><div><strong>减少动态效果</strong><p>关闭非必要的状态动画，保留成功、失败和进行中的反馈。</p></div><label class="toggle"><input id="motionToggle" type="checkbox"><span></span></label></article>
+          <article class="setting-row"><div><strong>诊断数据</strong><p>不自动上传。出现问题时，只能由你主动导出本机脱敏诊断包。</p></div><button class="button button-secondary" id="exportDiagnostics" type="button">导出说明</button></article>
+          <article class="setting-row"><div><strong>更新检查</strong><p>本地预览模式不会连接任何更新服务；Windows 发布版会显示已验证的版本和签名来源。</p></div><button class="button button-secondary" id="checkUpdates" type="button">检查更新</button></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
