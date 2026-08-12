@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
@@ -40,6 +41,12 @@ public sealed partial class MainWindow : Window
             webView.Settings.AreDefaultContextMenusEnabled = IsDevelopmentBuild();
             webView.Settings.IsStatusBarEnabled = false;
             webView.NavigationStarting += OnNavigationStarting;
+            webView.FrameNavigationStarting += OnFrameNavigationStarting;
+            webView.AddWebResourceRequestedFilter(
+                "*",
+                CoreWebView2WebResourceContext.All,
+                CoreWebView2WebResourceRequestSourceKinds.All);
+            webView.WebResourceRequested += OnWebResourceRequested;
             webView.WebMessageReceived += OnWebMessageReceived;
             ShellView.Source = new Uri("https://oplab.local/Shell/index.html");
         }
@@ -53,12 +60,33 @@ public sealed partial class MainWindow : Window
 
     private void OnNavigationStarting(CoreWebView2 sender, CoreWebView2NavigationStartingEventArgs eventArgs)
     {
-        if (!Uri.TryCreate(eventArgs.Uri, UriKind.Absolute, out var target) ||
-            !string.Equals(target.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(target.Host, "oplab.local", StringComparison.OrdinalIgnoreCase))
+        if (!IsTrustedLocalUri(eventArgs.Uri))
         {
             eventArgs.Cancel = true;
         }
+    }
+
+    private void OnFrameNavigationStarting(CoreWebView2 sender, CoreWebView2NavigationStartingEventArgs eventArgs)
+    {
+        if (!IsTrustedLocalUri(eventArgs.Uri))
+        {
+            eventArgs.Cancel = true;
+        }
+    }
+
+    private void OnWebResourceRequested(CoreWebView2 sender, CoreWebView2WebResourceRequestedEventArgs eventArgs)
+    {
+        if (IsTrustedLocalUri(eventArgs.Request.Uri))
+        {
+            return;
+        }
+
+        var body = new MemoryStream(Encoding.UTF8.GetBytes("OPT / LAB blocks remote module resources."));
+        eventArgs.Response = sender.Environment.CreateWebResourceResponse(
+            body,
+            403,
+            "Blocked",
+            "Content-Type: text/plain; charset=utf-8");
     }
 
     private async void OnWebMessageReceived(CoreWebView2 sender, CoreWebView2WebMessageReceivedEventArgs eventArgs)
@@ -97,4 +125,9 @@ public sealed partial class MainWindow : Window
         return false;
 #endif
     }
+
+    private static bool IsTrustedLocalUri(string candidate) =>
+        Uri.TryCreate(candidate, UriKind.Absolute, out var target) &&
+        string.Equals(target.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(target.Host, "oplab.local", StringComparison.OrdinalIgnoreCase);
 }

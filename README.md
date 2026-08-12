@@ -8,6 +8,7 @@
 - 现有 `cs2-sensitivity-lab.html` 保持独立可离线打开；外壳以 iframe 承接其最终结果，不修改原始交互逻辑。
 - Windows WinUI/WebView2 宿主、模块协议、事务日志和 Broker 源码骨架已建立。
 - **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。** 自动化底座会拒绝未知动作，不能把架构代码误认为系统优化已生效。
+- 当前 Broker 使用当前用户限定的本地命名管道，只发布只读机器摘要；管理员启动器、服务安装、代码签名和真实写入动作属于 Windows 发布门禁，尚未实现。
 
 ## 本地预览与检查
 
@@ -44,4 +45,3 @@ dotnet build OptLab.sln -c Release -p:Platform=x64
 - `src/OptLab.Core/`：模块、签名与可恢复事务的共享契约。
 - `src/OptLab.Broker/`：Windows 受限自动化 Broker；目前只暴露只读诊断动作。
 - `cs2-sensitivity-lab.html`：已完成的独立 CS2 灵敏度工具，保留为模块源文件。
-

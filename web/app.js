@@ -41,7 +41,7 @@ const elements = {
 let toastTimeout;
 let moduleFrameInitialized = false;
 let observedResultSignature = null;
-let moduleObserver;
+let moduleResultPoller;
 
 hydratePreferences();
 wireNavigation();
@@ -170,9 +170,7 @@ function openModule(moduleId) {
 }
 
 function attachCalibrationObserver() {
-  if (moduleObserver) {
-    moduleObserver.disconnect();
-  }
+  window.clearInterval(moduleResultPoller);
 
   try {
     const moduleDocument = elements.moduleFrame.contentDocument;
@@ -181,14 +179,8 @@ function attachCalibrationObserver() {
     }
 
     const collectIfReady = () => window.setTimeout(collectCalibrationResult, 0);
-    moduleObserver = new MutationObserver(collectIfReady);
-    moduleObserver.observe(moduleDocument.body, {
-      attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true
-    });
     moduleDocument.addEventListener("click", collectIfReady, true);
+    moduleResultPoller = window.setInterval(collectCalibrationResult, 750);
     collectIfReady();
   } catch {
     showToast("桌面宿主无法读取校准结果；原始网页仍可独立使用。");
