@@ -122,6 +122,7 @@
     }
     .input-wrap input:hover, .input-wrap select:hover { border-color: #70776d; }
     .input-wrap input:focus, .input-wrap select:focus { border-color: var(--orange); background: #181b19; outline: none; }
+    .input-wrap input:focus-visible, .input-wrap select:focus-visible { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
     .input-unit { position: absolute; right: 13px; top: 50%; color: var(--muted); font-family: var(--mono); font-size: 10px; transform: translateY(-50%); pointer-events: none; }
     .choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .choice { position: relative; }
@@ -152,6 +153,7 @@
     }
     .mode-card label:hover { border-color: var(--line-strong); transform: translateY(-2px); }
     .mode-card input:checked + label { border-color: var(--orange); background: rgba(223,116,68,.085); }
+    .mode-card input:focus-visible + label { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
     .mode-card b { display: block; margin-bottom: 5px; color: var(--orange-soft); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; }
     .mode-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
     .mode-card span { display: block; color: var(--muted); font-size: 11px; line-height: 1.55; }
@@ -290,6 +292,12 @@
     .range-option strong { display: block; color: var(--paper); font-size: 12px; }
     .range-option span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
     .range-option b { color: var(--paper); font-family: var(--mono); font-size: 16px; }
+    .range-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); background: var(--ink-2); }
+    .range-row.is-main { border-color: var(--orange); background: rgba(223,116,68,.07); }
+    .range-row > span { display: grid; gap: 3px; }
+    .range-row b { color: var(--paper); font-family: var(--mono); font-size: 16px; font-weight: 600; }
+    .range-row small { color: var(--muted); font-size: 10px; }
+    .range-row em { color: var(--paper-2); font-size: 10px; font-style: normal; text-align: right; }
     .metric-list, .reason-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
     .metric-list li, .reason-list li { padding: 11px 12px; border-left: 2px solid var(--line-strong); color: var(--paper-2); font-size: 12px; }
     .metric-list b { color: var(--paper); font-family: var(--mono); font-weight: 600; }
@@ -329,9 +337,14 @@
       .result-side { grid-template-columns: repeat(3, 1fr); grid-template-rows: none; }
       .result-metric { min-width: 0; padding: 17px 14px; }
       .result-metric strong { font-size: 16px; }
-      .arena-toolbar { align-items: flex-start; padding: 11px 13px; }
-      .arena-metrics { gap: 10px; }
+      .arena-toolbar { align-items: flex-start; flex-wrap: wrap; gap: 10px; padding: 11px 13px; }
+      .arena-title, .arena-metrics { width: 100%; }
+      .arena-metrics { justify-content: space-between; gap: 10px; }
       .arena { min-height: 360px; height: 82vw; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
     }
   </style>
 </head>
@@ -356,7 +369,7 @@
       <div class="section-head">
         <div>
           <div class="eyebrow">01 / calibration profile</div>
-          <h1>从候选对照中筛选灵敏度</h1>
+          <h1 id="profileHeading" tabindex="-1">从候选对照中筛选灵敏度</h1>
         </div>
         <p>不是一次网页成绩后套出小数值：每个候选都会实际改变虚拟视角增益，再用同条件的盲测比较速度、停稳与追踪。</p>
       </div>
@@ -430,12 +443,12 @@
         <div class="form-section">
           <div class="form-section-title"><span class="form-index">01C</span><strong>选择测试深度</strong></div>
           <div class="mode-grid">
-            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio"><label for="mode-express"><b>EXPRESS</b><strong>极速试跑</strong><span>3 个候选各做一轮超短三项测试，先排除明显不适合的方向。</span><em>约 90 秒 · 仅输出粗筛范围</em></label></div>
+            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio"><label for="mode-express"><b>EXPRESS</b><strong>极速试跑</strong><span>3 个候选各做一轮超短三项测试，先排除明显不适合的方向。</span><em>约 100 秒 · 活动 84 秒 · 仅粗筛带</em></label></div>
             <div class="mode-card"><input id="mode-quick" name="mode" value="quick" type="radio"><label for="mode-quick"><b>QUICK</b><strong>快速粗筛</strong><span>3 个候选各测试一次，适合先排除明显不合适的方向。</span><em>约 4–6 分钟 · 不输出稳定候选</em></label></div>
-            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio" checked><label for="mode-standard"><b>STANDARD</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>约 13–15 分钟 · 可产生会话推荐</em></label></div>
+            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio" checked><label for="mode-standard"><b>STANDARD</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>基础约 13–15 分钟 · 外缘扩展会更久</em></label></div>
             <div class="mode-card"><input id="mode-deep" name="mode" value="deep" type="radio"><label for="mode-deep"><b>DEEP</b><strong>深度细筛</strong><span>标准粗筛后，再完成三轮 ±6% 精筛。</span><em>通常 27–30 分钟 · 边界扩展会更久</em></label></div>
           </div>
-          <div class="capability-line"><span class="capability-dot" id="capabilityDot"></span><span id="capabilityStatus">正在检测浏览器输入能力…</span></div>
+          <div class="capability-line"><span class="capability-dot" id="capabilityDot"></span><span id="capabilityStatus" aria-live="polite">正在检测浏览器输入能力…</span></div>
         </div>
 
         <div class="form-actions">
@@ -449,14 +462,14 @@
       <div class="section-head">
         <div>
           <div class="eyebrow">02 / Aimlabs test <span class="status-chip is-warn">非官方网页模拟</span></div>
-          <h2>候选盲测：虚拟准星追向目标</h2>
+          <h2 id="labHeading" tabindex="-1">候选盲测：虚拟准星追向目标</h2>
         </div>
         <p>启动时锁定鼠标，移动会驱动虚拟准星追向目标。A/B/C 隐藏具体数值；每轮目标序列相同，只有候选灵敏度改变转动增益。</p>
       </div>
 
       <div class="notice" role="note">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8v5m0 3.5v.01M4.6 19h14.8a1.6 1.6 0 0 0 1.39-2.4L13.39 3.8a1.6 1.6 0 0 0-2.78 0L3.21 16.6A1.6 1.6 0 0 0 4.6 19Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-        <div><strong id="inputRequirement">建议使用 Windows Chrome 或 Edge + 鼠标。</strong> 若浏览器不支持未加速输入，页面只会给“兼容估算”，不会给稳定候选。测试中按 Esc 可暂停，当前未完成分轮不计入。</div>
+        <div><strong id="inputRequirement" aria-live="polite">建议使用 Windows Chrome 或 Edge + 鼠标。</strong> 若浏览器不支持未加速输入，页面只会给“兼容估算”，不会给稳定候选。测试中按 Esc 可暂停，当前未完成分轮不计入。</div>
       </div>
 
       <div class="lab-layout">
@@ -497,7 +510,7 @@
               <dt>模式</dt><dd id="miniMode">标准配对</dd>
               <dt>输入</dt><dd id="miniInput">待锁定</dd>
             </dl>
-            <div style="margin-top:15px;"><span class="side-label">PROGRESS <b id="completionText" style="float:right;color:var(--paper);font-weight:500;">0 / 0</b></span><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div>
+            <div style="margin-top:15px;"><span class="side-label">PROGRESS <b id="completionText" style="float:right;color:var(--paper);font-weight:500;">0 / 0</b></span><div class="progress-track" id="progressTrack" role="progressbar" aria-label="测试进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progressFill"></div></div></div>
           </div>
           <div class="side-section">
             <span class="side-label">BLIND QUEUE</span>
@@ -514,7 +527,7 @@
 
     <section class="view" id="view-result" data-view="result">
       <div class="section-head">
-        <div><div class="eyebrow">03 / candidate result</div><h2>你的网页筛选候选范围</h2></div>
+        <div><div class="eyebrow">03 / candidate result</div><h2 id="resultHeading" tabindex="-1">你的网页筛选候选范围</h2></div>
         <p>数值精确到三位是为了便于输入游戏，不代表网页能证明唯一最优。标准与深度模式的主推荐始终来自本次实际测试过的候选；极速与快速模式只保留范围。</p>
       </div>
 
@@ -526,7 +539,7 @@
           <div class="command-box"><code id="commandText">sensitivity 1.000</code><button class="btn" id="copyCommand" type="button">复制命令</button></div>
         </div>
         <div class="result-side">
-          <div class="result-metric"><span>STABLE RANGE</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
+          <div class="result-metric"><span>TESTED RANGE</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
           <div class="result-metric"><span>DISTANCE / 360°</span><strong id="resultCm">--</strong><small id="resultEdpi">--</small></div>
           <div class="result-metric"><span>EVIDENCE</span><strong id="resultEvidence">--</strong><small id="evidenceCopy">网页测试状态</small></div>
         </div>
@@ -582,6 +595,10 @@
       var DEFAULT_PITCH = 0.022;
       var DWELL_MS = 100;
       var STALL_MS = 350;
+      // Three passes are a very small sample. This 0.2% log guard is reported
+      // separately from the specified MAD/drift threshold and only makes a
+      // unique recommendation harder, keeping the fixed synthetic FPR gate.
+      var DECISION_EPSILON = Math.log(1.002);
       var ALGORITHM_VERSION = "3.0.0";
       var TASK_VERSION = "angles-3.0.0";
       var STORAGE_KEY = "cs2-sens-lab-v3";
@@ -716,9 +733,8 @@
         var y = view.height / 2 - Math.tan(radians(pitch)) / Math.tan(radians(view.vFov / 2)) * view.height / 2;
         var radius = Number(point.radius || 0);
         var radiusPx = radius ? Math.max(4, Math.tan(radians(radius)) / Math.tan(radians(view.vFov / 2)) * view.height / 2) : 0;
-        /* Keep a shared edge inset for targets and reticle.  A target and the
-           reticle with the same logical angle must still coincide when that
-           angle is outside the visible FOV. */
+        // Clamp angular centers identically so a reticle and target at the same
+        // logical angle remain pixel-aligned even when both are beyond the FOV.
         var margin = 2;
         return {
           x: clamp(x, margin, Math.max(margin, view.width - margin)),
@@ -731,26 +747,6 @@
       }
       function projectTarget(target, presentationCamera, viewport) { return projectAngularPoint(target, presentationCamera, viewport); }
       function projectReticle(camera, presentationCamera, viewport) { return projectAngularPoint({ yaw: camera.yaw, pitch: camera.pitch, radius: 0 }, presentationCamera, viewport); }
-      function placeAcquisitionTarget(origin, trial, pitchLimit) {
-        /* A flick starts from the reticle's current logical angle.  Reflect a
-           pitch component at the camera bound instead of clipping it: clipping
-           shortens the requested 10–30° amplitude, while reflection preserves
-           both amplitude and reachability. */
-        var limit = Math.abs(Number(pitchLimit || 44));
-        var yawOffset = Number(trial.yawOffset || 0);
-        var pitchOffset = Number(trial.pitchOffset || 0);
-        var desiredPitch = Number(origin.pitch || 0) + pitchOffset;
-        if (desiredPitch > limit) desiredPitch = limit - (desiredPitch - limit);
-        if (desiredPitch < -limit) desiredPitch = -limit + (-limit - desiredPitch);
-        return {
-          yaw: wrapAngle(Number(origin.yaw || 0) + yawOffset),
-          pitch: desiredPitch,
-          yawOffset: yawOffset,
-          pitchOffset: desiredPitch - Number(origin.pitch || 0),
-          radius: Number(trial.radius || 0),
-          amplitude: Math.sqrt(yawOffset * yawOffset + Math.pow(desiredPitch - Number(origin.pitch || 0), 2))
-        };
-      }
 
       function makeCandidate(prefix, sensitivity, profile, index) {
         var normalized = Number(formatSensitivity(sensitivity));
@@ -804,8 +800,17 @@
           seen[id] = true; return true;
         }).sort(function (a, b) { return a.sensitivity - b.sensitivity; });
       }
-      function createBalancedStage(id, candidates, seed, passCount, confirmation) {
-        var actual = shuffled(candidates.map(function (candidate) { return candidate.key; }), seed ^ 0xA53C9E17);
+      function createBalancedStage(id, candidates, seed, passCount, confirmation, labelBySensitivity) {
+        if (!Array.isArray(candidates) || candidates.length !== 3) throw new Error("A balanced stage requires exactly three candidates.");
+        var actual = null;
+        if (labelBySensitivity) {
+          var orderedByLabel = ["A", "B", "C"].map(function (label) {
+            var candidate = candidates.find(function (item) { return labelBySensitivity[formatSensitivity(item.sensitivity)] === label; });
+            return candidate && candidate.key;
+          });
+          if (orderedByLabel.every(Boolean) && new Set(orderedByLabel).size === 3) actual = orderedByLabel;
+        }
+        if (!actual) actual = shuffled(candidates.map(function (candidate) { return candidate.key; }), seed ^ 0xA53C9E17);
         var labels = ["A", "B", "C"];
         var labelToKey = { A: actual[0], B: actual[1], C: actual[2] };
         var keyToLabel = {};
@@ -887,14 +892,35 @@
         };
       }
 
-      function createDwellState() { return { enteredAt: null, feedback: false, hit: false }; }
+      function createDwellState() { return { enteredAt: null, feedback: false, hit: false, hitAt: null }; }
       function updateDwell(dwell, inside, now) {
         var next = clone(dwell || createDwellState());
-        if (!inside) { next.enteredAt = null; next.feedback = false; return next; }
+        if (!inside) { next.enteredAt = null; next.feedback = false; next.hit = false; next.hitAt = null; return next; }
         if (next.enteredAt === null || next.enteredAt === undefined) next.enteredAt = now;
         next.feedback = true;
-        if (now - next.enteredAt >= DWELL_MS) next.hit = true;
+        if (now - next.enteredAt >= DWELL_MS) {
+          next.hit = true;
+          next.hitAt = next.enteredAt + DWELL_MS;
+        }
         return next;
+      }
+      function summarizeTracking(data, taskMs, endedAt) {
+        var source = data || {};
+        var durations = Array.isArray(source.reacquireDurations) ? source.reacquireDurations.slice() : [];
+        var offStartedAt = Number(source.offStartedAt);
+        if (source.offStartedAt !== null && source.offStartedAt !== undefined && Number.isFinite(offStartedAt) && Number.isFinite(Number(endedAt))) {
+          durations.push(Math.max(0, Number(endedAt) - offStartedAt));
+        }
+        var sampleMs = Math.max(1, Number(source.sampleMs) || 0);
+        var contacts = Math.max(0, Number(source.contacts) || 0);
+        return {
+          rmsError: Math.sqrt(Math.max(0, Number(source.errorSqMs) || 0) / sampleMs),
+          offTargetRatio: Math.max(0, Number(source.offTargetMs) || 0) / sampleMs,
+          reacquireMs: durations.length ? median(durations) : contacts ? 0 : Math.max(0, Number(taskMs) || 0),
+          speedMismatch: Math.sqrt(Math.max(0, Number(source.speedMismatchSqMs) || 0) / sampleMs),
+          sampleMs: Math.max(0, Number(source.sampleMs) || 0),
+          contacts: contacts
+        };
       }
       function createAxisState(origin, target) {
         var dx = wrapAngle(target.yaw - origin.yaw);
@@ -984,8 +1010,8 @@
             if (a && b) differences.push(a.loss - b.loss);
           }
           var threshold = Math.max(Math.log(1.03), 1.4826 * mad(differences), drift);
-          var dominates = differences.length === 3 && differences.every(function (difference) { return difference < 0; }) && median(differences) < -threshold && !options.anomaly;
-          var row = { first: first.key, second: second.key, differences: differences, medianDifference: median(differences), mad: mad(differences), threshold: threshold, dominates: dominates };
+          var dominates = differences.length === 3 && differences.every(function (difference) { return difference < 0; }) && median(differences) < -(threshold + DECISION_EPSILON) && !options.anomaly;
+          var row = { first: first.key, second: second.key, differences: differences, medianDifference: median(differences), mad: mad(differences), threshold: threshold, decisionEpsilon: DECISION_EPSILON, dominates: dominates };
           pairwise.push(row);
           return dominates;
         }
@@ -1018,22 +1044,10 @@
       }
       function isBoundaryLeader(stage, evaluation) {
         if (!evaluation.uniqueLeader) return false;
+        if (stage.outwardKey) return evaluation.uniqueLeader.key === stage.outwardKey;
         var sorted = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
         return evaluation.uniqueLeader.key === sorted[0].key || evaluation.uniqueLeader.key === sorted[sorted.length - 1].key;
       }
-      function summarizeRetestVariability(evaluation) {
-        evaluation = evaluation || {};
-        var pairwise = evaluation.pairwise || [];
-        return {
-          /* MAD is in the same log-relative-loss space as dominance.  Keep it
-             separate from the decision threshold so the result can show the
-             measured repeat variation rather than inventing confidence. */
-          pairwiseMad: median(pairwise.map(function (pair) { return Number(pair.mad) || 0; })),
-          sessionDrift: Number(evaluation.drift) || 0,
-          maxThreshold: pairwise.reduce(function (largest, pair) { return Math.max(largest, Number(pair.threshold) || 0); }, Math.log(1.03))
-        };
-      }
-      function compatibilityMode(mode) { return mode === "express" ? "express" : "quick"; }
 
       function estimateDuration(mode, stageCount) {
         var config = MODES[mode];
@@ -1044,63 +1058,16 @@
       }
       function profileSignature(profile) {
         var current = profile.currentSens === null || profile.currentSens === undefined || profile.currentSens === "" ? "none" : formatSensitivity(profile.currentSens);
-        return [profile.dpi, current, Number(profile.mYaw).toFixed(6), Number(profile.mPitch).toFixed(6), profile.polling, profile.padWidth, profile.aimStyle, profile.role, profile.priority, profile.mode, TASK_VERSION].join("|");
+        return [profile.dpi, current, Number(profile.mYaw).toFixed(6), Number(profile.mPitch).toFixed(6), profile.polling, profile.padWidth, profile.aimStyle, profile.role, profile.priority, TASK_VERSION].join("|");
       }
       function gridSignature(candidates) { return candidates.map(function (candidate) { return formatSensitivity(candidate.sensitivity); }).sort().join("|"); }
       function createSessionSummary(session, result) {
         var finalStage = session.stages[session.stages.length - 1];
-        var eligible = session.inputMode === "raw" && (session.mode === "standard" || session.mode === "deep") && session.validTaskMs >= 420000 && !session.anomalies.length && result && result.main && !result.boundaryLimited;
-        var sensitivityByKey = {};
-        finalStage.candidates.forEach(function (candidate) { sensitivityByKey[candidate.key] = formatSensitivity(candidate.sensitivity); });
-        var dominance = result.evaluation ? result.evaluation.pairwise.map(function (pair) {
-          return {
-            first: sensitivityByKey[pair.first] || pair.first,
-            second: sensitivityByKey[pair.second] || pair.second,
-            dominates: Boolean(pair.dominates),
-            medianDifference: pair.medianDifference,
-            threshold: pair.threshold
-          };
-        }) : [];
-        var winner = result.main ? formatSensitivity(result.main.sensitivity) : null;
-        var opponents = finalStage.candidates.map(function (candidate) { return formatSensitivity(candidate.sensitivity); }).filter(function (value) { return value !== winner; });
-        var winnerDominatesAll = Boolean(winner) && opponents.length === 2 && opponents.every(function (opponent) {
-          var forward = dominance.some(function (pair) { return pair.first === winner && pair.second === opponent && pair.dominates; });
-          var reverse = dominance.some(function (pair) { return pair.first === opponent && pair.second === winner && pair.dominates; });
-          return forward && !reverse;
-        });
-        /* Summaries retain the completed per-round task metrics required to
-           reproduce a result, but deliberately never include mouse samples,
-           frame histories, or raw trajectories. */
-        var roundMetrics = (session.blocks || []).map(function (block) {
-          return {
-            stageId: block.stageId,
-            pass: Number(block.pass),
-            orderIndex: Number(block.orderIndex),
-            candidateKey: block.candidateKey,
-            candidateSensitivity: Number.isFinite(Number(block.candidateSensitivity)) ? Number(block.candidateSensitivity) : null,
-            label: block.label || null,
-            seed: Number.isFinite(Number(block.seed)) ? Number(block.seed) : null,
-            valid: block.valid !== false,
-            validTaskMs: Number(block.validTaskMs) || 0,
-            inputMode: block.inputMode || session.inputMode,
-            completedAt: block.completedAt || null,
-            inputSamples: clone(block.inputSamples || {}),
-            tasks: clone(block.tasks || {})
-          };
-        });
-        var stageSummaries = (session.stages || []).map(function (stage) {
-          return {
-            id: stage.id,
-            confirmation: Boolean(stage.confirmation),
-            seed: Number(stage.seed) >>> 0,
-            passSeeds: clone(stage.passSeeds || []),
-            candidates: (stage.candidates || []).map(function (candidate) {
-              return { key: candidate.key, sensitivity: candidate.sensitivity, cm: candidate.cm };
-            }),
-            labelToKey: clone(stage.labelToKey || {}),
-            orders: clone(stage.orders || [])
-          };
-        });
+        var winnerKey = result && result.main && result.main.key;
+        var dominanceRows = result && result.evaluation && Array.isArray(result.evaluation.pairwise) ? result.evaluation.pairwise : [];
+        var dominatesBoth = Boolean(winnerKey) && dominanceRows.filter(function (pair) { return pair.first === winnerKey && pair.dominates; }).length === 2;
+        var uniqueMatches = Boolean(result && result.evaluation && result.evaluation.uniqueLeader && result.evaluation.uniqueLeader.key === winnerKey);
+        var eligible = session.inputMode === "raw" && (session.mode === "standard" || session.mode === "deep") && session.validTaskMs >= 420000 && !session.anomalies.length && result && result.main && !result.boundaryLimited && dominatesBoth && uniqueMatches;
         return {
           id: session.id,
           completedAt: result.completedAt,
@@ -1109,37 +1076,50 @@
           profileSignature: profileSignature(session.profile),
           mode: session.mode,
           inputMode: session.inputMode,
+          confirmation: Boolean(session.confirmation),
+          inputCapability: { pointerLock: true, unadjustedMovementConfirmed: session.inputMode === "raw", compatibilityRestricted: Boolean(session.compatibilityRestricted) },
           grid: gridSignature(finalStage.candidates),
           candidates: finalStage.candidates.map(function (candidate) { return candidate.sensitivity; }),
-          winner: winner,
+          winnerKey: winnerKey || null,
+          winner: result.main ? formatSensitivity(result.main.sensitivity) : null,
           range: result.range.map(function (candidate) { return formatSensitivity(candidate.sensitivity); }),
           validTaskMs: session.validTaskMs,
           anomalies: session.anomalies.slice(),
           interruptions: session.interruptions.slice(),
-          dominance: dominance,
-          roundMetrics: roundMetrics,
-          variability: summarizeRetestVariability(result.evaluation),
-          winnerDominatesAll: winnerDominatesAll,
+          dominance: result.evaluation ? result.evaluation.pairwise.map(function (pair) { return { first: pair.first, second: pair.second, dominates: pair.dominates, medianDifference: pair.medianDifference, threshold: pair.threshold, decisionEpsilon: pair.decisionEpsilon }; }) : [],
+          rounds: (session.blocks || []).map(function (block) { return { stageId: block.stageId, pass: block.pass, position: block.position, candidateKey: block.candidateKey, sensitivity: block.sensitivity, seed: block.seed, inputEvents: block.inputEvents, validTaskMs: block.validTaskMs, tasks: clone(block.tasks), completedAt: block.completedAt }; }),
           eligible: Boolean(eligible),
           seeds: session.stages.map(function (stage) { return stage.seed; }),
           orders: session.stages.map(function (stage) { return clone(stage.orders); }),
-          stages: stageSummaries
+          orderLabels: session.stages.map(function (stage) {
+            return stage.orders.map(function (order) { return order.map(function (key) { return stage.keyToLabel[key]; }); });
+          })
         };
       }
       function appendHistory(history, summary) { return (history || []).concat([clone(summary)]).slice(-100); }
       function findCrossSessionConfirmation(history, current, nowMs) {
         if (!current || !current.eligible) return { stable: false, match: null, nextEligibleAt: null };
         var currentTime = new Date(current.completedAt).getTime();
+        if (!Number.isFinite(currentTime)) return { stable: false, match: null, nextEligibleAt: null };
+        function hasFullDominance(item) { return Boolean(item && item.winnerKey && Array.isArray(item.dominance) && item.dominance.filter(function (pair) { return pair.first === item.winnerKey && pair.dominates; }).length === 2); }
+        function finalOrderMatches(item, expected) {
+          if (!item || !Array.isArray(item.orderLabels) || !item.orderLabels.length) return false;
+          var finalOrders = item.orderLabels[item.orderLabels.length - 1];
+          return JSON.stringify(finalOrders) === JSON.stringify(expected);
+        }
+        if (!hasFullDominance(current)) return { stable: false, match: null, nextEligibleAt: null };
+        var standardOrders = [["A", "B", "C"], ["B", "C", "A"], ["C", "A", "B"]];
+        var confirmationOrders = [["C", "B", "A"], ["A", "C", "B"], ["B", "A", "C"]];
+        if (!current.confirmation || !finalOrderMatches(current, confirmationOrders)) return { stable: false, match: null, nextEligibleAt: new Date(currentTime + 86400000).toISOString() };
         var compatible = (history || []).filter(function (item) {
-          if (!item || item.id === current.id || !item.eligible) return false;
+          if (!item || item.id === current.id || !item.eligible || item.confirmation || !hasFullDominance(item) || !finalOrderMatches(item, standardOrders)) return false;
           var priorTime = new Date(item.completedAt).getTime();
-          return item.algorithmVersion === current.algorithmVersion && item.taskVersion === current.taskVersion && item.profileSignature === current.profileSignature && item.grid === current.grid && item.winner === current.winner && current.winnerDominatesAll === true && item.winnerDominatesAll === true && currentTime - priorTime >= 86400000;
+          return Number.isFinite(priorTime) && item.algorithmVersion === current.algorithmVersion && item.taskVersion === current.taskVersion && item.profileSignature === current.profileSignature && item.mode === current.mode && item.grid === current.grid && item.winner === current.winner && currentTime - priorTime >= 86400000;
         }).sort(function (a, b) { return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(); });
-        var latestSameGrid = (history || []).filter(function (item) { return item && item.id !== current.id && item.eligible && item.profileSignature === current.profileSignature && item.grid === current.grid; }).sort(function (a, b) { return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(); })[0] || null;
         return {
           stable: compatible.length > 0,
           match: compatible[0] || null,
-          nextEligibleAt: latestSameGrid ? new Date(new Date(latestSameGrid.completedAt).getTime() + 86400000).toISOString() : new Date((nowMs || currentTime) + 86400000).toISOString()
+          nextEligibleAt: new Date(currentTime + 86400000).toISOString()
         };
       }
       function normalizeProfile(profile) {
@@ -1149,37 +1129,44 @@
         copy.mode = MODES[copy.mode] ? copy.mode : "standard";
         return copy;
       }
+      function restorableSession(session) {
+        return Boolean(session && session.version === ALGORITHM_VERSION && session.taskVersion === TASK_VERSION && session.profile && Array.isArray(session.stages) && session.stages.length && Array.isArray(session.blocks) && Array.isArray(session.interruptions) && Array.isArray(session.anomalies));
+      }
+      function restorableResult(result) {
+        return Boolean(result && result.algorithmVersion === ALGORITHM_VERSION && result.taskVersion === TASK_VERSION && result.profile && Array.isArray(result.range) && Array.isArray(result.testedCandidates) && result.evaluation && typeof result.evidence === "string");
+      }
       function migratePersistedState(payloads) {
         payloads = payloads || {};
         var current = payloads.v3;
         if (current && current.version === ALGORITHM_VERSION && current.profile) {
-          return { profile: normalizeProfile(current.profile), session: current.session && current.session.version === ALGORITHM_VERSION ? clone(current.session) : null, result: current.result && current.result.algorithmVersion === ALGORITHM_VERSION ? clone(current.result) : null, history: Array.isArray(current.history) ? current.history.slice(-100) : [], migratedFrom: null };
+          var session = restorableSession(current.session) ? clone(current.session) : null;
+          var result = restorableResult(current.result) ? clone(current.result) : null;
+          if (result && (!session || session.status !== "complete" || session.id !== result.sessionId)) result = null;
+          return { profile: normalizeProfile(current.profile), session: session, result: result, history: Array.isArray(current.history) ? current.history.filter(function (item) { return item && item.algorithmVersion === ALGORITHM_VERSION && item.taskVersion === TASK_VERSION; }).slice(-100) : [], migratedFrom: null };
         }
-        var previous = payloads.v2;
-        /* v1 did not carry the compatible experiment schema. Keep it intact
-           in its own storage key, but do not turn it into v3 state. */
-        if (previous && previous.profile) return { profile: normalizeProfile(previous.profile), session: null, result: null, history: [], migratedFrom: "v2" };
+        var previous = payloads.v2 || payloads.v1;
+        if (previous && previous.profile) return { profile: normalizeProfile(previous.profile), session: null, result: null, history: [], migratedFrom: payloads.v2 ? "v2" : "v1" };
         return { profile: null, session: null, result: null, history: [], migratedFrom: null };
       }
       function createRafScheduler(dependencies) {
-        var pendingId = 0;
+        var pendingId = null;
         var destroyed = false;
         function request(callback) {
-          if (destroyed || pendingId) return pendingId;
+          if (destroyed || pendingId !== null) return pendingId;
           pendingId = dependencies.requestFrame(function (now) {
-            pendingId = 0;
+            pendingId = null;
             if (!destroyed) callback(now);
           });
           return pendingId;
         }
-        function cancel() { if (pendingId) dependencies.cancelFrame(pendingId); pendingId = 0; }
+        function cancel() { if (pendingId !== null) dependencies.cancelFrame(pendingId); pendingId = null; }
         function destroy() { cancel(); destroyed = true; }
-        return Object.freeze({ request: request, cancel: cancel, destroy: destroy, pendingCount: function () { return pendingId ? 1 : 0; } });
+        return Object.freeze({ request: request, cancel: cancel, destroy: destroy, pendingCount: function () { return pendingId === null ? 0 : 1; } });
       }
 
       var constants = deepFreeze({
         range: { min: RANGE_MIN, max: RANGE_MAX }, defaultYaw: DEFAULT_YAW, defaultPitch: DEFAULT_PITCH,
-        dwellMs: DWELL_MS, stallMs: STALL_MS, algorithmVersion: ALGORITHM_VERSION, taskVersion: TASK_VERSION,
+        dwellMs: DWELL_MS, stallMs: STALL_MS, decisionEpsilon: DECISION_EPSILON, algorithmVersion: ALGORITHM_VERSION, taskVersion: TASK_VERSION,
         storageKey: STORAGE_KEY, previousStorageKeys: PREVIOUS_STORAGE_KEYS, tasks: TASKS, modes: MODES,
         roleWeights: ROLE_WEIGHTS, metricSpecs: METRIC_SPECS
       });
@@ -1195,11 +1182,10 @@
         buildFineCandidates: buildFineCandidates, buildBoundaryCandidates: buildBoundaryCandidates,
         createBalancedStage: createBalancedStage, candidateLabel: candidateLabel,
         createTaskSequence: createTaskSequence, trackPosition: trackPosition,
-        placeAcquisitionTarget: placeAcquisitionTarget,
-        createDwellState: createDwellState, updateDwell: updateDwell, createAxisState: createAxisState, updateAxisState: updateAxisState,
+        createDwellState: createDwellState, updateDwell: updateDwell, summarizeTracking: summarizeTracking,
+        createAxisState: createAxisState, updateAxisState: updateAxisState,
         logRelativeLoss: logRelativeLoss, calculatePassLosses: calculatePassLosses, theilSenSlope: theilSenSlope,
         sessionDrift: sessionDrift, evaluateStage: evaluateStage, isBoundaryLeader: isBoundaryLeader,
-        summarizeRetestVariability: summarizeRetestVariability, compatibilityMode: compatibilityMode,
         estimateDuration: estimateDuration, profileSignature: profileSignature, gridSignature: gridSignature,
         createSessionSummary: createSessionSummary, appendHistory: appendHistory,
         findCrossSessionConfirmation: findCrossSessionConfirmation, normalizeProfile: normalizeProfile,
@@ -1208,1004 +1194,6 @@
       root.CS2SensLabCore = deepFreeze(api);
     }(typeof globalThis !== "undefined" ? globalThis : this));
     /* LAB_CORE_END */
-  </script>
-
-  <script id="lab-controller">
-    /* LAB_CONTROLLER_START */
-    (function () {
-      "use strict";
-
-      var Core = window.CS2SensLabCore;
-      if (!Core) return;
-
-      var C = Core.constants;
-      var MODES = C.modes;
-      var TASKS = C.tasks;
-      var TASK_LABELS = { flick: "小目标获取", lateral: "横向急停", track: "平滑追踪" };
-      var MIN_INPUT_EVENTS = 16;
-      var MIN_RAW_DISTANCE = 80;
-      var MIN_TRIALS = 4;
-      var BETWEEN_TASK_MS = 750;
-      var BETWEEN_BLOCK_MS = 850;
-      var sessionSequence = 0;
-
-      function byId(id) { return document.getElementById(id); }
-      function clone(value) { return value === undefined ? undefined : JSON.parse(JSON.stringify(value)); }
-      function now() { return performance.now(); }
-      function isoNow() { return new Date().toISOString(); }
-      function selected(name) {
-        var input = document.querySelector('input[name="' + name + '"]:checked');
-        return input ? input.value : "";
-      }
-      function randomSeed() {
-        if (window.crypto && window.crypto.getRandomValues) {
-          var values = new Uint32Array(1);
-          window.crypto.getRandomValues(values);
-          return values[0];
-        }
-        return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
-      }
-      function formatCm(value) { return Number(value).toFixed(1); }
-      function formatConfig(value) { return Number(value).toFixed(6); }
-      function formatRange(candidates) {
-        var values = (candidates || []).map(function (candidate) { return Core.formatSensitivity(candidate.sensitivity); }).sort();
-        return values.length ? values.join(" – ") : "--";
-      }
-      function candidateByKey(stage, key) {
-        return stage.candidates.find(function (candidate) { return candidate.key === key; }) || null;
-      }
-      function setText(element, value) { if (element) element.textContent = value; }
-
-      var els = {
-        form: byId("profileForm"), formError: byId("formError"),
-        arena: byId("arena"), sceneTarget: byId("sceneTarget"), virtualCrosshair: byId("virtualCrosshair"),
-        arenaOverlay: byId("arenaOverlay"), overlayKicker: byId("overlayKicker"), overlayNumber: byId("overlayNumber"),
-        overlayTitle: byId("overlayTitle"), overlayCopy: byId("overlayCopy"), overlayAction: byId("overlayAction"),
-        liveDot: byId("liveDot"), arenaTitle: byId("arenaTitle"), arenaSubtitle: byId("arenaSubtitle"),
-        arenaStatus: byId("arenaStatus"), arenaHits: byId("arenaHits"), arenaTime: byId("arenaTime"), arenaId: byId("arenaId"),
-        capabilityDot: byId("capabilityDot"), capabilityStatus: byId("capabilityStatus"), inputRequirement: byId("inputRequirement"),
-        miniDpi: byId("miniDpi"), miniYaw: byId("miniYaw"), miniPitch: byId("miniPitch"), miniMode: byId("miniMode"), miniInput: byId("miniInput"),
-        completionText: byId("completionText"), progressFill: byId("progressFill"), queueList: byId("queueList"),
-        startSession: byId("startSession"), pauseSession: byId("pauseSession"),
-        resultSens: byId("resultSens"), resultPrimaryLabel: byId("resultPrimaryLabel"), resultUnit: byId("resultUnit"),
-        commandText: byId("commandText"), copyCommand: byId("copyCommand"), rangeSens: byId("rangeSens"), rangeCopy: byId("rangeCopy"),
-        resultCm: byId("resultCm"), resultEdpi: byId("resultEdpi"), resultEvidence: byId("resultEvidence"), evidenceCopy: byId("evidenceCopy"),
-        rangeList: byId("rangeList"), reasonList: byId("reasonList"), taskSummary: byId("taskSummary"), gameReviewList: byId("gameReviewList"),
-        methodYaw: byId("methodYaw"), methodPitch: byId("methodPitch"), reproductionBlock: byId("reproductionBlock"),
-        restartTests: byId("restartTests"), newProfile: byId("newProfile"), confirmSession: byId("confirmSession"),
-        toast: byId("toast"), precisionSens: byId("precisionSens"), speedSens: byId("speedSens"), resultConfidence: byId("resultConfidence")
-      };
-
-      var state = {
-        view: "profile",
-        profile: null,
-        session: null,
-        result: null,
-        history: [],
-        active: null,
-        awaitingLock: false,
-        lockKind: null,
-        lockTimer: 0,
-        intentionalUnlock: false,
-        toastTimer: 0,
-        capability: { pointerLock: false },
-        scheduler: null
-      };
-
-      state.scheduler = Core.createRafScheduler({
-        requestFrame: function (callback) { return window.requestAnimationFrame(callback); },
-        cancelFrame: function (id) { window.cancelAnimationFrame(id); }
-      });
-
-      function showView(name) {
-        state.view = name;
-        document.querySelectorAll(".view").forEach(function (view) { view.classList.toggle("is-active", view.dataset.view === name); });
-        var order = ["profile", "lab", "result"];
-        var index = order.indexOf(name);
-        document.querySelectorAll(".step-dot").forEach(function (dot) {
-          var dotIndex = order.indexOf(dot.dataset.step);
-          dot.classList.toggle("is-active", dotIndex === index);
-          dot.classList.toggle("is-done", dotIndex < index);
-        });
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      function setOverlay(options) {
-        els.arenaOverlay.hidden = false;
-        setText(els.overlayKicker, options.kicker || "");
-        setText(els.overlayTitle, options.title || "");
-        setText(els.overlayCopy, options.copy || "");
-        var hasNumber = options.number !== undefined && options.number !== null && options.number !== "";
-        els.overlayNumber.hidden = !hasNumber;
-        if (hasNumber) setText(els.overlayNumber, String(options.number));
-        if (options.actionLabel) {
-          els.overlayAction.hidden = false;
-          setText(els.overlayAction, options.actionLabel);
-          els.overlayAction.onclick = options.action || null;
-        } else {
-          els.overlayAction.hidden = true;
-          els.overlayAction.onclick = null;
-        }
-      }
-      function hideOverlay() { els.arenaOverlay.hidden = true; }
-      function toast(message) {
-        if (!els.toast) return;
-        window.clearTimeout(state.toastTimer);
-        setText(els.toast, message);
-        els.toast.classList.add("is-visible");
-        state.toastTimer = window.setTimeout(function () { els.toast.classList.remove("is-visible"); }, 2200);
-      }
-      function setTargetVisible(visible) { els.sceneTarget.classList.toggle("is-visible", Boolean(visible)); }
-      function resetScene() {
-        setTargetVisible(false);
-        els.sceneTarget.classList.remove("is-contact", "is-offscreen");
-        els.virtualCrosshair.style.setProperty("--reticle-x", "0px");
-        els.virtualCrosshair.style.setProperty("--reticle-y", "0px");
-        els.virtualCrosshair.classList.remove("is-contact");
-      }
-      function renderScene(run) {
-        if (!run || !run.target) { resetScene(); return; }
-        var target = Core.projectTarget(run.target, run.presentationCamera, run.viewport);
-        var reticle = Core.projectReticle(run.camera, run.presentationCamera, run.viewport);
-        els.sceneTarget.style.left = target.x + "px";
-        els.sceneTarget.style.top = target.y + "px";
-        els.sceneTarget.style.width = Math.max(8, target.radiusPx * 2) + "px";
-        els.sceneTarget.style.height = Math.max(8, target.radiusPx * 2) + "px";
-        els.sceneTarget.classList.toggle("is-offscreen", !target.onScreen);
-        els.sceneTarget.classList.toggle("is-contact", Boolean(run.target.inContact));
-        els.virtualCrosshair.style.setProperty("--reticle-x", (reticle.x - run.viewport.width / 2) + "px");
-        els.virtualCrosshair.style.setProperty("--reticle-y", (reticle.y - run.viewport.height / 2) + "px");
-        els.virtualCrosshair.classList.toggle("is-contact", Boolean(run.target.inContact));
-        setTargetVisible(true);
-      }
-
-      function detectCapability() {
-        state.capability.pointerLock = Boolean(els.arena && els.arena.requestPointerLock && "pointerLockElement" in document);
-        els.capabilityDot.classList.toggle("is-good", state.capability.pointerLock);
-        setText(els.capabilityStatus, state.capability.pointerLock ? "检测到 Pointer Lock。将优先请求未加速相对输入；若失败，只能重建兼容粗筛。" : "此浏览器不支持 Pointer Lock；不能建立可信候选会话。");
-      }
-
-      function fillProfile(profile) {
-        if (!profile) return;
-        byId("dpi").value = profile.dpi || 800;
-        byId("currentSens").value = profile.currentSens === null || profile.currentSens === undefined ? "" : profile.currentSens;
-        byId("padWidth").value = profile.padWidth || 45;
-        byId("polling").value = profile.polling || 1000;
-        byId("mYaw").value = profile.mYaw === undefined ? C.defaultYaw : profile.mYaw;
-        byId("mPitch").value = profile.mPitch === undefined ? C.defaultPitch : profile.mPitch;
-        ["aimStyle", "role", "priority", "mode"].forEach(function (name) {
-          var option = document.querySelector('input[name="' + name + '"][value="' + profile[name] + '"]');
-          if (option) option.checked = true;
-        });
-      }
-      function readProfile() {
-        var currentRaw = byId("currentSens").value.trim();
-        var profile = {
-          dpi: Number(byId("dpi").value),
-          currentSens: currentRaw === "" ? null : Number(currentRaw),
-          padWidth: Number(byId("padWidth").value),
-          polling: Number(byId("polling").value),
-          mYaw: Number(byId("mYaw").value),
-          mPitch: Number(byId("mPitch").value),
-          aimStyle: selected("aimStyle"), role: selected("role"), priority: selected("priority"), mode: selected("mode")
-        };
-        var validation = Core.validateProfile(profile);
-        if (!validation.valid) throw new Error(validation.errors[0]);
-        if (!state.capability.pointerLock) throw new Error("当前浏览器不支持 Pointer Lock，请使用桌面 Chrome 或 Edge。");
-        return profile;
-      }
-
-      function stageIdFor(session) { return session.confirmationOnly ? "confirmation" : "coarse"; }
-      function createSession(profile, options) {
-        options = options || {};
-        var sessionProfile = Core.normalizeProfile(clone(profile));
-        if (options.mode) sessionProfile.mode = options.mode;
-        var mode = sessionProfile.mode;
-        var candidates = options.candidates ? clone(options.candidates) : Core.buildCoarseCandidates(sessionProfile, "coarse");
-        var seed = Number(options.seed === undefined ? randomSeed() : options.seed) >>> 0;
-        var stage = Core.createBalancedStage(options.stageId || stageIdFor(options), candidates, seed, MODES[mode].passes, Boolean(options.confirmation));
-        sessionSequence += 1;
-        return {
-          version: Core.version,
-          id: "session-" + Date.now().toString(36) + "-" + seed.toString(36) + "-" + sessionSequence.toString(36),
-          createdAt: isoNow(), profile: sessionProfile, mode: mode,
-          inputMode: options.inputMode || "pending",
-          inputCapability: { unadjustedMovementRequested: false, fallback: Boolean(options.inputMode === "compat") },
-          seed: seed, stages: [stage], stageIndex: 0, blocks: [], status: "ready",
-          validTaskMs: 0, anomalies: [], interruptions: [], boundaryExpansionUsed: false,
-          confirmationOnly: Boolean(options.confirmation), priorSummaryId: options.priorSummaryId || null
-        };
-      }
-      function currentStage(session) { return session && session.stages[session.stageIndex || 0]; }
-      function blockKey(stage, pass, candidateKey) { return stage.id + ":" + pass + ":" + candidateKey; }
-      function savedBlock(session, stage, pass, candidateKey) {
-        var id = blockKey(stage, pass, candidateKey);
-        return session.blocks.find(function (block) { return block.id === id; }) || null;
-      }
-      function getNextBlock(session) {
-        var stage = currentStage(session);
-        if (!stage) return null;
-        for (var pass = 0; pass < stage.passes; pass += 1) {
-          var order = stage.orders[pass] || [];
-          for (var index = 0; index < order.length; index += 1) {
-            var candidateKey = order[index];
-            if (!savedBlock(session, stage, pass, candidateKey)) {
-              return {
-                stage: stage, pass: pass, position: index, candidateKey: candidateKey,
-                candidate: candidateByKey(stage, candidateKey), seed: stage.passSeeds[pass],
-                orderIndex: pass * 3 + index
-              };
-            }
-          }
-        }
-        return null;
-      }
-      function completedBlockCount(session) { return session ? session.blocks.length : 0; }
-      function estimatedBlockCount(session) {
-        return session ? session.stages.reduce(function (total, stage) { return total + stage.passes * stage.candidates.length; }, 0) : 0;
-      }
-
-      function saveState() {
-        try {
-          var session = state.session ? clone(state.session) : null;
-          if (session && session.status === "running") session.status = "paused";
-          localStorage.setItem(C.storageKey, JSON.stringify({
-            version: Core.version, profile: state.profile, session: session, result: state.result, history: state.history.slice(-100)
-          }));
-        } catch (error) {
-          /* Local-only persistence can be blocked by private browsing policies. */
-        }
-      }
-      function parseStorage(key) {
-        try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (error) { return null; }
-      }
-      function restoreState() {
-        var saved = parseStorage(C.storageKey);
-        var migrated = Core.migratePersistedState({ v3: saved, v2: parseStorage("cs2-sens-lab-v2") });
-        state.profile = migrated.profile;
-        state.session = migrated.session;
-        state.result = migrated.result;
-        state.history = migrated.history || [];
-        if (state.profile) fillProfile(state.profile);
-        if (state.session && state.session.status !== "complete") state.session.status = "paused";
-        if (migrated.migratedFrom === "v2") {
-          setText(els.formError, "已迁移 v2 档案；旧会话与旧结果已作废，未删除原存储。请建立新的 v3 会话。");
-          els.formError.style.color = "var(--amber)";
-          saveState();
-        }
-      }
-
-      function renderLab() {
-        var session = state.session;
-        if (!session) return;
-        var profile = session.profile;
-        setText(els.miniDpi, String(profile.dpi));
-        setText(els.miniYaw, Number(profile.mYaw).toFixed(3));
-        setText(els.miniPitch, Number(profile.mPitch).toFixed(3));
-        setText(els.miniMode, MODES[session.mode].label);
-        var inputText = session.inputMode === "raw" ? "已请求未加速" : session.inputMode === "compat" ? "兼容相对输入" : "待锁定";
-        setText(els.miniInput, inputText);
-        setText(els.inputRequirement, session.inputMode === "compat" ? "兼容输入会话只可作为 Express / Quick 方向筛选，永不产生稳定候选。" : "优先请求未加速相对输入。若失败，将丢弃本方案并重建兼容 Express / Quick 会话。");
-        var total = estimatedBlockCount(session);
-        var completed = completedBlockCount(session);
-        setText(els.completionText, completed + " / " + total);
-        els.progressFill.style.width = (total ? completed / total * 100 : 0) + "%";
-        els.queueList.innerHTML = "";
-        var stage = currentStage(session);
-        if (stage) {
-          for (var pass = 0; pass < stage.passes; pass += 1) {
-            (stage.orders[pass] || []).forEach(function (candidateKey) {
-              var item = document.createElement("li");
-              item.className = "queue-item";
-              var done = savedBlock(session, stage, pass, candidateKey);
-              var next = getNextBlock(session);
-              if (done) item.classList.add("is-done");
-              if (next && next.pass === pass && next.candidateKey === candidateKey) item.classList.add("is-current");
-              item.innerHTML = "<b>候选 " + Core.candidateLabel(stage, candidateKey) + " · 第 " + (pass + 1) + " 轮</b><span>" + (done ? "完整分轮已记录" : item.classList.contains("is-current") ? "下一组盲测" : "待进行") + "</span>";
-              els.queueList.appendChild(item);
-            });
-          }
-        }
-        var canStart = (session.status === "ready" || session.status === "paused") && !state.awaitingLock && !state.active && document.pointerLockElement !== els.arena;
-        els.startSession.disabled = !canStart;
-        els.pauseSession.disabled = !state.active;
-      }
-
-      function beginProfileSession() {
-        try {
-          state.profile = readProfile();
-          state.session = createSession(state.profile);
-          state.result = null;
-          saveState();
-          renderLab();
-          setOverlay({
-            kicker: "CANDIDATE SESSION READY", title: "准备开始盲测",
-            copy: "候选 A/B/C 的实际数值保持隐藏。点击一次锁定鼠标；目标无需点击，停留 100 ms 才算命中。",
-            actionLabel: "锁定鼠标并开始", action: requestSessionLock
-          });
-          setText(els.formError, "候选方案已建立：当前灵敏度只作为搜索中心，不参与最终胜负。");
-          els.formError.style.color = "var(--green)";
-          showView("lab");
-        } catch (error) {
-          setText(els.formError, error.message);
-          els.formError.style.color = "var(--red)";
-        }
-      }
-      function restartSameProfile() {
-        if (!state.profile) return;
-        state.session = createSession(state.profile);
-        state.result = null;
-        saveState();
-        renderLab();
-        setOverlay({ kicker: "NEW BLIND SESSION", title: "已按相同档案重新建方案", copy: "新的种子会生成新的匹配目标序列；不保存逐帧鼠标轨迹。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
-        showView("lab");
-      }
-
-      function createRun(descriptor, phase, phaseUntil) {
-        var timestamp = now();
-        var viewport = { width: Math.max(1, els.arena.clientWidth), height: Math.max(1, els.arena.clientHeight) };
-        return {
-          descriptor: descriptor, stage: descriptor.stage, candidate: descriptor.candidate, mode: MODES[state.session.mode],
-          phase: phase || "countdown", phaseUntil: phaseUntil || timestamp + 3000, lastFrameAt: timestamp,
-          camera: { yaw: 0, pitch: 0 }, presentationCamera: { yaw: 0, pitch: 0 }, viewport: viewport,
-          target: null, taskIndex: -1, taskName: null, taskResults: {}, sequences: {}, taskData: null,
-          inputEvents: 0, rawDistance: 0, taskInputSamples: {}, pathDegrees: 0, validTaskMs: 0, frameSamples: 0,
-          startedAt: timestamp, taskStartedAt: 0, taskEndAt: 0
-        };
-      }
-      function scheduleFrame() { state.scheduler.request(runFrame); }
-      function startNextBlock(delay) {
-        var descriptor = getNextBlock(state.session);
-        if (!descriptor) { resolveStage(); return; }
-        var timestamp = now();
-        state.active = createRun(descriptor, delay ? "between-block" : "countdown", delay ? timestamp + delay : timestamp + 3000);
-        state.session.status = "running";
-        els.arena.classList.add("is-locked");
-        els.liveDot.classList.add("is-live");
-        setText(els.arenaTitle, "候选 " + Core.candidateLabel(descriptor.stage, descriptor.candidateKey) + " · 第 " + (descriptor.pass + 1) + " 轮");
-        setText(els.arenaSubtitle, "BLIND CANDIDATE / " + descriptor.stage.id.toUpperCase());
-        setText(els.arenaHits, "00");
-        if (delay) {
-          setOverlay({ kicker: "BLOCK SAVED / NEXT AUTO START", title: "下一组候选准备中", copy: "保持鼠标锁定；适应段会自动开始。" });
-        } else {
-          setOverlay({ kicker: "INPUT LOCKED / GET READY", title: "虚拟准星即将开始", copy: "目标不需要点击。首次擦入只提供反馈，连续停留 100 ms 才命中。", number: "3" });
-        }
-        renderLab();
-        scheduleFrame();
-      }
-      function startCountdown(run, timestamp) {
-        run.phase = "countdown";
-        run.phaseUntil = timestamp + 3000;
-        setText(els.arenaStatus, "COUNT");
-        setOverlay({ kicker: "INPUT LOCKED / GET READY", title: "虚拟准星即将开始", copy: "目标不需要点击。首次擦入只提供反馈，连续停留 100 ms 才命中。", number: "3" });
-      }
-      function beginAdaptation(run, timestamp) {
-        run.phase = "adapt";
-        run.phaseUntil = timestamp + run.mode.adaptMs;
-        run.camera = { yaw: 0, pitch: 0 };
-        run.presentationCamera = { yaw: 0, pitch: 0 };
-        run.target = { yaw: 0, pitch: 0, radius: 1.7, inContact: false };
-        hideOverlay();
-        setText(els.arenaStatus, "ADAPT");
-      }
-      function startTask(run, taskIndex, timestamp) {
-        run.phase = "task";
-        run.taskIndex = taskIndex;
-        run.taskName = TASKS[taskIndex];
-        run.taskStartedAt = timestamp;
-        run.taskEndAt = timestamp + run.mode.taskMs;
-        run.target = null;
-        run.camera = { yaw: 0, pitch: 0 };
-        run.presentationCamera = { yaw: 0, pitch: 0 };
-        run.sequences[run.taskName] = Core.createTaskSequence(run.taskName, (run.descriptor.seed + taskIndex * 733) >>> 0, run.mode.taskMs);
-        run.taskData = {
-          hits: [], misses: 0, overshoots: 0, corrections: 0, undershoots: 0, overshootsAtTimeout: 0,
-          sampleMs: 0, contactMs: 0, errorSquaredMs: 0, errorMs: 0, reacquireMs: [], reacquireStartedAt: null,
-          lastSegmentIndex: -1, cameraPathDegrees: 0, targetPathDegrees: 0, inputEvents: 0, rawDistance: 0
-        };
-        setText(els.arenaStatus, "LIVE");
-        setText(els.arenaTitle, TASK_LABELS[run.taskName] + " · 候选 " + Core.candidateLabel(run.stage, run.descriptor.candidateKey));
-        setText(els.arenaSubtitle, "TEST " + (taskIndex + 1) + " / 3 · " + run.stage.id.toUpperCase());
-        setText(els.arenaHits, "00");
-      }
-      function spawnAcquisitionTarget(run, timestamp) {
-        var sequence = run.sequences[run.taskName];
-        var index = run.taskData.hits.length + run.taskData.misses;
-        var trial = sequence.targets[index % sequence.targets.length];
-        var placed = Core.placeAcquisitionTarget(run.camera, trial, 44);
-        var target = {
-          yaw: placed.yaw, pitch: placed.pitch, radius: trial.radius,
-          amplitude: placed.amplitude, id: Core.taskDifficulty(placed.amplitude, trial.radius), bornAt: timestamp,
-          timeoutAt: timestamp + trial.timeoutMs, dwell: Core.createDwellState(), inContact: false,
-          pathAtBorn: run.pathDegrees
-        };
-        target.axis = Core.createAxisState(run.camera, target);
-        run.target = target;
-      }
-      function recordAcquisitionHit(run, timestamp) {
-        var target = run.target;
-        if (!target) return;
-        run.taskData.hits.push({
-          movementMs: timestamp - target.bornAt,
-          settleMs: timestamp - target.dwell.enteredAt,
-          overshoots: target.axis.overshoots, corrections: target.axis.corrections,
-          amplitude: target.amplitude, id: target.id,
-          pathDegrees: Math.max(0, run.pathDegrees - target.pathAtBorn)
-        });
-        run.taskData.overshoots += target.axis.overshoots;
-        run.taskData.corrections += target.axis.corrections;
-        run.target = null;
-        setText(els.arenaHits, String(run.taskData.hits.length).padStart(2, "0"));
-      }
-      function recordAcquisitionMiss(run) {
-        var target = run.target;
-        if (target && target.axis) {
-          if (target.axis.signedError >= 0) run.taskData.undershoots += 1;
-          else run.taskData.overshootsAtTimeout += 1;
-          run.taskData.overshoots += target.axis.overshoots;
-          run.taskData.corrections += target.axis.corrections;
-        }
-        run.taskData.misses += 1;
-        run.target = null;
-      }
-      function updateAcquisition(run, timestamp) {
-        if (!run.target) spawnAcquisitionTarget(run, timestamp);
-        var target = run.target;
-        if (!target) return;
-        target.axis = Core.updateAxisState(target.axis, run.camera);
-        var contact = Core.angularDistance(target, run.camera) <= target.radius;
-        target.dwell = Core.updateDwell(target.dwell, contact, timestamp);
-        target.inContact = target.dwell.feedback;
-        if (target.dwell.hit) { recordAcquisitionHit(run, timestamp); return; }
-        if (timestamp >= target.timeoutAt) recordAcquisitionMiss(run);
-      }
-      function updateTracking(run, timestamp, dt) {
-        var elapsed = timestamp - run.taskStartedAt;
-        var position = Core.trackPosition(run.sequences.track, elapsed);
-        run.target = { yaw: position.yaw, pitch: position.pitch, radius: position.radius, inContact: false };
-        var error = Core.angularDistance(run.target, run.camera);
-        var contact = error <= position.radius;
-        run.target.inContact = contact;
-        run.taskData.sampleMs += dt;
-        run.taskData.errorSquaredMs += error * error * dt;
-        run.taskData.errorMs += error * dt;
-        if (contact) run.taskData.contactMs += dt;
-        run.taskData.targetPathDegrees += position.speed * dt / 1000;
-        if (position.segmentIndex !== run.taskData.lastSegmentIndex) {
-          if (run.taskData.lastSegmentIndex >= 0) run.taskData.reacquireStartedAt = timestamp;
-          run.taskData.lastSegmentIndex = position.segmentIndex;
-        }
-        if (contact && run.taskData.reacquireStartedAt !== null) {
-          run.taskData.reacquireMs.push(timestamp - run.taskData.reacquireStartedAt);
-          run.taskData.reacquireStartedAt = null;
-        }
-        setText(els.arenaHits, Math.round(run.taskData.contactMs / 1000).toString().padStart(2, "0"));
-      }
-      function finalizeAcquisitionTask(run) {
-        if (run.target) recordAcquisitionMiss(run);
-        var data = run.taskData;
-        var total = data.hits.length + data.misses;
-        var hits = data.hits;
-        var denominator = Math.max(1, total);
-        run.taskResults[run.taskName] = {
-          timePerId: Core.median(hits.map(function (hit) { return hit.movementMs / 1000 / Math.max(0.1, hit.id); })) || 9,
-          missRate: data.misses / denominator,
-          settleMs: Core.median(hits.map(function (hit) { return hit.settleMs; })) || run.mode.taskMs,
-          overshootCorrection: (data.overshoots + data.corrections) / denominator,
-          pathInefficiency: hits.length ? Core.mean(hits.map(function (hit) { return Math.max(0, hit.pathDegrees / Math.max(0.1, hit.amplitude) - 1); })) : 3,
-          hits: hits.length, misses: data.misses, overshoots: data.overshoots + data.overshootsAtTimeout,
-          undershoots: data.undershoots, corrections: data.corrections
-        };
-      }
-      function finalizeTrackingTask(run) {
-        var data = run.taskData;
-        var duration = Math.max(1, data.sampleMs);
-        var seconds = duration / 1000;
-        run.taskResults.track = {
-          rmsError: Math.sqrt(data.errorSquaredMs / duration),
-          offTargetRatio: Core.clamp(1 - data.contactMs / duration, 0, 1),
-          reacquireMs: Core.median(data.reacquireMs) || run.mode.taskMs,
-          speedMismatch: Math.abs(data.cameraPathDegrees / seconds - data.targetPathDegrees / seconds),
-          contactRatio: Core.clamp(data.contactMs / duration, 0, 1), sampleMs: data.sampleMs
-        };
-      }
-      function finishTask(run, timestamp) {
-        var taskInput = run.taskData ? { events: run.taskData.inputEvents, distance: run.taskData.rawDistance } : { events: 0, distance: 0 };
-        run.taskInputSamples[run.taskName] = taskInput;
-        var requiredEvents = run.mode === MODES.express ? 2 : 4;
-        var requiredDistance = run.mode === MODES.express ? 10 : 20;
-        if (taskInput.events < requiredEvents || taskInput.distance < requiredDistance) {
-          abortActive("本任务输入样本不足，本轮已作废。", true);
-          return;
-        }
-        run.validTaskMs += Math.min(run.mode.taskMs, Math.max(0, timestamp - run.taskStartedAt));
-        if (run.taskName === "track") finalizeTrackingTask(run); else finalizeAcquisitionTask(run);
-        run.target = null;
-        if (run.taskIndex + 1 < TASKS.length) {
-          run.phase = "between-task";
-          run.phaseUntil = timestamp + BETWEEN_TASK_MS;
-          setOverlay({ kicker: "TASK " + (run.taskIndex + 1) + " / 3 COMPLETE", title: TASK_LABELS[run.taskName] + "已记录", copy: "下一项会自动开始；候选数值仍保持隐藏。" });
-        } else {
-          finishBlock(run);
-        }
-      }
-      function blockValidityIssue(run) {
-        if (run.inputEvents < MIN_INPUT_EVENTS || run.rawDistance < MIN_RAW_DISTANCE) return "输入样本不足，本轮已作废。";
-        var minimumTrials = run.mode === MODES.express ? 2 : MIN_TRIALS;
-        ["flick", "lateral"].forEach(function (task) {
-          var metrics = run.taskResults[task];
-          if (!metrics || metrics.hits + metrics.misses < minimumTrials) minimumTrials = -1;
-        });
-        if (minimumTrials === -1) return "有效目标样本不足，本轮已作废。";
-        if (!run.taskResults.track || run.taskResults.track.sampleMs < run.mode.taskMs * 0.9) return "追踪采样时长不足，本轮已作废。";
-        var missingTaskInput = TASKS.some(function (task) {
-          var sample = run.taskInputSamples[task] || {};
-          return !Number.isFinite(Number(sample.events)) || !Number.isFinite(Number(sample.distance));
-        });
-        if (missingTaskInput) return "任务输入样本不完整，本轮已作废。";
-        return "";
-      }
-      function summarizeBlock(run) {
-        return {
-          id: blockKey(run.stage, run.descriptor.pass, run.descriptor.candidateKey),
-          stageId: run.stage.id, pass: run.descriptor.pass, orderIndex: run.descriptor.orderIndex,
-          candidateKey: run.descriptor.candidateKey, candidateSensitivity: run.candidate.sensitivity, candidateCm: run.candidate.cm,
-          label: Core.candidateLabel(run.stage, run.descriptor.candidateKey), seed: run.descriptor.seed,
-          valid: true, validTaskMs: run.validTaskMs, inputMode: state.session.inputMode,
-          inputSamples: clone(run.taskInputSamples), tasks: clone(run.taskResults), completedAt: isoNow()
-        };
-      }
-      function addInterruption(reason, anomaly) {
-        if (!state.session) return;
-        state.session.interruptions.push({ at: isoNow(), reason: reason });
-        if (anomaly) state.session.anomalies.push(reason);
-      }
-      function abortActive(reason, anomaly) {
-        if (!state.active) return;
-        state.scheduler.cancel();
-        state.active = null;
-        resetScene();
-        els.liveDot.classList.remove("is-live");
-        els.arena.classList.remove("is-locked");
-        setText(els.arenaStatus, "VOID");
-        setText(els.arenaTime, "--");
-        addInterruption(reason, anomaly !== false);
-        state.session.status = "paused";
-        saveState();
-        renderLab();
-        setOverlay({ kicker: "CURRENT BLOCK DISCARDED", title: "当前分轮已作废", copy: reason + " 重新锁定后会从该候选的同一分轮开始。", actionLabel: "重新锁定并继续", action: requestSessionLock });
-      }
-      function finishBlock(run) {
-        var issue = blockValidityIssue(run);
-        if (issue) { abortActive(issue, true); return; }
-        state.session.blocks.push(summarizeBlock(run));
-        state.session.validTaskMs += run.validTaskMs;
-        state.active = null;
-        resetScene();
-        saveState();
-        renderLab();
-        startNextBlock(BETWEEN_BLOCK_MS);
-      }
-
-      function nearestCandidate(candidates, leader) {
-        return candidates.filter(function (candidate) { return candidate.key !== leader.key; }).sort(function (a, b) {
-          return Math.abs(a.sensitivity - leader.sensitivity) - Math.abs(b.sensitivity - leader.sensitivity);
-        })[0] || null;
-      }
-      function beginAdditionalStage(session, id, candidates, confirmation) {
-        var seed = (session.seed + 31337 + session.stages.length * 1009) >>> 0;
-        session.stages.push(Core.createBalancedStage(id, candidates, seed, MODES[session.mode].passes, Boolean(confirmation)));
-        session.stageIndex = session.stages.length - 1;
-        saveState();
-        renderLab();
-        startNextBlock(BETWEEN_BLOCK_MS);
-      }
-      function resolveStage() {
-        var session = state.session;
-        var stage = currentStage(session);
-        var evaluation = Core.evaluateStage(session.blocks, stage, session.profile.role, { mode: session.mode, anomaly: session.anomalies.length > 0 });
-        stage.evaluation = clone(evaluation);
-        var edgeWinner = Core.isBoundaryLeader(stage, evaluation);
-        if (session.confirmationOnly) { completeSession(evaluation); return; }
-        if (edgeWinner && evaluation.uniqueLeader) {
-          if (!session.boundaryExpansionUsed) {
-            var factor = stage.id.indexOf("fine") === 0 ? 1.06 : 1.20;
-            var edge = Core.buildBoundaryCandidates(session.profile, stage, evaluation.uniqueLeader, factor, "edge");
-            if (edge.length === 3) {
-              session.boundaryExpansionUsed = true;
-              beginAdditionalStage(session, stage.id.indexOf("fine") === 0 ? "fine-edge" : "edge", edge, false);
-              return;
-            }
-          }
-          session.boundaryLimited = true;
-          completeSession(evaluation);
-          return;
-        }
-        if (session.mode === "deep" && evaluation.uniqueLeader && (stage.id === "coarse" || stage.id === "edge")) {
-          var fine = Core.buildFineCandidates(session.profile, evaluation.uniqueLeader, "fine");
-          beginAdditionalStage(session, "fine", fine, false);
-          return;
-        }
-        completeSession(evaluation);
-      }
-      function preferredRangeCandidate(range, evaluation, priority) {
-        if (!range || !range.length) return null;
-        if (priority === "speed") return range.slice().sort(function (a, b) { return b.sensitivity - a.sensitivity; })[0];
-        if (priority === "control") return range.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; })[0];
-        return range.slice().sort(function (a, b) { return (evaluation.medians[a.key] || 0) - (evaluation.medians[b.key] || 0); })[0];
-      }
-      function makeResult(session, stage, evaluation) {
-        var range = (evaluation.rangeCandidates || stage.candidates).slice();
-        var main = null;
-        if (session.boundaryLimited) {
-          var leader = evaluation.uniqueLeader || evaluation.ranking[0];
-          var neighbor = leader && nearestCandidate(stage.candidates, leader);
-          range = [leader, neighbor].filter(Boolean);
-        } else if ((session.mode === "standard" || session.mode === "deep") && session.inputMode === "raw" && evaluation.uniqueLeader && !evaluation.anomaly) {
-          main = evaluation.uniqueLeader;
-          range = [main];
-        }
-        range.sort(function (a, b) { return a.sensitivity - b.sensitivity; });
-        var preference = !main ? preferredRangeCandidate(range, evaluation, session.profile.priority) : null;
-        var evidence;
-        if (session.inputMode !== "raw") evidence = "兼容方向筛选";
-        else if (session.mode === "express") evidence = "极速粗筛";
-        else if (session.mode === "quick") evidence = "快速范围";
-        else if (session.boundaryLimited) evidence = "边界范围";
-        else if (main) evidence = "会话主推荐";
-        else evidence = "当前测试无法进一步区分";
-        return {
-          algorithmVersion: Core.version, taskVersion: C.taskVersion, completedAt: isoNow(),
-          mode: session.mode, inputMode: session.inputMode, profile: clone(session.profile), stage: stage.id,
-          finalCandidates: clone(stage.candidates), range: range, main: main, displayPreference: preference,
-          boundaryLimited: Boolean(session.boundaryLimited), evaluation: clone(evaluation),
-          variability: Core.summarizeRetestVariability(evaluation), evidence: evidence
-        };
-      }
-      function buildHistoryEvidence(summary, confirmation) {
-        var comparable = state.history.filter(function (item) {
-          return item && item.algorithmVersion === summary.algorithmVersion && item.taskVersion === summary.taskVersion && item.profileSignature === summary.profileSignature && item.grid === summary.grid;
-        });
-        return {
-          storedSessions: state.history.length,
-          sameGridSessions: comparable.length,
-          eligible: Boolean(summary.eligible),
-          crossSessionStable: Boolean(confirmation && confirmation.stable),
-          nextEligibleAt: confirmation && confirmation.nextEligibleAt ? confirmation.nextEligibleAt : null
-        };
-      }
-      function completeSession(evaluation) {
-        var session = state.session;
-        var stage = currentStage(session);
-        var result = makeResult(session, stage, evaluation);
-        session.status = "complete";
-        session.completedAt = result.completedAt;
-        session.result = clone(result);
-        var summary = Core.createSessionSummary(session, result);
-        state.history = Core.appendHistory(state.history, summary);
-        var confirmation = Core.findCrossSessionConfirmation(state.history, summary, Date.now());
-        result.summary = summary;
-        result.confirmation = confirmation;
-        result.historyEvidence = buildHistoryEvidence(summary, confirmation);
-        if (confirmation.stable) result.evidence = "跨会话稳定候选";
-        session.result = clone(result);
-        state.result = result;
-        resetScene();
-        els.liveDot.classList.remove("is-live");
-        els.arena.classList.remove("is-locked");
-        saveState();
-        releasePointerLock();
-        renderRecommendation();
-        showView("result");
-      }
-
-      function resultTaskMetrics(result) {
-        var candidate = result.main || result.displayPreference || result.range[0];
-        if (!candidate) return null;
-        var source = result.summary && Array.isArray(result.summary.roundMetrics) ? result.summary.roundMetrics : (state.session && state.session.blocks || []);
-        var blocks = source.filter(function (block) { return block.candidateKey === candidate.key && block.valid !== false; });
-        function values(task, name) { return blocks.map(function (block) { return block.tasks[task] && block.tasks[task][name]; }).filter(Number.isFinite); }
-        return {
-          flickTime: Core.median(values("flick", "timePerId")), flickMiss: Core.mean(values("flick", "missRate")),
-          flickOver: Core.mean(values("flick", "overshoots")), flickUnder: Core.mean(values("flick", "undershoots")),
-          lateralTime: Core.median(values("lateral", "timePerId")), lateralOver: Core.mean(values("lateral", "overshoots")),
-          lateralUnder: Core.mean(values("lateral", "undershoots")), trackRms: Core.median(values("track", "rmsError")),
-          trackOff: Core.mean(values("track", "offTargetRatio"))
-        };
-      }
-      function renderTaskSummary(result) {
-        var metrics = resultTaskMetrics(result);
-        if (!metrics) { els.taskSummary.innerHTML = "<li>无可用的完整任务数据。</li>"; return; }
-        els.taskSummary.innerHTML =
-          "<li><b>小目标获取</b> · 每 bit " + metrics.flickTime.toFixed(2) + " s · 漏失 " + Math.round(metrics.flickMiss * 100) + "% · 过甩 / 欠甩 " + metrics.flickOver.toFixed(2) + " / " + metrics.flickUnder.toFixed(2) + "</li>" +
-          "<li><b>横向急停</b> · 每 bit " + metrics.lateralTime.toFixed(2) + " s · 过甩 / 欠甩 " + metrics.lateralOver.toFixed(2) + " / " + metrics.lateralUnder.toFixed(2) + "</li>" +
-          "<li><b>平滑追踪</b> · RMS " + metrics.trackRms.toFixed(2) + "° · 脱靶 " + Math.round(metrics.trackOff * 100) + "%</li>";
-      }
-      function renderRecommendation() {
-        var result = state.result;
-        if (!result) return;
-        var main = result.main;
-        var rangeText = formatRange(result.range);
-        var rangeOnly = !main;
-        setText(els.resultPrimaryLabel, main ? "SESSION MAIN RECOMMENDATION" : "MEASURED CANDIDATE RANGE");
-        setText(els.resultSens, main ? Core.formatSensitivity(main.sensitivity) : rangeText);
-        setText(els.resultUnit, main ? "CS2 sensitivity · 本次实际测试候选" : "仅输出实测范围，不等于唯一最优");
-        setText(els.commandText, main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) : (MODES[result.mode].label + "不提供单一命令"));
-        els.copyCommand.disabled = rangeOnly;
-        setText(els.rangeSens, rangeText);
-        setText(els.rangeCopy, main ? "主推荐已满足三轮支配规则" : result.displayPreference ? "展示偏向：" + (result.profile.priority === "speed" ? "较快端" : result.profile.priority === "control" ? "较稳端" : "综合损失较低端") : "当前测试无法进一步区分");
-        setText(els.resultCm, main ? formatCm(main.cm) + " cm" : "范围候选");
-        setText(els.resultEdpi, main ? "eDPI " + Math.round(main.sensitivity * result.profile.dpi) : "不输出单一 eDPI");
-        setText(els.resultEvidence, result.evidence);
-        setText(els.evidenceCopy, result.inputMode === "raw" ? "已请求未加速相对输入" : "兼容相对输入，不能稳定推荐");
-        els.rangeList.innerHTML = "";
-        result.range.forEach(function (candidate) {
-          var item = document.createElement("div");
-          var isMain = main && candidate.key === main.key;
-          var isPreference = !main && result.displayPreference && candidate.key === result.displayPreference.key;
-          item.className = "range-option" + (isMain ? " is-main" : "");
-          var label = isMain ? "会话主推荐" : isPreference ? "展示偏向" : "实测范围候选";
-          item.innerHTML = "<div><strong>" + label + "</strong><span>" + formatCm(candidate.cm) + " cm / 360° · 实际候选</span></div><b>" + Core.formatSensitivity(candidate.sensitivity) + "</b>";
-          els.rangeList.appendChild(item);
-        });
-        var evaluation = result.evaluation || {};
-        var variability = result.variability || Core.summarizeRetestVariability(evaluation);
-        var historyEvidence = result.historyEvidence || {};
-        els.reasonList.innerHTML =
-          "<li>每项指标先在同一 pass、同一任务内相对候选中位数转换为对数损失，并钳制到 ±ln(3)。</li>" +
-          "<li>复测波动：同候选分轮损失 MAD 为 " + (variability.pairwiseMad * 100).toFixed(1) + "%；去候选时间漂移为 " + (variability.sessionDrift * 100).toFixed(1) + "% 。</li>" +
-          "<li>本会话的最大区分阈值为 " + (variability.maxThreshold * 100).toFixed(1) + "%（max(3%、1.4826 × MAD、Theil–Sen 漂移)）。</li>" +
-          "<li>" + (main ? "该候选在三个 pass 均支配另外两个候选。" : "未满足三个 pass 均支配的条件，因此保留连续实测范围。") + "</li>" +
-          "<li>历史证据：已保存 " + (historyEvidence.storedSessions || 0) + " 个本地会话；相同网格 " + (historyEvidence.sameGridSessions || 0) + " 次" + (historyEvidence.crossSessionStable ? "，已满足跨会话稳定候选。" : historyEvidence.eligible ? "，需相隔至少 24 小时的同网格确认。" : "；当前会话不进入跨会话确认。") + "</li>" +
-          (result.boundaryLimited ? "<li>领先候选触及已测边界；已停止一次外扩并禁用单一命令。</li>" : "");
-        renderTaskSummary(result);
-        els.gameReviewList.innerHTML = "<li>仅在标准 / 深度、原始输入且满足支配规则时复制单一 <b>sensitivity</b> 命令。</li><li>请在同一 CS2 训练场景复核实测范围；网页结果不证明实战提升。</li><li>若修改过 <b>m_yaw</b> 或 <b>m_pitch</b>，请在游戏内保持一致。</li>";
-        setText(els.methodYaw, formatConfig(result.profile.mYaw));
-        setText(els.methodPitch, formatConfig(result.profile.mPitch));
-        setText(els.reproductionBlock, "m_yaw " + formatConfig(result.profile.mYaw) + "\nm_pitch " + formatConfig(result.profile.mPitch) + (main ? "\nsensitivity " + Core.formatSensitivity(main.sensitivity) : ""));
-        setText(els.precisionSens, result.range[0] ? Core.formatSensitivity(result.range[0].sensitivity) : "");
-        setText(els.speedSens, result.range[result.range.length - 1] ? Core.formatSensitivity(result.range[result.range.length - 1].sensitivity) : "");
-        setText(els.resultConfidence, result.evidence);
-        renderConfirmationAction(result);
-      }
-      function renderConfirmationAction(result) {
-        var button = els.confirmSession;
-        var confirmation = result.confirmation;
-        var eligible = result.summary && result.summary.eligible;
-        button.hidden = !eligible || (confirmation && confirmation.stable);
-        if (button.hidden) return;
-        var time = confirmation && confirmation.nextEligibleAt ? new Date(confirmation.nextEligibleAt).getTime() : Date.now();
-        var available = time <= Date.now();
-        button.disabled = !available;
-        setText(button, available ? "建立跨日确认任务" : "确认任务将在 " + new Date(time).toLocaleString() + " 后可用");
-      }
-      function createConfirmationSession() {
-        if (!state.result || !state.result.summary || !state.result.summary.eligible) return;
-        var confirmation = state.result.confirmation;
-        if (!confirmation || new Date(confirmation.nextEligibleAt).getTime() > Date.now()) return;
-        state.profile = clone(state.result.profile);
-        state.session = createSession(state.profile, {
-          mode: state.result.mode, candidates: state.result.finalCandidates, confirmation: true,
-          stageId: "confirmation", priorSummaryId: state.result.summary.id
-        });
-        state.result = null;
-        saveState();
-        renderLab();
-        setOverlay({ kicker: "CROSS-DAY CONFIRMATION", title: "相同网格确认任务已建立", copy: "使用 CBA / ACB / BAC 互补顺序。只有无反向失败的同一领先候选才会成为跨会话稳定候选。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
-        showView("lab");
-      }
-      function reportText() {
-        var result = state.result;
-        if (!result) return "";
-        var variability = result.variability || Core.summarizeRetestVariability(result.evaluation);
-        var historyEvidence = result.historyEvidence || {};
-        var metrics = resultTaskMetrics(result);
-        return [
-          "CS2 SENS / LAB 网页候选筛选结果", "算法版本：" + Core.version, "模式：" + MODES[result.mode].label,
-          "输入模式：" + (result.inputMode === "raw" ? "已请求未加速相对输入" : "兼容相对输入"),
-          "本次范围：" + formatRange(result.range), "主推荐：" + (result.main ? Core.formatSensitivity(result.main.sensitivity) : "无（当前测试无法进一步区分或模式仅输出范围）"),
-          "eDPI：" + (result.main ? Math.round(result.main.sensitivity * result.profile.dpi) : "无单一值"),
-          "cm/360：" + (result.main ? formatCm(result.main.cm) + " cm" : "无单一值"),
-          "m_yaw：" + formatConfig(result.profile.mYaw), "m_pitch：" + formatConfig(result.profile.mPitch),
-          "命令：" + (result.main ? "sensitivity " + Core.formatSensitivity(result.main.sensitivity) : "不提供单一命令"),
-          "复测波动（分轮损失 MAD）：" + (variability.pairwiseMad * 100).toFixed(1) + "%", "去候选时间漂移：" + (variability.sessionDrift * 100).toFixed(1) + "%",
-          "历史证据：保存会话 " + (historyEvidence.storedSessions || 0) + "，相同网格 " + (historyEvidence.sameGridSessions || 0) + (historyEvidence.crossSessionStable ? "（跨会话稳定）" : ""),
-          metrics ? "任务表现：获取 " + metrics.flickTime.toFixed(2) + "s/bit，过甩/欠甩 " + metrics.flickOver.toFixed(2) + "/" + metrics.flickUnder.toFixed(2) + "；急停 " + metrics.lateralTime.toFixed(2) + "s/bit，过甩/欠甩 " + metrics.lateralOver.toFixed(2) + "/" + metrics.lateralUnder.toFixed(2) + "；追踪 RMS " + metrics.trackRms.toFixed(2) + "°" : "任务表现：无可用完整指标",
-          "证据：" + result.evidence, "报告声明：非官方网页模拟，不连接 Aim Lab。", "未经过 CS2 游戏内提升验证。"
-        ].join("\n");
-      }
-      function copyText(value, success) {
-        if (!value) return;
-        function fallback() {
-          var area = document.createElement("textarea");
-          area.value = value; area.setAttribute("readonly", "");
-          area.style.position = "fixed"; area.style.opacity = "0"; document.body.appendChild(area); area.select();
-          try { document.execCommand("copy"); toast(success); } finally { document.body.removeChild(area); }
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value).then(function () { toast(success); }, fallback); else fallback();
-      }
-
-      function requestSessionLock() {
-        if (!state.session || state.awaitingLock || state.active || document.pointerLockElement === els.arena) return;
-        var raw = state.session.inputMode !== "compat";
-        state.awaitingLock = true;
-        state.lockKind = raw ? "raw" : "compat";
-        if (state.lockTimer) { window.clearTimeout(state.lockTimer); state.lockTimer = 0; }
-        if (raw) state.session.inputCapability.unadjustedMovementRequested = true;
-        try {
-          var request = raw ? els.arena.requestPointerLock({ unadjustedMovement: true }) : els.arena.requestPointerLock();
-          if (request && typeof request.then === "function") request.catch(function () { handleLockFailure(raw); });
-        } catch (error) {
-          handleLockFailure(raw);
-          return;
-        }
-        /* Some Pointer Lock implementations neither return a promise nor emit
-           pointerlockerror for an unsupported raw-input request.  Treat a
-           bounded no-lock response as failure, then rebuild a clean compat
-           session instead of silently leaving a raw session pending. */
-        state.lockTimer = window.setTimeout(function () {
-          if (state.awaitingLock && document.pointerLockElement !== els.arena) handleLockFailure(raw);
-        }, 1500);
-        renderLab();
-      }
-      function handleLockFailure(raw) {
-        if (!state.awaitingLock) return;
-        state.awaitingLock = false;
-        if (state.lockTimer) { window.clearTimeout(state.lockTimer); state.lockTimer = 0; }
-        if (raw) {
-          var compatibilityProfile = clone(state.session.profile);
-          compatibilityProfile.mode = Core.compatibilityMode(compatibilityProfile.mode);
-          state.profile = compatibilityProfile;
-          state.session = createSession(compatibilityProfile, { mode: compatibilityProfile.mode, inputMode: "compat" });
-          state.result = null;
-          saveState();
-          renderLab();
-          setOverlay({ kicker: "RAW INPUT UNAVAILABLE", title: "已重建兼容方向筛选会话", copy: "原始输入失败；原会话成绩不会混入。兼容会话仅能使用 Express / Quick，永不显示稳定候选或单一命令。", actionLabel: "以兼容相对输入开始", action: requestSessionLock });
-          return;
-        }
-        renderLab();
-        setOverlay({ kicker: "POINTER LOCK FAILED", title: "无法锁定鼠标", copy: "请点击测试区域后重试；当前没有记录任何分轮。", actionLabel: "重试锁定", action: requestSessionLock });
-      }
-      function releasePointerLock() {
-        if (document.pointerLockElement === els.arena && document.exitPointerLock) {
-          state.intentionalUnlock = true;
-          document.exitPointerLock();
-        }
-      }
-      function onPointerLockChange() {
-        if (document.pointerLockElement === els.arena) {
-          if (!state.awaitingLock || !state.session) return;
-          state.awaitingLock = false;
-          if (state.lockTimer) { window.clearTimeout(state.lockTimer); state.lockTimer = 0; }
-          state.session.inputMode = state.lockKind === "compat" ? "compat" : "raw";
-          state.session.status = "running";
-          startNextBlock(0);
-          return;
-        }
-        if (state.intentionalUnlock) { state.intentionalUnlock = false; return; }
-        if (state.awaitingLock) { handleLockFailure(state.lockKind === "raw"); return; }
-        if (state.active) abortActive("Pointer Lock 已丢失，本轮不能恢复累计。", true);
-      }
-
-      function viewportChanged(run) {
-        return run.viewport.width !== Math.max(1, els.arena.clientWidth) || run.viewport.height !== Math.max(1, els.arena.clientHeight);
-      }
-      function updateAdaptation(run, timestamp) {
-        var elapsed = (timestamp - run.startedAt) / 1000;
-        run.target = { yaw: Math.sin(elapsed * 1.2) * 11, pitch: Math.cos(elapsed * 0.9) * 6, radius: 1.8, inContact: false };
-      }
-      function lowInputEarly(run, timestamp) {
-        return run.phase === "task" && timestamp - run.taskStartedAt >= Math.max(3000, run.mode.taskMs * 0.65) && (!run.taskData || run.taskData.inputEvents === 0 || run.taskData.rawDistance === 0);
-      }
-      function runFrame(timestamp) {
-        var run = state.active;
-        if (!run) return;
-        if (viewportChanged(run)) { abortActive("窗口、缩放或测试区域尺寸已变化，本轮已作废。", true); return; }
-        var dt = Math.max(0, timestamp - run.lastFrameAt);
-        run.lastFrameAt = timestamp;
-        if (dt > C.stallMs) { abortActive("检测到超过 350 ms 的帧停顿，本轮已作废。", true); return; }
-        run.frameSamples += 1;
-        if (run.phase === "between-block") {
-          if (timestamp >= run.phaseUntil) startCountdown(run, timestamp);
-        } else if (run.phase === "countdown") {
-          var countdownLeft = Math.max(0, run.phaseUntil - timestamp);
-          setText(els.overlayNumber, countdownLeft ? String(Math.ceil(countdownLeft / 1000)) : "GO");
-          setText(els.arenaTime, (countdownLeft / 1000).toFixed(1));
-          if (countdownLeft <= 0) beginAdaptation(run, timestamp);
-        } else if (run.phase === "adapt") {
-          var adaptLeft = Math.max(0, run.phaseUntil - timestamp);
-          setText(els.arenaTime, (adaptLeft / 1000).toFixed(1));
-          updateAdaptation(run, timestamp);
-          if (adaptLeft <= 0) startTask(run, 0, timestamp);
-        } else if (run.phase === "task") {
-          var left = Math.max(0, run.taskEndAt - timestamp);
-          setText(els.arenaTime, (left / 1000).toFixed(1));
-          if (run.taskName === "track") updateTracking(run, timestamp, dt); else updateAcquisition(run, timestamp);
-          if (lowInputEarly(run, timestamp)) { abortActive("输入样本不足，本轮已作废。", true); return; }
-          if (left <= 0) finishTask(run, timestamp);
-        } else if (run.phase === "between-task") {
-          if (timestamp >= run.phaseUntil) { hideOverlay(); startTask(run, run.taskIndex + 1, timestamp); }
-        }
-        if (state.active) {
-          renderScene(state.active);
-          scheduleFrame();
-        }
-      }
-      function onMouseMove(event) {
-        var run = state.active;
-        if (!run || (run.phase !== "adapt" && run.phase !== "task") || document.pointerLockElement !== els.arena) return;
-        var dx = Number(event.movementX || 0);
-        var dy = Number(event.movementY || 0);
-        if (!dx && !dy) return;
-        var applied = Core.applyPointerDelta(run.camera, { x: dx, y: dy }, {
-          sensitivity: run.candidate.sensitivity, mYaw: state.session.profile.mYaw, mPitch: state.session.profile.mPitch
-        });
-        run.camera = applied.camera;
-        run.pathDegrees += applied.pathDelta;
-        if (run.phase === "task" && run.taskData) {
-          var distance = Math.sqrt(dx * dx + dy * dy);
-          run.inputEvents += 1;
-          run.rawDistance += distance;
-          run.taskData.inputEvents += 1;
-          run.taskData.rawDistance += distance;
-          if (run.taskName === "track") run.taskData.cameraPathDegrees += applied.pathDelta;
-        }
-      }
-
-      function handleInterruption(reason) { if (state.active) abortActive(reason, true); }
-      function runSelfTests() {
-        var input = Core.applyPointerDelta({ yaw: 0, pitch: 0 }, { x: 10, y: 10 }, { sensitivity: 1, mYaw: .022, mPitch: .022 });
-        if (!(input.yawDelta > 0 && input.pitchDelta < 0)) throw new Error("pointer direction invariant failed");
-        var stage = Core.createBalancedStage("self", Core.buildCoarseCandidates({ dpi: 800, currentSens: 1.2, padWidth: 45, mYaw: .022, mPitch: .022, aimStyle: "hybrid" }), 42, 3, false);
-        if (stage.orders.length !== 3 || state.scheduler.pendingCount() > 1) throw new Error("scheduler or balancing invariant failed");
-        return "CS2 SENS / LAB v3 self-tests passed.";
-      }
-      function readOnlySnapshot() {
-        return Object.freeze(clone({
-          view: state.view, profile: state.profile && { mode: state.profile.mode, mYaw: state.profile.mYaw, mPitch: state.profile.mPitch },
-          session: state.session && {
-            id: state.session.id, status: state.session.status, mode: state.session.mode, inputMode: state.session.inputMode,
-            blocks: state.session.blocks.length, anomalies: state.session.anomalies.length, interruptions: state.session.interruptions.length,
-            stage: currentStage(state.session) && currentStage(state.session).id
-          },
-          active: Boolean(state.active), result: state.result && { evidence: state.result.evidence, range: formatRange(state.result.range) }, rafPending: state.scheduler.pendingCount()
-        }));
-      }
-      window.CS2SensLab = Object.freeze({ version: Core.version, core: Core, runSelfTests: runSelfTests, snapshot: readOnlySnapshot });
-
-      els.form.addEventListener("submit", function (event) { event.preventDefault(); beginProfileSession(); });
-      els.startSession.addEventListener("click", requestSessionLock);
-      els.pauseSession.addEventListener("click", function () { if (state.active) { releasePointerLock(); abortActive("用户暂停。", false); } });
-      byId("backToProfile").addEventListener("click", function () { handleInterruption("已返回档案页。"); showView("profile"); });
-      byId("brandHome").addEventListener("click", function (event) { event.preventDefault(); handleInterruption("已返回档案页。"); showView("profile"); });
-      els.restartTests.addEventListener("click", restartSameProfile);
-      els.newProfile.addEventListener("click", function () { handleInterruption("重新填写档案。"); state.session = null; state.result = null; saveState(); showView("profile"); });
-      els.copyCommand.addEventListener("click", function () { if (state.result && state.result.main) copyText("sensitivity " + Core.formatSensitivity(state.result.main.sensitivity), "控制台命令已复制"); });
-      byId("copyReport").addEventListener("click", function () { if (state.result) copyText(reportText(), "完整报告已复制"); });
-      els.confirmSession.addEventListener("click", createConfirmationSession);
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("pointerlockchange", onPointerLockChange);
-      document.addEventListener("pointerlockerror", function () { handleLockFailure(state.lockKind === "raw"); });
-      document.addEventListener("visibilitychange", function () { if (document.hidden) handleInterruption("页面离开前台，本轮已作废。"); });
-      window.addEventListener("blur", function () { handleInterruption("窗口失焦，本轮已作废。"); });
-      window.addEventListener("pagehide", function () { handleInterruption("页面即将离开，本轮已作废。"); });
-      window.addEventListener("resize", function () { handleInterruption("窗口或缩放已变化，本轮已作废。"); });
-      if (window.visualViewport) window.visualViewport.addEventListener("resize", function () { handleInterruption("视口缩放已变化，本轮已作废。"); });
-
-      detectCapability();
-      restoreState();
-      if (location.hash === "#selftest") {
-        try { document.documentElement.setAttribute("data-selftest", runSelfTests()); }
-        catch (error) { document.documentElement.setAttribute("data-selftest", "FAILED: " + error.message); console.error(error); }
-      }
-      if (state.result) { renderRecommendation(); showView("result"); }
-      else if (state.session) {
-        renderLab();
-        setOverlay({ kicker: "SAVED SESSION AVAILABLE", title: "可继续已保存的候选会话", copy: "正在进行的旧分轮已作废；完整分轮仍保留。重新锁定后从下一组开始。", actionLabel: "重新锁定并继续", action: requestSessionLock });
-        showView("lab");
-      }
-    }());
-    /* LAB_CONTROLLER_END */
   </script>
 
   <script type="text/plain" id="lab-v2-archive" hidden>
@@ -2570,6 +1558,7 @@
           seed: seed,
           boundaryExpansionUsed: false,
           boundaryLimited: false,
+          coarseEvidence: null,
           stages: [createStage("coarse", buildCoarseCandidates(profile), MODES[profile.mode].passes, seed)],
           stageIndex: 0,
           blocks: [],
@@ -3895,6 +2884,1390 @@
           actionLabel: "重新锁定并继续",
           action: requestSessionLock
         });
+        showView("lab");
+      }
+    }());
+  </script>
+  <script id="lab-app">
+    (function () {
+      "use strict";
+      var Core = window.CS2SensLabCore;
+      if (!Core) throw new Error("CS2 SENS / LAB core failed to load.");
+      var C = Core.constants;
+      var TASK_LABELS = { flick: "小目标获取", track: "平滑追踪", lateral: "横向急停" };
+      var MIN_INPUT_EVENTS = 16;
+      var MIN_RAW_DISTANCE = 80;
+      var INTER_TASK_MS = 800;
+      var COUNTDOWN_MS = 3000;
+
+      var els = {};
+      [
+        "profileForm", "formError", "arena", "sceneTarget", "virtualCrosshair", "arenaOverlay",
+        "overlayKicker", "overlayNumber", "overlayTitle", "overlayCopy", "overlayAction", "liveDot",
+        "arenaTitle", "arenaSubtitle", "arenaStatus", "arenaHits", "arenaTime", "arenaId",
+        "capabilityDot", "capabilityStatus", "inputRequirement", "miniDpi", "miniYaw", "miniPitch",
+        "miniMode", "miniInput", "completionText", "progressTrack", "progressFill", "queueList", "startSession",
+        "pauseSession", "resultSens", "resultPrimaryLabel", "resultUnit", "commandText", "copyCommand",
+        "rangeSens", "rangeCopy", "resultCm", "resultEdpi", "resultEvidence", "evidenceCopy",
+        "rangeList", "reasonList", "taskSummary", "gameReviewList", "methodYaw", "methodPitch",
+        "reproductionBlock", "confirmSession", "precisionSens", "speedSens", "resultConfidence", "toast"
+      ].forEach(function (id) { els[id] = document.getElementById(id); });
+
+      var scheduler = Core.createRafScheduler({
+        requestFrame: function (callback) { return window.requestAnimationFrame(callback); },
+        cancelFrame: function (id) { window.cancelAnimationFrame(id); }
+      });
+      var state = {
+        view: "profile",
+        profile: null,
+        session: null,
+        result: null,
+        history: [],
+        active: null,
+        runToken: 0,
+        capability: { pointerLock: false, rawAttemptAvailable: false },
+        lock: { awaiting: false, mode: null, acquired: false, rawConfirmed: false, token: 0, timer: 0, sessionId: null },
+        intentionalExit: false,
+        exitingForResult: false,
+        toastTimer: 0
+      };
+
+      function byId(id) { return document.getElementById(id); }
+      function radioValue(name) {
+        var checked = document.querySelector('input[name="' + name + '"]:checked');
+        return checked ? checked.value : "";
+      }
+      function setRadio(name, value) {
+        var input = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
+        if (input) input.checked = true;
+      }
+      function formatCm(value) { return Core.round(value, 1).toFixed(1); }
+      function formatCvar(value) { return Number(value).toFixed(6).replace(/0+$/, "").replace(/\.$/, ""); }
+      function formatPercent(value) { return (Math.max(0, Number(value || 0)) * 100).toFixed(1) + "%"; }
+      function randomSeed() {
+        if (window.crypto && window.crypto.getRandomValues) {
+          var values = new Uint32Array(1); window.crypto.getRandomValues(values); return values[0];
+        }
+        return (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+      }
+      function showToast(message) {
+        window.clearTimeout(state.toastTimer);
+        els.toast.textContent = message;
+        els.toast.classList.add("is-visible");
+        state.toastTimer = window.setTimeout(function () { els.toast.classList.remove("is-visible"); }, 2200);
+      }
+      function showView(name) {
+        state.view = name;
+        document.querySelectorAll(".view").forEach(function (view) { view.classList.toggle("is-active", view.dataset.view === name); });
+        var order = ["profile", "lab", "result"];
+        var index = order.indexOf(name);
+        document.querySelectorAll(".step-dot").forEach(function (dot) {
+          var dotIndex = order.indexOf(dot.dataset.step);
+          dot.classList.toggle("is-active", dotIndex === index);
+          dot.classList.toggle("is-done", dotIndex < index);
+          dot.setAttribute("aria-current", dotIndex === index ? "step" : "false");
+        });
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+        var headings = { profile: "profileHeading", lab: "labHeading", result: "resultHeading" };
+        var heading = document.getElementById(headings[name]);
+        if (heading && typeof heading.focus === "function") heading.focus({ preventScroll: true });
+      }
+      function setOverlay(options) {
+        els.arenaOverlay.hidden = false;
+        els.overlayKicker.textContent = options.kicker || "";
+        els.overlayTitle.textContent = options.title || "";
+        els.overlayCopy.textContent = options.copy || "";
+        if (options.number === undefined || options.number === null || options.number === "") els.overlayNumber.hidden = true;
+        else { els.overlayNumber.hidden = false; els.overlayNumber.textContent = String(options.number); }
+        if (options.actionLabel) {
+          els.overlayAction.hidden = false;
+          els.overlayAction.textContent = options.actionLabel;
+          els.overlayAction.onclick = options.action || null;
+        } else {
+          els.overlayAction.hidden = true;
+          els.overlayAction.onclick = null;
+        }
+      }
+      function hideOverlay() { els.arenaOverlay.hidden = true; }
+      function setTargetVisible(visible) { els.sceneTarget.classList.toggle("is-visible", Boolean(visible)); }
+      function setTargetContact(contact) {
+        els.sceneTarget.classList.toggle("is-contact", Boolean(contact));
+        els.virtualCrosshair.classList.toggle("is-contact", Boolean(contact));
+      }
+      function viewportSnapshot() {
+        return { width: els.arena.clientWidth, height: els.arena.clientHeight, dpr: window.devicePixelRatio || 1 };
+      }
+      function sameViewport(first, second) {
+        return first && second && first.width === second.width && first.height === second.height && Math.abs(first.dpr - second.dpr) < 0.001;
+      }
+      function detectCapability() {
+        var supported = Boolean(els.arena && els.arena.requestPointerLock && "pointerLockElement" in document);
+        state.capability.pointerLock = supported;
+        state.capability.rawAttemptAvailable = supported;
+        els.capabilityDot.classList.toggle("is-good", supported);
+        els.capabilityStatus.textContent = supported
+          ? "可尝试 Pointer Lock 和未加速输入；只有锁定与 Promise 都确认后才标记原始输入。"
+          : "当前浏览器没有 Pointer Lock，无法运行候选对照。";
+      }
+
+      function readProfile() {
+        var currentRaw = byId("currentSens").value.trim();
+        var profile = {
+          dpi: Number(byId("dpi").value),
+          currentSens: currentRaw === "" ? null : Number(currentRaw),
+          padWidth: Number(byId("padWidth").value),
+          polling: Number(byId("polling").value),
+          mYaw: Number(byId("mYaw").value),
+          mPitch: Number(byId("mPitch").value),
+          aimStyle: radioValue("aimStyle"),
+          role: radioValue("role"),
+          priority: radioValue("priority"),
+          mode: radioValue("mode")
+        };
+        var validation = Core.validateProfile(profile);
+        if (!validation.valid) throw new Error(validation.errors[0]);
+        if (!state.capability.pointerLock) throw new Error("请使用支持 Pointer Lock 的桌面 Chrome 或 Edge。");
+        return profile;
+      }
+      function fillProfile(profile) {
+        if (!profile) return;
+        byId("dpi").value = profile.dpi === undefined ? 800 : profile.dpi;
+        byId("currentSens").value = profile.currentSens === null || profile.currentSens === undefined ? "" : profile.currentSens;
+        byId("padWidth").value = profile.padWidth === undefined ? 45 : profile.padWidth;
+        byId("polling").value = profile.polling === undefined ? 1000 : profile.polling;
+        byId("mYaw").value = profile.mYaw === undefined ? C.defaultYaw : profile.mYaw;
+        byId("mPitch").value = profile.mPitch === undefined ? C.defaultPitch : profile.mPitch;
+        ["aimStyle", "role", "priority", "mode"].forEach(function (name) { setRadio(name, profile[name]); });
+      }
+
+      function candidateFromSensitivity(prefix, value, profile, index) {
+        var sensitivity = Number(Core.formatSensitivity(value));
+        return { key: prefix + ":" + index + ":" + sensitivity.toFixed(3), sensitivity: sensitivity, cm: Core.cmForSensitivity(profile.dpi, sensitivity, profile.mYaw) };
+      }
+      function createSession(profile, options) {
+        options = options || {};
+        var seed = options.seed === undefined ? randomSeed() : options.seed;
+        var id = "s3-" + Date.now().toString(36) + "-" + seed.toString(36);
+        var candidates = options.grid
+          ? options.grid.map(function (value, index) { return candidateFromSensitivity("confirm", value, profile, index); }).sort(function (a, b) { return a.sensitivity - b.sensitivity; })
+          : Core.buildCoarseCandidates(profile, "coarse-" + id);
+        var passes = options.confirmation ? 3 : C.modes[profile.mode].passes;
+        var stage = Core.createBalancedStage(options.confirmation ? "confirm" : "coarse", candidates, seed, passes, Boolean(options.confirmation), options.labelBySensitivity || null);
+        stage.kind = options.confirmation ? "confirm" : "coarse";
+        return {
+          id: id,
+          version: C.algorithmVersion,
+          taskVersion: C.taskVersion,
+          profile: Core.clone(profile),
+          mode: profile.mode,
+          inputMode: "pending",
+          rawRequested: false,
+          compatibilityRestricted: false,
+          seed: seed,
+          confirmation: Boolean(options.confirmation),
+          stages: [stage],
+          stageIndex: 0,
+          blocks: [],
+          activeBlock: null,
+          boundaryExpansionUsed: false,
+          boundaryLimited: false,
+          status: "ready",
+          validTaskMs: 0,
+          interruptions: [],
+          anomalies: [],
+          createdAt: new Date().toISOString(),
+          result: null
+        };
+      }
+      function currentStage() { return state.session && state.session.stages[state.session.stageIndex]; }
+      function completedBlock(stageId, pass, candidateKey) {
+        return state.session.blocks.find(function (block) { return block.stageId === stageId && block.pass === pass && block.candidateKey === candidateKey && block.valid !== false; });
+      }
+      function nextBlock() {
+        var stage = currentStage();
+        if (!stage) return null;
+        for (var pass = 0; pass < stage.passes; pass += 1) {
+          for (var position = 0; position < stage.orders[pass].length; position += 1) {
+            var key = stage.orders[pass][position];
+            if (!completedBlock(stage.id, pass, key)) {
+              return {
+                stageId: stage.id,
+                pass: pass,
+                position: position,
+                candidateKey: key,
+                candidate: stage.candidates.find(function (candidate) { return candidate.key === key; }),
+                label: Core.candidateLabel(stage, key),
+                seed: stage.passSeeds[pass]
+              };
+            }
+          }
+        }
+        return null;
+      }
+      function estimatedBlocks() {
+        return state.session ? state.session.stages.reduce(function (sum, stage) { return sum + stage.passes * stage.candidates.length; }, 0) : 0;
+      }
+      function renderQueue() {
+        var stage = currentStage();
+        if (!stage) { els.queueList.innerHTML = ""; return; }
+        var next = nextBlock();
+        var html = [];
+        for (var pass = 0; pass < stage.passes; pass += 1) {
+          stage.orders[pass].forEach(function (key, position) {
+            var done = Boolean(completedBlock(stage.id, pass, key));
+            var current = next && next.pass === pass && next.candidateKey === key;
+            html.push('<li class="queue-item' + (done ? " is-done" : current ? " is-current" : "") + '"><b>PASS ' + (pass + 1) + ' · 候选 ' + Core.candidateLabel(stage, key) + '</b><span>' + (done ? "已完成" : current ? "下一组" : "待测") + ' · 种子 ' + stage.passSeeds[pass] + '</span></li>');
+          });
+        }
+        els.queueList.innerHTML = html.join("");
+      }
+      function renderLab() {
+        if (!state.profile || !state.session) return;
+        els.miniDpi.textContent = String(state.profile.dpi);
+        els.miniYaw.textContent = formatCvar(state.profile.mYaw);
+        els.miniPitch.textContent = formatCvar(state.profile.mPitch);
+        els.miniMode.textContent = C.modes[state.session.mode].label;
+        els.miniInput.textContent = state.session.inputMode === "raw" ? "原始输入已确认" : state.session.inputMode === "compat" ? "兼容粗筛" : "待确认";
+        var complete = state.session.blocks.length;
+        var total = estimatedBlocks();
+        var progress = total ? Math.min(100, complete / total * 100) : 0;
+        els.completionText.textContent = complete + " / " + total;
+        els.progressFill.style.width = progress + "%";
+        if (els.progressTrack) els.progressTrack.setAttribute("aria-valuenow", String(Math.round(progress)));
+        els.inputRequirement.textContent = state.session.anomalies.length
+          ? "本次会话发生过数据异常：可继续完成范围筛选，但不会输出唯一命令；如需唯一推荐，请重新建立无异常会话。"
+          : state.session.inputMode === "compat"
+            ? "当前是兼容粗筛：会话已重建，不会伪装成原始输入或输出稳定候选。"
+            : "原始输入只在 Pointer Lock 获得且 unadjustedMovement Promise 成功后确认。";
+        els.startSession.disabled = state.lock.awaiting || state.intentionalExit || Boolean(state.active) || state.session.status === "complete";
+        els.startSession.textContent = state.intentionalExit ? "正在等待浏览器释放鼠标…" : state.lock.awaiting ? "正在等待浏览器确认…" : state.session.status === "paused" ? "重新锁定并继续" : "锁定鼠标并开始";
+        renderQueue();
+      }
+      function resetScene() {
+        setTargetVisible(false);
+        setTargetContact(false);
+        els.virtualCrosshair.style.setProperty("--reticle-x", "0px");
+        els.virtualCrosshair.style.setProperty("--reticle-y", "0px");
+      }
+      function renderScene(run) {
+        if (!run) { resetScene(); return; }
+        var viewport = { width: els.arena.clientWidth, height: els.arena.clientHeight };
+        var reticle = Core.projectReticle(run.camera, run.presentationCamera, viewport);
+        els.virtualCrosshair.style.setProperty("--reticle-x", (reticle.x - viewport.width / 2).toFixed(2) + "px");
+        els.virtualCrosshair.style.setProperty("--reticle-y", (reticle.y - viewport.height / 2).toFixed(2) + "px");
+        if (!run.target) { setTargetVisible(false); setTargetContact(false); return; }
+        var target = Core.projectTarget(run.target, run.presentationCamera, viewport);
+        els.sceneTarget.style.left = target.x.toFixed(2) + "px";
+        els.sceneTarget.style.top = target.y.toFixed(2) + "px";
+        var size = Math.max(12, target.radiusPx * 2);
+        els.sceneTarget.style.width = size.toFixed(2) + "px";
+        els.sceneTarget.style.height = size.toFixed(2) + "px";
+        els.sceneTarget.classList.toggle("is-offscreen", !target.onScreen);
+        setTargetVisible(true);
+        setTargetContact(Boolean(run.contact));
+      }
+      function createRun(block, now) {
+        var mode = C.modes[state.session.mode];
+        return {
+          token: ++state.runToken,
+          block: block,
+          mode: mode,
+          phase: "countdown",
+          phaseStartedAt: now,
+          phaseEndsAt: now + COUNTDOWN_MS,
+          lastFrameAt: now,
+          viewport: viewportSnapshot(),
+          camera: { yaw: 0, pitch: 0 },
+          presentationCamera: { yaw: 0, pitch: 0 },
+          target: null,
+          contact: false,
+          inputEvents: 0,
+          rawDistance: 0,
+          pathDegrees: 0,
+          eventCount: 0,
+          taskIndex: -1,
+          taskName: null,
+          taskStartedAt: 0,
+          sequence: null,
+          sequenceIndex: 0,
+          targetNextAt: 0,
+          taskData: null,
+          taskResults: {},
+          validTaskMs: 0
+        };
+      }
+      function updateToolbar(run, now) {
+        var label = run.block.label;
+        els.arenaTitle.textContent = "候选 " + label + " · PASS " + (run.block.pass + 1);
+        els.arenaSubtitle.textContent = "BLIND GAIN / " + run.block.stageId.toUpperCase();
+        els.arenaHits.textContent = String(run.eventCount).padStart(2, "0");
+        if (run.phase === "countdown") {
+          var count = Math.max(1, Math.ceil((run.phaseEndsAt - now) / 1000));
+          els.arenaStatus.textContent = "READY";
+          els.arenaTime.textContent = String(count);
+        } else if (run.phase === "adapt") {
+          els.arenaStatus.textContent = "ADAPT";
+          els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
+        } else if (run.phase === "task") {
+          els.arenaStatus.textContent = TASK_LABELS[run.taskName] || "TEST";
+          els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
+        } else {
+          els.arenaStatus.textContent = "NEXT";
+          els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
+        }
+      }
+      function beginAdaptation(run, now) {
+        run.phase = "adapt";
+        run.phaseStartedAt = now;
+        run.phaseEndsAt = now + run.mode.adaptMs;
+        run.camera = { yaw: 0, pitch: 0 };
+        run.presentationCamera = { yaw: 0, pitch: 0 };
+        run.target = { yaw: 14, pitch: -4, radius: 2.2 };
+        run.contact = false;
+        hideOverlay();
+        els.liveDot.classList.add("is-live");
+      }
+      function beginTask(run, taskName, now) {
+        run.phase = "task";
+        run.taskName = taskName;
+        run.taskStartedAt = now;
+        run.phaseStartedAt = now;
+        run.phaseEndsAt = now + run.mode.taskMs;
+        run.camera = { yaw: 0, pitch: 0 };
+        run.presentationCamera = { yaw: 0, pitch: 0 };
+        run.pathDegrees = 0;
+        run.sequenceIndex = 0;
+        run.targetNextAt = 0;
+        var seedOffset = taskName === "flick" ? 101 : taskName === "track" ? 211 : 307;
+        run.sequence = Core.createTaskSequence(taskName, (run.block.seed + seedOffset) >>> 0, run.mode.taskMs);
+        if (taskName === "track") {
+          var initial = Core.trackPosition(run.sequence, 0);
+          run.target = { yaw: initial.yaw, pitch: initial.pitch, radius: initial.radius };
+          run.taskData = {
+            sampleMs: 0, errorSqMs: 0, offTargetMs: 0, speedMismatchSqMs: 0,
+            reacquireDurations: [], offStartedAt: null, wasInside: false,
+            lastCamera: { yaw: 0, pitch: 0 }, lastTarget: { yaw: initial.yaw, pitch: initial.pitch },
+            lastSampleAt: now, contacts: 0, initialized: false
+          };
+        } else {
+          run.taskData = { hits: [], misses: 0, overshoots: 0, corrections: 0, undershoots: 0, overshotFinals: 0 };
+          spawnStaticTarget(run, now);
+        }
+      }
+      function spawnStaticTarget(run, now) {
+        var targets = run.sequence.targets;
+        var spec = targets[run.sequenceIndex % targets.length];
+        run.sequenceIndex += 1;
+        run.camera = { yaw: 0, pitch: 0 };
+        run.presentationCamera = { yaw: 0, pitch: 0 };
+        run.contact = false;
+        run.target = {
+          yaw: spec.yawOffset,
+          pitch: spec.pitchOffset,
+          radius: spec.radius,
+          amplitude: spec.amplitude,
+          bornAt: now,
+          timeoutAt: now + spec.timeoutMs,
+          dwell: Core.createDwellState(),
+          axisState: Core.createAxisState({ yaw: 0, pitch: 0 }, { yaw: spec.yawOffset, pitch: spec.pitchOffset }),
+          pathAtBorn: run.pathDegrees,
+          firstContactAt: null
+        };
+        run.targetNextAt = 0;
+      }
+      function recordStaticMiss(run) {
+        if (!run.target) return;
+        run.taskData.misses += 1;
+        var signed = run.target.axisState && Number(run.target.axisState.signedError);
+        if (!Number.isFinite(signed)) signed = run.target.axisState ? run.target.axisState.lastError : 0;
+        if (signed >= 0) run.taskData.undershoots += 1;
+        else run.taskData.overshotFinals += 1;
+        run.target = null;
+        run.contact = false;
+      }
+      function recordStaticHit(run, now) {
+        var target = run.target;
+        var axis = target.axisState;
+        var duration = now - target.bornAt;
+        var traveled = Math.max(0, run.pathDegrees - target.pathAtBorn);
+        run.taskData.hits.push({
+          durationMs: duration,
+          timePerId: duration / Core.taskDifficulty(target.amplitude, target.radius),
+          settleMs: Math.max(0, now - (target.firstContactAt === null ? target.dwell.enteredAt : target.firstContactAt)),
+          overshoots: axis.overshoots,
+          corrections: axis.corrections,
+          signedError: axis.signedError,
+          pathRatio: traveled / Math.max(0.001, target.amplitude)
+        });
+        run.taskData.overshoots += axis.overshoots;
+        run.taskData.corrections += axis.corrections;
+        run.eventCount += 1;
+        run.target = null;
+        run.contact = false;
+        run.targetNextAt = now + 120;
+      }
+      function updateStaticTask(run, now) {
+        if (!run.target) {
+          if (run.targetNextAt && now >= run.targetNextAt && now < run.phaseEndsAt && now + C.dwellMs <= run.phaseEndsAt) spawnStaticTarget(run, now);
+          return;
+        }
+        var inside = Core.angularDistance(run.camera, run.target) <= run.target.radius;
+        if (inside && run.target.firstContactAt === null) run.target.firstContactAt = now;
+        run.target.dwell = Core.updateDwell(run.target.dwell, inside, now);
+        run.contact = inside;
+        if (run.target.dwell.hit && run.target.dwell.hitAt <= run.target.timeoutAt) {
+          recordStaticHit(run, run.target.dwell.hitAt);
+          return;
+        }
+        if (now >= run.target.timeoutAt) {
+          var timedOutAt = run.target.timeoutAt;
+          recordStaticMiss(run);
+          run.targetNextAt = timedOutAt + 100;
+        }
+      }
+      function updateTrackingTask(run, now) {
+        var elapsed = Math.max(0, now - run.taskStartedAt);
+        var position = Core.trackPosition(run.sequence, elapsed);
+        run.target = { yaw: position.yaw, pitch: position.pitch, radius: position.radius };
+        var data = run.taskData;
+        var dt = Math.max(0, now - data.lastSampleAt);
+        if (dt <= 0) return;
+        var error = Core.angularDistance(run.camera, run.target);
+        var inside = error <= position.radius;
+        data.sampleMs += dt;
+        data.errorSqMs += error * error * dt;
+        if (!inside) data.offTargetMs += dt;
+        var cameraSpeed = Core.angularDistance(run.camera, data.lastCamera) / (dt / 1000);
+        var targetSpeed = Core.angularDistance(run.target, data.lastTarget) / (dt / 1000);
+        var mismatch = Math.abs(cameraSpeed - targetSpeed);
+        data.speedMismatchSqMs += mismatch * mismatch * dt;
+        if (!data.initialized) {
+          data.initialized = true;
+          data.wasInside = inside;
+          if (inside) { data.contacts += 1; run.eventCount += 1; data.offStartedAt = null; }
+          else data.offStartedAt = run.taskStartedAt;
+        } else {
+          if (!inside && data.wasInside) data.offStartedAt = now;
+          if (inside && !data.wasInside) {
+            data.contacts += 1;
+            run.eventCount += 1;
+            if (data.offStartedAt !== null) {
+              data.reacquireDurations.push(now - data.offStartedAt);
+              data.offStartedAt = null;
+            }
+          }
+        }
+        data.wasInside = inside;
+        data.lastCamera = { yaw: run.camera.yaw, pitch: run.camera.pitch };
+        data.lastTarget = { yaw: run.target.yaw, pitch: run.target.pitch };
+        data.lastSampleAt = now;
+        run.contact = inside;
+      }
+      function medianOr(values, fallback) { return values.length ? Core.median(values) : fallback; }
+      function finishCurrentTask(run, now) {
+        var task = run.taskName;
+        if (task === "track") {
+          var data = run.taskData;
+          run.taskResults.track = Core.summarizeTracking(data, run.mode.taskMs, now);
+          data.offStartedAt = null;
+          run.validTaskMs += data.sampleMs;
+        } else {
+          // A target still alive at the task deadline is right-censored. It did
+          // not reach its timeout, so counting it as a miss would reward or
+          // punish candidates according to frame timing rather than aim.
+          var staticData = run.taskData;
+          var hits = staticData.hits;
+          var trials = hits.length + staticData.misses;
+          run.taskResults[task] = {
+            timePerId: medianOr(hits.map(function (hit) { return hit.timePerId; }), run.mode.taskMs),
+            missRate: trials ? staticData.misses / trials : 1,
+            settleMs: medianOr(hits.map(function (hit) { return hit.settleMs; }), run.mode.taskMs),
+            overshootCorrection: trials ? (staticData.overshoots + staticData.corrections) / trials : 1,
+            pathInefficiency: medianOr(hits.map(function (hit) { return Math.max(1, hit.pathRatio); }), 3),
+            hits: hits.length,
+            misses: staticData.misses,
+            overshoots: staticData.overshoots,
+            corrections: staticData.corrections,
+            undershoots: staticData.undershoots,
+            overshotFinals: staticData.overshotFinals,
+            sampleMs: Math.min(run.mode.taskMs, Math.max(0, now - run.taskStartedAt))
+          };
+          run.validTaskMs += run.taskResults[task].sampleMs;
+        }
+        run.target = null;
+        run.contact = false;
+      }
+      function blockValidityIssue(run) {
+        if (run.inputEvents < MIN_INPUT_EVENTS || run.rawDistance < MIN_RAW_DISTANCE) return "鼠标输入样本不足，本组未记入。";
+        var minimumHits = state.session.mode === "express" ? 1 : 3;
+        if (!run.taskResults.flick || run.taskResults.flick.hits < minimumHits) return "小目标获取的有效命中不足，本组未记入。";
+        if (!run.taskResults.lateral || run.taskResults.lateral.hits < minimumHits) return "横向急停的有效命中不足，本组未记入。";
+        if (!run.taskResults.track || run.taskResults.track.sampleMs < run.mode.taskMs * 0.9) return "追踪样本时长不足，本组未记入。";
+        return "";
+      }
+      function scheduleRun(run) {
+        scheduler.request(function (now) {
+          if (state.active !== run || run.token !== state.runToken) return;
+          runFrame(run, now);
+        });
+      }
+      function startBlock(block) {
+        if (!state.session || document.pointerLockElement !== els.arena) return;
+        if (!block) { advanceSession(); return; }
+        var now = performance.now();
+        var run = createRun(block, now);
+        state.active = run;
+        state.session.status = "running";
+        state.session.activeBlock = { stageId: block.stageId, pass: block.pass, position: block.position, candidateKey: block.candidateKey, startedAt: new Date().toISOString() };
+        saveState();
+        hideOverlay();
+        els.arena.classList.add("is-locked");
+        els.liveDot.classList.add("is-live");
+        renderLab();
+        scheduleRun(run);
+      }
+      function runFrame(run, now) {
+        if (state.active !== run || run.token !== state.runToken) return;
+        if (!sameViewport(run.viewport, viewportSnapshot())) {
+          invalidateActive("窗口尺寸、缩放或 DPR 发生变化，本组已作废。", "viewport-change");
+          return;
+        }
+        if (now - run.lastFrameAt > C.stallMs) {
+          invalidateActive("检测到超过 350ms 的帧停顿，本组已作废。", "frame-stall");
+          return;
+        }
+        run.lastFrameAt = now;
+
+        if (run.phase === "countdown") {
+          var count = Math.max(1, Math.ceil((run.phaseEndsAt - now) / 1000));
+          setOverlay({ kicker: "CANDIDATE " + run.block.label + " / PASS " + (run.block.pass + 1), title: "保持鼠标在测试区域", copy: "倒计时使用真实时钟；候选灵敏度将参与每次视角转动。", number: count });
+          if (now >= run.phaseEndsAt) beginAdaptation(run, now);
+        } else if (run.phase === "adapt") {
+          run.contact = Core.angularDistance(run.camera, run.target) <= run.target.radius;
+          if (now >= run.phaseEndsAt) {
+            run.taskIndex = 0;
+            beginTask(run, C.tasks[0], now);
+          }
+        } else if (run.phase === "task") {
+          var effectiveNow = Math.min(now, run.phaseEndsAt);
+          if (run.taskName === "track") updateTrackingTask(run, effectiveNow);
+          else updateStaticTask(run, effectiveNow);
+          if (now >= run.phaseEndsAt) {
+            finishCurrentTask(run, run.phaseEndsAt);
+            if (run.taskIndex < C.tasks.length - 1) {
+              run.phase = "intermission";
+              run.phaseStartedAt = now;
+              run.phaseEndsAt = now + INTER_TASK_MS;
+            } else {
+              finishBlock(run, now);
+              return;
+            }
+          }
+        } else if (run.phase === "intermission" && now >= run.phaseEndsAt) {
+          run.taskIndex += 1;
+          beginTask(run, C.tasks[run.taskIndex], now);
+        }
+        updateToolbar(run, now);
+        renderScene(run);
+        if (state.active === run && run.token === state.runToken) scheduleRun(run);
+      }
+      function onMouseMove(event) {
+        var run = state.active;
+        if (!run || document.pointerLockElement !== els.arena) return;
+        if (run.phase !== "adapt" && run.phase !== "task") return;
+        var eventNow = performance.now();
+        if (run.phase === "task" && eventNow >= run.phaseEndsAt) return;
+        if (run.phase === "task" && run.taskName !== "track") updateStaticTask(run, eventNow);
+        var dx = Number(event.movementX || 0);
+        var dy = Number(event.movementY || 0);
+        if (!dx && !dy) return;
+        var update = Core.applyPointerDelta(run.camera, { x: dx, y: dy }, {
+          sensitivity: run.block.candidate.sensitivity,
+          mYaw: state.profile.mYaw,
+          mPitch: state.profile.mPitch
+        });
+        run.camera = update.camera;
+        run.pathDegrees += update.pathDelta;
+        run.inputEvents += 1;
+        run.rawDistance += Math.sqrt(dx * dx + dy * dy);
+        if (run.phase === "task" && run.taskName !== "track" && run.target) {
+          run.target.axisState = Core.updateAxisState(run.target.axisState, run.camera);
+          updateStaticTask(run, eventNow);
+        }
+        renderScene(run);
+      }
+      function finishBlock(run, now) {
+        scheduler.cancel();
+        var issue = blockValidityIssue(run);
+        state.active = null;
+        resetScene();
+        els.liveDot.classList.remove("is-live");
+        if (issue) {
+          state.session.activeBlock = null;
+          state.session.interruptions.push({ at: new Date().toISOString(), code: "insufficient-input", reason: issue, stageId: run.block.stageId, pass: run.block.pass, candidateKey: run.block.candidateKey });
+          state.session.anomalies.push("insufficient-input");
+          state.session.status = "paused";
+          if (document.pointerLockElement === els.arena && document.exitPointerLock) { state.intentionalExit = true; document.exitPointerLock(); }
+          saveState();
+          renderLab();
+          setOverlay({ kicker: "BLOCK DISCARDED", title: "这一组没有记入", copy: issue + " 已完成的整组结果仍保留；本会话继续后只输出范围。", actionLabel: "继续范围筛选", action: requestSessionLock });
+          return;
+        }
+        var block = {
+          stageId: run.block.stageId,
+          pass: run.block.pass,
+          position: run.block.position,
+          candidateKey: run.block.candidateKey,
+          sensitivity: run.block.candidate.sensitivity,
+          label: run.block.label,
+          seed: run.block.seed,
+          orderIndex: state.session.blocks.length,
+          inputMode: state.session.inputMode,
+          inputEvents: run.inputEvents,
+          rawDistance: run.rawDistance,
+          validTaskMs: run.validTaskMs,
+          tasks: Core.clone(run.taskResults),
+          completedAt: new Date().toISOString(),
+          valid: true
+        };
+        state.session.blocks.push(block);
+        state.session.validTaskMs += run.validTaskMs;
+        state.session.activeBlock = null;
+        saveState();
+        advanceSession();
+      }
+      function forceBoundaryRange(stage, evaluation) {
+        if (!evaluation.uniqueLeader) return evaluation.rangeCandidates;
+        var sorted = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        var index = sorted.findIndex(function (candidate) { return candidate.key === evaluation.uniqueLeader.key; });
+        var neighbor = sorted[index === 0 ? 1 : index - 1];
+        return [evaluation.uniqueLeader, neighbor].sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+      }
+      function addStage(kind, candidates, factor, metadata) {
+        if (!candidates || candidates.length !== 3) return false;
+        var index = state.session.stages.length;
+        var id = kind + "-" + index;
+        var seed = (state.session.seed + index * 65537 + (factor === 1.06 ? 600 : 1200)) >>> 0;
+        var stage = Core.createBalancedStage(id, candidates.map(function (candidate, candidateIndex) {
+          return candidateFromSensitivity(id, candidate.sensitivity, state.profile, candidateIndex);
+        }), seed, 3, false);
+        stage.kind = kind;
+        if (metadata && Number.isFinite(Number(metadata.outwardSensitivity))) {
+          var outward = stage.candidates.find(function (candidate) { return Core.formatSensitivity(candidate.sensitivity) === Core.formatSensitivity(metadata.outwardSensitivity); });
+          stage.outwardKey = outward ? outward.key : null;
+        }
+        state.session.stages.push(stage);
+        state.session.stageIndex = state.session.stages.length - 1;
+        saveState();
+        return true;
+      }
+      function advanceSession() {
+        renderLab();
+        var pending = nextBlock();
+        if (pending) {
+          if (document.pointerLockElement === els.arena) startBlock(pending);
+          else {
+            state.session.status = "paused";
+            setOverlay({ kicker: "NEXT BLIND BLOCK", title: "下一组已准备", copy: "重新锁定鼠标后继续；只保留完整结束的分组。", actionLabel: "锁定并继续", action: requestSessionLock });
+          }
+          return;
+        }
+        var stage = currentStage();
+        var hasAnomaly = state.session.anomalies.length > 0;
+        var evaluation = Core.evaluateStage(state.session.blocks, stage, state.profile.role, { mode: state.session.mode, rangeOnly: C.modes[state.session.mode].rangeOnly, anomaly: hasAnomaly });
+        stage.resolved = { uniqueLeaderKey: evaluation.uniqueLeader ? evaluation.uniqueLeader.key : null, range: evaluation.rangeCandidates.map(function (candidate) { return candidate.sensitivity; }), drift: evaluation.drift };
+
+        if (!state.session.confirmation && Core.isBoundaryLeader(stage, evaluation)) {
+          var factor = stage.kind === "fine" || stage.kind === "fine-edge" ? 1.06 : 1.20;
+          var atToolBoundary = evaluation.uniqueLeader.sensitivity <= C.range.min || evaluation.uniqueLeader.sensitivity >= C.range.max;
+          if (!state.session.boundaryExpansionUsed && !atToolBoundary) {
+            var boundaryCandidates = Core.buildBoundaryCandidates(state.profile, stage, evaluation.uniqueLeader, factor, "boundary");
+            if (boundaryCandidates.length === 3) {
+              // Persist the one-shot flag in the same snapshot that first
+              // contains the edge stage, so a process crash cannot re-expand.
+              state.session.boundaryExpansionUsed = true;
+              var sortedStage = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+              var outwardCandidate = evaluation.uniqueLeader.key === sortedStage[0].key ? boundaryCandidates[0] : boundaryCandidates[boundaryCandidates.length - 1];
+              if (addStage(stage.kind === "fine" ? "fine-edge" : "edge", boundaryCandidates, factor, { outwardSensitivity: outwardCandidate.sensitivity })) {
+                renderLab();
+                startBlock(nextBlock());
+                return;
+              }
+              state.session.boundaryExpansionUsed = false;
+            }
+          }
+          state.session.boundaryLimited = true;
+          evaluation.rangeCandidates = forceBoundaryRange(stage, evaluation);
+          evaluation.uniqueLeader = null;
+          finalizeSession(stage, evaluation);
+          return;
+        }
+
+        var isCoarseResolution = stage.kind === "coarse" || stage.kind === "edge" || stage.kind === "confirm";
+        if (state.session.mode === "deep" && isCoarseResolution && !state.session.confirmation) {
+          state.session.coarseEvidence = {
+            unique: Boolean(evaluation.uniqueLeader),
+            leaderSensitivity: (evaluation.uniqueLeader || evaluation.best).sensitivity,
+            range: Core.clone(evaluation.rangeCandidates)
+          };
+          var fineCenter = evaluation.uniqueLeader || evaluation.best;
+          var fineCandidates = Core.buildFineCandidates(state.profile, fineCenter, "fine");
+          if (addStage("fine", fineCandidates, 1.06)) {
+            renderLab();
+            startBlock(nextBlock());
+            return;
+          }
+        }
+        finalizeSession(stage, evaluation);
+      }
+      function invalidateActive(reason, code, options) {
+        options = options || {};
+        var run = state.active;
+        if (!run) return;
+        scheduler.cancel();
+        state.runToken += 1;
+        state.active = null;
+        resetScene();
+        els.liveDot.classList.remove("is-live");
+        els.arena.classList.remove("is-locked");
+        if (state.session) {
+          state.session.status = "paused";
+          state.session.activeBlock = null;
+          state.session.interruptions.push({ at: new Date().toISOString(), code: code, reason: reason, stageId: run.block.stageId, pass: run.block.pass, candidateKey: run.block.candidateKey });
+          state.session.anomalies.push(code);
+        }
+        if (!options.lockAlreadyLost && document.pointerLockElement === els.arena && document.exitPointerLock) {
+          state.intentionalExit = true;
+          document.exitPointerLock();
+        }
+        saveState();
+        renderLab();
+        setOverlay({ kicker: "BLOCK INVALIDATED", title: "当前分组已作废", copy: reason + " 倒计时与计分已停止。本会话可继续完成范围筛选；如需唯一推荐，请在结果页重新建立无异常会话。", actionLabel: "继续范围筛选", action: requestSessionLock });
+      }
+
+      function resetLockState() {
+        if (state.lock.timer) window.clearTimeout(state.lock.timer);
+        state.lock.timer = 0;
+        state.lock.awaiting = false;
+        state.lock.mode = null;
+        state.lock.acquired = false;
+        state.lock.rawConfirmed = false;
+        state.lock.sessionId = null;
+        if (state.session) renderLab();
+      }
+      function cancelLockAttempt(exitHeldLock) {
+        if (state.lock.timer) window.clearTimeout(state.lock.timer);
+        state.lock.token += 1;
+        state.lock.timer = 0;
+        state.lock.awaiting = false;
+        state.lock.mode = null;
+        state.lock.acquired = false;
+        state.lock.rawConfirmed = false;
+        state.lock.sessionId = null;
+        // A new navigation/session now owns any pending unlock event. Do not
+        // let a delayed result-page exit mask the next session's real lock loss.
+        state.exitingForResult = false;
+        if (exitHeldLock && document.pointerLockElement === els.arena && document.exitPointerLock) {
+          state.intentionalExit = true;
+          document.exitPointerLock();
+        }
+        if (state.session) renderLab();
+      }
+      function armLockTimeout(token, mode) {
+        if (state.lock.timer) window.clearTimeout(state.lock.timer);
+        state.lock.timer = window.setTimeout(function () {
+          if (state.lock.token !== token || !state.lock.awaiting || state.lock.mode !== mode) return;
+          if (mode === "raw") offerCompatibilityRetry("浏览器未在时限内同时确认 Pointer Lock 与未加速输入。");
+          else failCompatibilityLock(token, "兼容 Pointer Lock 请求超时。");
+        }, 2500);
+      }
+      function failCompatibilityLock(token, reason) {
+        if (state.lock.token !== token || !state.lock.awaiting || state.lock.mode !== "compat") return;
+        state.lock.token += 1;
+        resetLockState();
+        if (document.pointerLockElement === els.arena && document.exitPointerLock) {
+          state.intentionalExit = true;
+          document.exitPointerLock();
+        }
+        setOverlay({ kicker: "INPUT UNAVAILABLE", title: "兼容 Pointer Lock 也未能建立", copy: reason || "请确认页面位于前台，并使用桌面 Chrome / Edge 重试。", actionLabel: "重试", action: requestSessionLock });
+      }
+      function maybeStartRawLock() {
+        if (!state.lock.awaiting || state.lock.mode !== "raw") return;
+        if (!state.session || state.lock.sessionId !== state.session.id) { cancelLockAttempt(true); return; }
+        if (!state.lock.acquired || !state.lock.rawConfirmed) return;
+        if (document.pointerLockElement !== els.arena) { offerCompatibilityRetry("Pointer Lock 在原始输入确认完成前已经释放。"); return; }
+        if (state.lock.timer) window.clearTimeout(state.lock.timer);
+        state.lock.timer = 0;
+        state.lock.awaiting = false;
+        state.lock.sessionId = null;
+        state.session.inputMode = "raw";
+        state.session.rawRequested = true;
+        state.session.status = "running";
+        renderLab();
+        var block = nextBlock();
+        if (block) startBlock(block);
+        else advanceSession();
+      }
+      function offerCompatibilityRetry(reason) {
+        if (state.lock.timer) window.clearTimeout(state.lock.timer);
+        state.lock.timer = 0;
+        state.lock.token += 1;
+        var token = state.lock.token;
+        state.lock.awaiting = false;
+        state.lock.mode = null;
+        state.lock.acquired = false;
+        state.lock.rawConfirmed = false;
+        state.lock.sessionId = null;
+        if (document.pointerLockElement === els.arena && document.exitPointerLock) {
+          state.intentionalExit = true;
+          document.exitPointerLock();
+        }
+        renderLab();
+        setOverlay({
+          kicker: "RAW INPUT NOT CONFIRMED",
+          title: "未能确认未加速输入",
+          copy: (reason || "浏览器未返回可确认的 unadjustedMovement Promise。") + " 继续会使用新的 Express / Quick 兼容会话，并清空未完成的原始输入成绩。",
+          actionLabel: "使用兼容粗筛重建会话",
+          action: function () {
+            if (token !== state.lock.token) return;
+            if (state.intentionalExit || document.pointerLockElement === els.arena) { showToast("请等待浏览器释放鼠标后再继续。"); return; }
+            requestCompatibilityLock(true);
+          }
+        });
+      }
+      function requestRawLock() {
+        state.lock.token += 1;
+        var token = state.lock.token;
+        state.lock.awaiting = true;
+        state.lock.mode = "raw";
+        state.lock.sessionId = state.session.id;
+        state.lock.acquired = false;
+        state.lock.rawConfirmed = false;
+        state.session.rawRequested = true;
+        renderLab();
+        var returned;
+        try { returned = els.arena.requestPointerLock({ unadjustedMovement: true }); }
+        catch (error) { offerCompatibilityRetry("原始输入请求被浏览器拒绝。"); return; }
+        if (!returned || typeof returned.then !== "function") {
+          window.setTimeout(function () {
+            if (state.lock.token === token && state.lock.awaiting && state.lock.mode === "raw") offerCompatibilityRetry("浏览器的 Pointer Lock API 无法确认未加速输入。");
+          }, 500);
+          return;
+        }
+        armLockTimeout(token, "raw");
+        returned.then(function () {
+          if (state.lock.token !== token || state.lock.mode !== "raw") return;
+          state.lock.rawConfirmed = true;
+          maybeStartRawLock();
+        }).catch(function () {
+          if (state.lock.token !== token) return;
+          offerCompatibilityRetry("浏览器没有批准 unadjustedMovement。");
+        });
+      }
+      function requestCompatibilityLock(rebuild) {
+        if (rebuild) {
+          var compatibilityMode = state.profile.mode === "express" ? "express" : "quick";
+          var compatProfile = Core.clone(state.profile);
+          compatProfile.mode = compatibilityMode;
+          state.profile = compatProfile;
+          state.session = createSession(compatProfile);
+          state.session.inputMode = "compat";
+          state.session.compatibilityRestricted = true;
+          state.result = null;
+          saveState();
+        }
+        state.lock.token += 1;
+        state.lock.awaiting = true;
+        state.lock.mode = "compat";
+        state.lock.sessionId = state.session.id;
+        state.lock.acquired = false;
+        state.lock.rawConfirmed = false;
+        renderLab();
+        var returned;
+        try { returned = els.arena.requestPointerLock(); }
+        catch (error) { failCompatibilityLock(state.lock.token, "浏览器拒绝了兼容 Pointer Lock 请求。"); return; }
+        var token = state.lock.token;
+        armLockTimeout(token, "compat");
+        if (returned && typeof returned.then === "function") returned.catch(function () { failCompatibilityLock(token, "浏览器拒绝了兼容 Pointer Lock 请求。"); });
+      }
+      function requestSessionLock() {
+        if (!state.session || state.session.status === "complete" || state.active || state.lock.awaiting || state.intentionalExit) return;
+        if (document.pointerLockElement === els.arena) {
+          if (state.session.inputMode === "raw" || state.session.inputMode === "compat") {
+            var block = nextBlock();
+            if (block) startBlock(block);
+            else advanceSession();
+          }
+          return;
+        }
+        if (state.session.inputMode === "compat") requestCompatibilityLock(false);
+        else requestRawLock();
+      }
+      function onPointerLockChange() {
+        var locked = document.pointerLockElement === els.arena;
+        els.arena.classList.toggle("is-locked", locked);
+        if (locked) {
+          if (state.lock.awaiting && (!state.session || state.lock.sessionId !== state.session.id)) {
+            cancelLockAttempt(true);
+            return;
+          }
+          if (!state.lock.awaiting && !state.active) {
+            if (document.exitPointerLock) { state.intentionalExit = true; document.exitPointerLock(); }
+            return;
+          }
+          state.lock.acquired = true;
+          if (state.lock.mode === "raw") maybeStartRawLock();
+          else if (state.lock.mode === "compat" && state.lock.awaiting) {
+            if (state.lock.timer) window.clearTimeout(state.lock.timer);
+            state.lock.timer = 0;
+            state.lock.awaiting = false;
+            state.lock.sessionId = null;
+            state.session.inputMode = "compat";
+            state.session.compatibilityRestricted = true;
+            renderLab();
+            var block = nextBlock();
+            if (block) startBlock(block);
+            else advanceSession();
+          }
+          return;
+        }
+        if (state.intentionalExit) {
+          state.intentionalExit = false;
+          if (state.active) invalidateActive("Pointer Lock 已释放，当前分组未记入。", "pointer-lock-lost", { lockAlreadyLost: true });
+          renderLab();
+          return;
+        }
+        if (state.exitingForResult) { state.exitingForResult = false; return; }
+        if (state.active) invalidateActive("Pointer Lock 已丢失，当前分组未记入。", "pointer-lock-lost", { lockAlreadyLost: true });
+        else if (state.lock.awaiting && state.lock.mode === "raw") offerCompatibilityRetry("Pointer Lock 在原始输入完整确认前结束。");
+        else if (state.lock.awaiting && state.lock.mode === "compat") failCompatibilityLock(state.lock.token, "兼容 Pointer Lock 在建立前结束。");
+      }
+      function dedupeCandidates(candidates) {
+        var seen = {};
+        return candidates.filter(function (candidate) {
+          var key = Core.formatSensitivity(candidate.sensitivity);
+          if (seen[key]) return false;
+          seen[key] = true;
+          return true;
+        }).sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+      }
+      function aggregateResultTasks() {
+        var blocks = state.session ? state.session.blocks : [];
+        function values(task, metric) {
+          return blocks.map(function (block) { return block.tasks && block.tasks[task] && Number(block.tasks[task][metric]); }).filter(Number.isFinite);
+        }
+        return {
+          flick: {
+            missRate: Core.mean(values("flick", "missRate")),
+            overshoots: Core.mean(values("flick", "overshoots")),
+            corrections: Core.mean(values("flick", "corrections")),
+            undershoots: Core.mean(values("flick", "undershoots")),
+            pathInefficiency: Core.mean(values("flick", "pathInefficiency"))
+          },
+          lateral: {
+            missRate: Core.mean(values("lateral", "missRate")),
+            overshoots: Core.mean(values("lateral", "overshoots")),
+            corrections: Core.mean(values("lateral", "corrections")),
+            undershoots: Core.mean(values("lateral", "undershoots")),
+            pathInefficiency: Core.mean(values("lateral", "pathInefficiency"))
+          },
+          track: {
+            rmsError: Core.mean(values("track", "rmsError")),
+            offTargetRatio: Core.mean(values("track", "offTargetRatio")),
+            reacquireMs: Core.mean(values("track", "reacquireMs")),
+            speedMismatch: Core.mean(values("track", "speedMismatch"))
+          }
+        };
+      }
+      function directionSignal(stage, evaluation) {
+        if (!evaluation.best) return "无方向信号";
+        var sorted = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        var index = sorted.findIndex(function (candidate) { return candidate.key === evaluation.best.key; });
+        if (index === 0) return "网页粗筛偏向较慢灵敏度";
+        if (index === sorted.length - 1) return "网页粗筛偏向较快灵敏度";
+        return "网页粗筛偏向当前中心";
+      }
+      function displayBias(range, evaluation, priority) {
+        if (!range.length) return null;
+        var sorted = range.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        if (priority === "speed") return sorted[sorted.length - 1];
+        if (priority === "control") return sorted[0];
+        return sorted.find(function (candidate) { return evaluation.best && candidate.key === evaluation.best.key; }) || sorted[Math.floor((sorted.length - 1) / 2)];
+      }
+      function repeatabilitySummary(evaluation) {
+        var pairs = evaluation && Array.isArray(evaluation.pairwise) ? evaluation.pairwise : [];
+        var mads = pairs.map(function (pair) { return Math.max(0, Number(pair.mad) || 0); });
+        var thresholds = pairs.map(function (pair) { return Math.max(0, Number(pair.threshold) || 0); });
+        return {
+          medianMad: mads.length ? Core.median(mads) : 0,
+          maxMad: mads.length ? Math.max.apply(null, mads) : 0,
+          maxThreshold: thresholds.length ? Math.max.apply(null, thresholds) : 0,
+          drift: Math.max(0, Number(evaluation && evaluation.drift) || 0)
+        };
+      }
+      function logLossPercent(value) { return (Math.expm1(Math.max(0, Number(value) || 0)) * 100).toFixed(2) + "%"; }
+      function finalizeSession(stage, evaluation) {
+        scheduler.cancel();
+        state.active = null;
+        resetScene();
+        var mode = state.session.mode;
+        var range = evaluation.rangeCandidates.slice();
+        if (mode === "express") range = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        if (mode === "quick") range = evaluation.ranking.slice(0, 2).sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        if (mode === "deep" && state.session.coarseEvidence && !state.session.coarseEvidence.unique) range = Core.clone(state.session.coarseEvidence.range);
+        if (state.session.boundaryLimited) range = forceBoundaryRange(stage, evaluation);
+        range = dedupeCandidates(range);
+        var coarseSupportsMain = mode !== "deep" || state.session.confirmation || !state.session.coarseEvidence || state.session.coarseEvidence.unique;
+        var canHaveMain = state.session.inputMode === "raw" && (mode === "standard" || mode === "deep") && coarseSupportsMain && !state.session.boundaryLimited && !state.session.anomalies.length && evaluation.uniqueLeader;
+        var main = canHaveMain ? Core.clone(evaluation.uniqueLeader) : null;
+        var tested = [];
+        state.session.blocks.forEach(function (block) {
+          state.session.stages.forEach(function (candidateStage) {
+            var candidate = candidateStage.candidates.find(function (item) { return item.key === block.candidateKey; });
+            if (candidate) tested.push(Core.clone(candidate));
+          });
+        });
+        tested = dedupeCandidates(tested);
+        var completedAt = new Date().toISOString();
+        var evidence = state.session.anomalies.length ? "数据异常 · 仅保留范围" : state.session.inputMode === "compat" ? "兼容估算" : mode === "express" ? "极速粗筛" : mode === "quick" ? "快速粗筛" : main ? "重复一致" : "当前测试无法进一步区分";
+        var result = {
+          algorithmVersion: C.algorithmVersion,
+          taskVersion: C.taskVersion,
+          sessionId: state.session.id,
+          completedAt: completedAt,
+          profile: Core.clone(state.profile),
+          mode: mode,
+          inputMode: state.session.inputMode,
+          main: main,
+          range: range,
+          testedCandidates: tested,
+          evaluation: Core.clone(evaluation),
+          repeatability: repeatabilitySummary(evaluation),
+          evidence: evidence,
+          direction: directionSignal(stage, evaluation),
+          displayBias: displayBias(range, evaluation, state.profile.priority),
+          boundaryLimited: state.session.boundaryLimited,
+          anomalies: state.session.anomalies.slice(),
+          validTaskMs: state.session.validTaskMs,
+          tasks: aggregateResultTasks(),
+          historyEvidence: { stable: false, match: null, nextEligibleAt: null },
+          finalGrid: stage.candidates.map(function (candidate) { return candidate.sensitivity; })
+        };
+        result.labelBySensitivity = {};
+        stage.candidates.forEach(function (candidate) { result.labelBySensitivity[Core.formatSensitivity(candidate.sensitivity)] = Core.candidateLabel(stage, candidate.key); });
+        state.session.status = "complete";
+        state.session.result = result;
+        state.result = result;
+        var summary = Core.createSessionSummary(state.session, result);
+        var cross = Core.findCrossSessionConfirmation(state.history, summary, Date.now());
+        state.history = Core.appendHistory(state.history, summary);
+        result.historyEvidence = cross;
+        if (cross.stable) result.evidence = "跨会话稳定候选";
+        state.session.result = result;
+        if (document.pointerLockElement === els.arena && document.exitPointerLock) {
+          state.exitingForResult = true;
+          document.exitPointerLock();
+        }
+        saveState();
+        renderRecommendation();
+        showView("result");
+      }
+      function rangeText(range) {
+        if (!range || !range.length) return "--";
+        var sorted = range.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        return sorted.length === 1 ? Core.formatSensitivity(sorted[0].sensitivity) : Core.formatSensitivity(sorted[0].sensitivity) + " – " + Core.formatSensitivity(sorted[sorted.length - 1].sensitivity);
+      }
+      function renderRecommendation() {
+        var result = state.result;
+        if (!result) return;
+        var range = result.range.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        var low = range[0];
+        var high = range[range.length - 1];
+        var main = result.main;
+        els.resultPrimaryLabel.textContent = main ? "SESSION MAIN RECOMMENDATION" : "TESTED RANGE · NO UNIQUE VALUE";
+        els.resultSens.textContent = main ? Core.formatSensitivity(main.sensitivity) : rangeText(range);
+        els.resultSens.style.fontSize = main ? "" : "clamp(42px, 7vw, 84px)";
+        els.resultUnit.textContent = main ? "CS2 sensitivity · 本次实测候选" : "当前测试无法进一步区分；请保留范围";
+        els.commandText.textContent = main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) : "当前范围不提供单一命令";
+        els.copyCommand.disabled = !main;
+        els.rangeSens.textContent = rangeText(range);
+        els.rangeCopy.textContent = result.anomalies && result.anomalies.length ? "数据异常，本次仅保留实测范围" : result.boundaryLimited ? "搜索触及已测外缘，保留邻近范围" : range.length > 1 ? "当前测试无法进一步区分" : "三轮对手均被支配";
+        if (main) {
+          els.resultCm.textContent = formatCm(main.cm) + " cm";
+          els.resultEdpi.textContent = Math.round(main.sensitivity * result.profile.dpi) + " eDPI";
+        } else {
+          var cmValues = range.map(function (candidate) { return candidate.cm; }).sort(function (a, b) { return a - b; });
+          els.resultCm.textContent = cmValues.length ? formatCm(cmValues[0]) + "–" + formatCm(cmValues[cmValues.length - 1]) + " cm" : "--";
+          els.resultEdpi.textContent = low ? Math.round(low.sensitivity * result.profile.dpi) + "–" + Math.round(high.sensitivity * result.profile.dpi) + " eDPI" : "--";
+        }
+        els.resultEvidence.textContent = result.evidence;
+        els.evidenceCopy.textContent = result.inputMode === "raw" ? "原始输入已确认 · " + (result.validTaskMs / 60000).toFixed(1) + " 分钟有效任务" : "兼容输入 · 仅粗筛";
+        els.precisionSens.textContent = low ? Core.formatSensitivity(low.sensitivity) : "";
+        els.speedSens.textContent = high ? Core.formatSensitivity(high.sensitivity) : "";
+        els.resultConfidence.textContent = result.evidence;
+        els.methodYaw.textContent = formatCvar(result.profile.mYaw);
+        els.methodPitch.textContent = formatCvar(result.profile.mPitch);
+        els.reproductionBlock.textContent = (main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) + "\n" : "# 范围结果，无单一 sensitivity 命令\n") + "m_yaw " + formatCvar(result.profile.mYaw) + "\n" + "m_pitch " + formatCvar(result.profile.mPitch);
+
+        var rangeKeys = {};
+        range.forEach(function (candidate) { rangeKeys[Core.formatSensitivity(candidate.sensitivity)] = true; });
+        els.rangeList.innerHTML = result.testedCandidates.map(function (candidate) {
+          var key = Core.formatSensitivity(candidate.sensitivity);
+          var tag = main && key === Core.formatSensitivity(main.sensitivity) ? "主推荐" : rangeKeys[key] ? "保留范围" : "已测但被支配";
+          var isMain = main && key === Core.formatSensitivity(main.sensitivity);
+          return '<div class="range-row' + (isMain ? ' is-main' : '') + '"><span><b>' + key + '</b><small>' + formatCm(candidate.cm) + ' cm/360°</small></span><em>' + tag + '</em></div>';
+        }).join("");
+        var reasons = [];
+        reasons.push(result.inputMode === "raw" ? "Pointer Lock 与 <b>unadjustedMovement</b> Promise 均已确认。" : "未能确认未加速输入，结果只是<b>兼容估算</b>。");
+        reasons.push("<b>" + result.direction + "</b>；A/B/C 标签与数值是种子化盲映射。");
+        if (!result.main && result.displayBias) reasons.push("你的速度 / 控制偏好只把 <b>" + Core.formatSensitivity(result.displayBias.sensitivity) + "</b> 标为范围内展示偏向，不会把平局改写成唯一最优。");
+        if (result.anomalies && result.anomalies.length) reasons.push("本次会话发生过 <b>" + result.anomalies.length + " 次数据异常</b>；按门禁只保留范围，不输出唯一命令。");
+        if (result.main) reasons.push("该候选在三个 pass 中均优于另两个候选，且对数损失差超过 MAD / 漂移门槛及 0.2% 三轮有限样本保护项。");
+        else if (!(result.anomalies && result.anomalies.length)) reasons.push("未满足“三个 pass 全部胜出且超过噪声门槛”，所以没有强行选唯一值。");
+        reasons.push(result.historyEvidence && result.historyEvidence.stable ? "已与相隔至少 24 小时的同配置、同网格会话一致。" : "未达到跨日双会话确认；不使用虚构置信度。");
+        els.reasonList.innerHTML = reasons.map(function (reason) { return "<li>" + reason + "</li>"; }).join("");
+
+        var tasks = result.tasks;
+        var repeatability = result.repeatability || repeatabilitySummary(result.evaluation);
+        els.taskSummary.innerHTML = [
+          "<li><span>小目标获取</span><b>漏失 " + formatPercent(tasks.flick.missRate) + " · 欠冲 " + tasks.flick.undershoots.toFixed(1) + " · 过冲 " + tasks.flick.overshoots.toFixed(1) + "</b></li>",
+          "<li><span>横向急停</span><b>漏失 " + formatPercent(tasks.lateral.missRate) + " · 回拉 " + tasks.lateral.corrections.toFixed(1) + "</b></li>",
+          "<li><span>平滑追踪</span><b>RMS " + tasks.track.rmsError.toFixed(2) + "° · 脱靶 " + formatPercent(tasks.track.offTargetRatio) + "</b></li>",
+          "<li><span>复测波动</span><b>配对 MAD 中位 " + logLossPercent(repeatability.medianMad) + " · 最大 " + logLossPercent(repeatability.maxMad) + "</b></li>",
+          "<li><span>区分门槛</span><b>最大 " + logLossPercent(repeatability.maxThreshold) + " · 漂移 " + logLossPercent(repeatability.drift) + " · 另加 0.20% 保护</b></li>"
+        ].join("");
+
+        var summary = state.history.find(function (item) { return item.id === result.sessionId; });
+        var canConfirm = Boolean(summary && summary.eligible && !result.historyEvidence.stable);
+        els.confirmSession.hidden = !canConfirm;
+        if (canConfirm) {
+          var eligibleAt = new Date(result.historyEvidence.nextEligibleAt || new Date(result.completedAt).getTime() + 86400000).getTime();
+          var remaining = eligibleAt - Date.now();
+          els.confirmSession.disabled = remaining > 0;
+          els.confirmSession.textContent = remaining > 0 ? "确认任务将在 " + new Date(eligibleAt).toLocaleString("zh-CN") + " 可用" : "建立同网格跨日确认任务";
+        }
+      }
+      function reportText() {
+        var result = state.result;
+        if (!result) return "";
+        var mainText = result.main ? Core.formatSensitivity(result.main.sensitivity) : "无（当前测试无法进一步区分）";
+        var repeatability = result.repeatability || repeatabilitySummary(result.evaluation);
+        return [
+          "CS2 SENS / LAB v" + C.algorithmVersion,
+          "模式：" + C.modes[result.mode].label,
+          "输入模式：" + (result.inputMode === "raw" ? "Pointer Lock + 已确认 unadjustedMovement" : "兼容 Pointer Lock 粗筛"),
+          "实际测试候选：" + result.testedCandidates.map(function (candidate) { return Core.formatSensitivity(candidate.sensitivity); }).join(", "),
+          "保留范围：" + rangeText(result.range),
+          "会话主推荐：" + mainText,
+          "控制台命令：" + (result.main ? "sensitivity " + Core.formatSensitivity(result.main.sensitivity) : "无单一命令"),
+          "m_yaw：" + formatCvar(result.profile.mYaw),
+          "m_pitch：" + formatCvar(result.profile.mPitch),
+          "复测波动（配对 MAD 中位 / 最大）：" + logLossPercent(repeatability.medianMad) + " / " + logLossPercent(repeatability.maxMad),
+          "区分阈值（最大配对 / 会话漂移）：" + logLossPercent(repeatability.maxThreshold) + " / " + logLossPercent(repeatability.drift),
+          "三轮有限样本保护项：0.2% log-loss（只会收紧唯一推荐）",
+          "有效任务时长：" + (result.validTaskMs / 60000).toFixed(1) + " 分钟",
+          "证据标签：" + result.evidence,
+          "边界状态：" + (result.boundaryLimited ? "已触及搜索外缘，禁止单一命令" : "未触及工具外缘"),
+          "数据异常：" + (result.anomalies && result.anomalies.length ? result.anomalies.join(", ") + "（只保留范围）" : "无"),
+          "非官方网页模拟，不连接 Aim Lab。",
+          "未经过 CS2 游戏内提升验证。"
+        ].join("\n");
+      }
+      function copyText(value, success) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(value).then(function () { showToast(success); }).catch(function () { fallbackCopy(value, success); });
+        } else fallbackCopy(value, success);
+      }
+      function fallbackCopy(value, success) {
+        var area = document.createElement("textarea");
+        area.value = value; area.setAttribute("readonly", ""); area.style.position = "fixed"; area.style.opacity = "0";
+        document.body.appendChild(area); area.select();
+        try {
+          if (document.execCommand("copy")) showToast(success);
+          else showToast("复制失败，请手动复制。");
+        } catch (error) { showToast("复制失败，请手动复制。"); }
+        document.body.removeChild(area);
+      }
+      function saveState() {
+        try {
+          var session = state.session ? Core.clone(state.session) : null;
+          if (session && session.status === "running") session.status = "paused";
+          localStorage.setItem(C.storageKey, JSON.stringify({ version: C.algorithmVersion, taskVersion: C.taskVersion, profile: state.profile, session: session, result: state.result, history: state.history.slice(-100) }));
+        } catch (error) { /* Local storage can be unavailable in strict private contexts. */ }
+      }
+      function parseStored(key) {
+        try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (error) { return null; }
+      }
+      function restoreState() {
+        var migrated = Core.migratePersistedState({ v3: parseStored(C.storageKey), v2: parseStored(C.previousStorageKeys[0]), v1: parseStored(C.previousStorageKeys[1]) });
+        state.profile = migrated.profile;
+        state.session = migrated.session;
+        state.result = migrated.result;
+        state.history = migrated.history || [];
+        if (state.profile) fillProfile(state.profile);
+        var recoveredInterruptedBlock = false;
+        if (state.session && state.session.status !== "complete") {
+          state.session.status = "paused";
+          if (state.session.activeBlock) {
+            var marker = state.session.activeBlock;
+            state.session.interruptions.push({ at: new Date().toISOString(), code: "process-interruption", reason: "浏览器在分组完成前关闭或刷新；未完成分组已作废。", stageId: marker.stageId, pass: marker.pass, candidateKey: marker.candidateKey });
+            state.session.anomalies.push("process-interruption");
+            state.session.activeBlock = null;
+            recoveredInterruptedBlock = true;
+          }
+        }
+        if (migrated.migratedFrom || recoveredInterruptedBlock) saveState();
+      }
+      function startFromProfile() {
+        try {
+          cancelLockAttempt(true);
+          var profile = readProfile();
+          state.profile = profile;
+          state.session = createSession(profile);
+          state.result = null;
+          saveState();
+          renderLab();
+          setOverlay({ kicker: "V3 BALANCED CANDIDATES", title: "候选盲测已建立", copy: "首次会请求未加速 Pointer Lock。每个 pass 中三个候选共用相同任务种子；目标无需点击。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
+          els.formError.textContent = "候选已使用对数空间建立；档案只决定起点，不直接决定胜负。";
+          els.formError.style.color = "var(--green)";
+          showView("lab");
+        } catch (error) {
+          els.formError.textContent = error.message;
+          els.formError.style.color = "var(--red)";
+        }
+      }
+      function restartSameProfile() {
+        if (!state.profile) return;
+        cancelLockAttempt(true);
+        state.session = createSession(state.profile);
+        state.result = null;
+        saveState(); renderLab();
+        setOverlay({ kicker: "NEW V3 SESSION", title: "已建立新的盲测会话", copy: "新标签映射和种子已生成。", actionLabel: "锁定并开始", action: requestSessionLock });
+        showView("lab");
+      }
+      function startConfirmationSession() {
+        if (!state.result || !state.result.finalGrid) return;
+        var summary = state.history.find(function (item) { return item.id === state.result.sessionId; });
+        if (!summary || !summary.eligible) return;
+        var eligibleAt = new Date(state.result.historyEvidence.nextEligibleAt || new Date(state.result.completedAt).getTime() + 86400000).getTime();
+        if (Date.now() < eligibleAt) { showToast("跨日确认需要相隔至少 24 小时。"); return; }
+        cancelLockAttempt(true);
+        var profile = Core.clone(state.profile);
+        profile.mode = state.result.mode === "deep" ? "deep" : "standard";
+        state.profile = profile;
+        state.session = createSession(profile, { grid: state.result.finalGrid, confirmation: true, labelBySensitivity: state.result.labelBySensitivity });
+        state.result = null;
+        saveState(); renderLab();
+        setOverlay({ kicker: "COMPLEMENTARY ORDER", title: "跨日同网格确认任务", copy: "候选数值不插值，执行 CBA / ACB / BAC 互补顺序。", actionLabel: "锁定并开始", action: requestSessionLock });
+        showView("lab");
+      }
+      function leaveLabForProfile() {
+        if (state.active) invalidateActive("已离开测试页，当前分组已作废。", "user-left");
+        else cancelLockAttempt(true);
+        showView("profile");
+      }
+      els.profileForm.addEventListener("submit", function (event) { event.preventDefault(); startFromProfile(); });
+      els.startSession.addEventListener("click", requestSessionLock);
+      els.pauseSession.addEventListener("click", function () {
+        if (state.active) invalidateActive("用户暂停，当前分组已作废。", "user-pause");
+        else {
+          cancelLockAttempt(true);
+          if (state.session && state.session.status !== "complete") state.session.status = "paused";
+          saveState();
+          setOverlay({ kicker: "SESSION PAUSED", title: "会话已暂停", copy: "没有未完成分组被计入；重新锁定鼠标后可继续。", actionLabel: "重新锁定并继续", action: requestSessionLock });
+        }
+      });
+      byId("backToProfile").addEventListener("click", leaveLabForProfile);
+      byId("brandHome").addEventListener("click", function (event) { event.preventDefault(); leaveLabForProfile(); });
+      els.copyCommand.addEventListener("click", function () {
+        if (state.result && state.result.main) copyText("sensitivity " + Core.formatSensitivity(state.result.main.sensitivity), "控制台命令已复制");
+      });
+      byId("copyReport").addEventListener("click", function () { if (state.result) copyText(reportText(), "完整报告已复制"); });
+      byId("restartTests").addEventListener("click", restartSameProfile);
+      byId("newProfile").addEventListener("click", function () { cancelLockAttempt(true); state.session = null; state.result = null; saveState(); showView("profile"); });
+      els.confirmSession.addEventListener("click", startConfirmationSession);
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("pointerlockchange", onPointerLockChange);
+      document.addEventListener("pointerlockerror", function () {
+        if (!state.lock.awaiting) return;
+        if (state.lock.mode === "raw") offerCompatibilityRetry("Pointer Lock 原始输入请求发生错误。");
+        else failCompatibilityLock(state.lock.token, "请确认页面位于前台，并使用桌面 Chrome / Edge 重试。");
+      });
+      document.addEventListener("visibilitychange", function () { if (document.hidden && state.active) invalidateActive("页面离开前台，当前分组已作废。", "visibility-lost"); });
+      window.addEventListener("blur", function () { if (state.active) invalidateActive("窗口失去焦点，当前分组已作废。", "window-blur"); });
+      window.addEventListener("resize", function () { if (state.active) invalidateActive("窗口或页面缩放改变，当前分组已作废。", "window-resize"); });
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", function () { if (state.active) invalidateActive("视口缩放改变，当前分组已作废。", "viewport-resize"); });
+      window.addEventListener("pagehide", function () { if (state.active) invalidateActive("页面即将离开，当前分组已作废。", "pagehide"); saveState(); });
+
+      function runSelfTests() {
+        var failures = [];
+        function expect(condition, label) { if (!condition) failures.push(label); }
+        var down = Core.applyPointerDelta({ yaw: 0, pitch: 0 }, { x: 0, y: 10 }, { sensitivity: 1, mYaw: 0.022, mPitch: 0.022 });
+        expect(down.camera.pitch < 0, "mouse down must lower reticle pitch");
+        var inverted = Core.applyPointerDelta({ yaw: 0, pitch: 0 }, { x: 0, y: 10 }, { sensitivity: 1, mYaw: 0.022, mPitch: -0.022 });
+        expect(inverted.camera.pitch > 0, "negative m_pitch must invert Y");
+        var target = Core.projectTarget({ yaw: 12, pitch: -6, radius: 1.2 }, { yaw: 0, pitch: 0 }, { width: 900, height: 500 });
+        var reticle = Core.projectReticle({ yaw: 12, pitch: -6 }, { yaw: 0, pitch: 0 }, { width: 900, height: 500 });
+        expect(Math.abs(target.x - reticle.x) < 0.0001 && Math.abs(target.y - reticle.y) < 0.0001, "reticle-target angular alignment");
+        var profile = { dpi: 800, currentSens: 1.25, padWidth: 45, polling: 1000, mYaw: 0.022, mPitch: 0.022, aimStyle: "hybrid", role: "rifle", priority: "balance", mode: "standard" };
+        var candidates = Core.buildCoarseCandidates(profile, "smoke");
+        var stage = Core.createBalancedStage("smoke", candidates, 123, 3, false);
+        expect(stage.orders.length === 3 && new Set(stage.orders[0]).size === 3, "balanced stage");
+        var dwell = Core.updateDwell(Core.createDwellState(), true, 0);
+        dwell = Core.updateDwell(dwell, true, 99);
+        expect(!dwell.hit, "99ms dwell");
+        dwell = Core.updateDwell(dwell, true, 100);
+        expect(dwell.hit, "100ms dwell");
+        var queued = [];
+        var fake = Core.createRafScheduler({ requestFrame: function (callback) { queued.push(callback); return queued.length - 1; }, cancelFrame: function () {} });
+        fake.request(function () {}); fake.request(function () {});
+        expect(queued.length === 1 && fake.pendingCount() === 1, "single RAF including id zero");
+        fake.destroy();
+        if (failures.length) throw new Error(failures.join(", "));
+        return "CS2 SENS / LAB v3 smoke tests passed.";
+      }
+      function diagnostics() {
+        var run = state.active;
+        return Object.freeze({
+          version: C.algorithmVersion,
+          view: state.view,
+          inputMode: state.session ? state.session.inputMode : null,
+          sessionStatus: state.session ? state.session.status : null,
+          completedBlocks: state.session ? state.session.blocks.length : 0,
+          pendingRaf: scheduler.pendingCount(),
+          active: Boolean(state.active),
+          rawConfirmed: Boolean(state.session && state.session.inputMode === "raw"),
+          mode: state.session ? state.session.mode : null,
+          awaitingLock: state.lock.awaiting,
+          lockMode: state.lock.mode,
+          anomalyCount: state.session ? state.session.anomalies.length : 0,
+          hasMain: Boolean(state.result && state.result.main),
+          evidence: state.result ? state.result.evidence : null,
+          activePhase: run ? run.phase : null,
+          activeTask: run ? run.taskName : null,
+          activePhaseEndsAt: run ? run.phaseEndsAt : null,
+          activeCandidateSensitivity: run ? run.block.candidate.sensitivity : null,
+          activeCamera: run ? Core.clone(run.camera) : null,
+          activeTarget: run && run.target ? Core.clone({ yaw: run.target.yaw, pitch: run.target.pitch, radius: run.target.radius, dwell: run.target.dwell }) : null,
+          activeTaskResults: run ? Core.clone(run.taskResults) : null,
+          activeTaskHits: run && run.taskData && Array.isArray(run.taskData.hits) ? run.taskData.hits.length : null
+        });
+      }
+      window.CS2SensLab = Object.freeze({ version: C.algorithmVersion, core: Core, runSelfTests: runSelfTests, getDiagnostics: diagnostics, reportText: reportText });
+      if (location.hash === "#selftest") {
+        try { document.documentElement.setAttribute("data-selftest", runSelfTests()); console.info(document.documentElement.getAttribute("data-selftest")); }
+        catch (error) { document.documentElement.setAttribute("data-selftest", "FAILED: " + error.message); console.error(error); }
+      }
+
+      detectCapability();
+      restoreState();
+      if (state.result) {
+        renderRecommendation();
+        showView("result");
+      } else if (state.session) {
+        renderLab();
+        setOverlay({ kicker: "SAVED V3 SESSION", title: "可继续已保存的候选会话", copy: "只恢复完整结束的分组；上一个未完成分组已作废。", actionLabel: "重新锁定并继续", action: requestSessionLock });
         showView("lab");
       }
     }());
