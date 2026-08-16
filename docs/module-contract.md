@@ -9,8 +9,14 @@
 - `module.result`
 - `settings.updated`
 - `updates.check`
+- `system.open-settings`
+- `source.open`
 
 `module.result` 的 CS2 载荷必须包含 `moduleId=cs2-sensitivity`、`sensitivity`、`command` 与完成时间。宿主再次检查 `0.100–8.000` 范围和 `sensitivity ` 命令前缀，才写入本机历史。
+
+`system.open-settings` 只能提交宿主编译内置的 `pageId`；当前白名单仅包含高级显示、Game Mode、图形、电源、启动应用和 Windows Update。网页不能发送任意 URI。
+
+`source.open` 只能提交研究目录中的 `sourceId`。宿主把它映射到编译内置的 HTTPS 官方资料，并在用户点击后交给默认浏览器；模块不能构造或导航到任意外部地址。
 
 ## 自动化边界
 

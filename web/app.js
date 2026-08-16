@@ -2,14 +2,22 @@ import {
   createCalibrationRecord,
   formatDateTime,
   getActiveTransactions,
+  getOptimizationProgress,
   getOverviewState,
   loadState,
   saveState,
+  setOptimizationCheck,
   upsertCalibrationRecord
 } from "./core.mjs";
+import {
+  getRecommendations,
+  getSource,
+  REJECTED_TWEAKS
+} from "./optimization-catalog.mjs";
 
 const VIEW_META = {
   overview: { kicker: "WORKSTATION / OVERVIEW", title: "本机状态" },
+  optimizer: { kicker: "MATCH / READINESS PLAN", title: "开赛准备" },
   modules: { kicker: "MODULE LIBRARY / OFFICIAL", title: "优化方案" },
   module: { kicker: "CALIBRATION / LOCAL MODULE", title: "CS2 灵敏度实验室" },
   recovery: { kicker: "TRANSACTION / RECOVERY", title: "恢复中心" },
@@ -24,10 +32,19 @@ const elements = {
   headKicker: document.getElementById("headKicker"),
   headTitle: document.getElementById("headTitle"),
   activeChangeMetric: document.getElementById("activeChangeMetric"),
-  calibrationMetric: document.getElementById("calibrationMetric"),
+  readinessMetric: document.getElementById("readinessMetric"),
+  readinessNavCount: document.getElementById("readinessNavCount"),
   recoveryMetric: document.getElementById("recoveryMetric"),
   recoveryNavCount: document.getElementById("recoveryNavCount"),
-  latestCalibrationReadout: document.getElementById("latestCalibrationReadout"),
+  quickProgressReadout: document.getElementById("quickProgressReadout"),
+  osSelect: document.getElementById("osSelect"),
+  gpuSelect: document.getElementById("gpuSelect"),
+  platformSelect: document.getElementById("platformSelect"),
+  recommendationList: document.getElementById("recommendationList"),
+  planProgressLabel: document.getElementById("planProgressLabel"),
+  planProgressTitle: document.getElementById("planProgressTitle"),
+  planProgressBar: document.getElementById("planProgressBar"),
+  rejectedTweaksList: document.getElementById("rejectedTweaksList"),
   historyList: document.getElementById("historyList"),
   recoveryList: document.getElementById("recoveryList"),
   recoveryStatus: document.getElementById("recoveryStatus"),
@@ -45,6 +62,7 @@ let moduleResultPoller;
 
 hydratePreferences();
 wireNavigation();
+wireOptimizer();
 wireSettings();
 wireModuleFrame();
 render();
@@ -52,6 +70,55 @@ if (state.activeView === "module" && state.activeModuleId === "cs2-sensitivity")
   openModule("cs2-sensitivity");
 } else {
   selectView(state.activeView in VIEW_META ? state.activeView : "overview", { persist: false });
+}
+
+function wireOptimizer() {
+  const profileInputs = [elements.osSelect, elements.gpuSelect, elements.platformSelect];
+  profileInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      state.optimizationProfile = {
+        ...state.optimizationProfile,
+        os: elements.osSelect.value,
+        gpuVendor: elements.gpuSelect.value,
+        platform: elements.platformSelect.value
+      };
+      persist();
+      render();
+      showToast("已按新的设备与平台信息重排方案。");
+    });
+  });
+
+  document.querySelectorAll("[data-plan-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.optimizationProfile.planMode = button.dataset.planMode;
+      persist();
+      render();
+    });
+  });
+
+  elements.recommendationList.addEventListener("click", (event) => {
+    const actionButton = event.target.closest("[data-rule-action]");
+    if (actionButton) {
+      runRecommendationAction(actionButton.dataset.ruleAction);
+      return;
+    }
+
+    const completionButton = event.target.closest("[data-rule-complete]");
+    if (completionButton) {
+      const ruleId = completionButton.dataset.ruleComplete;
+      const completed = !Boolean(state.optimizationChecks[ruleId]);
+      state.optimizationChecks = setOptimizationCheck(state.optimizationChecks, ruleId, completed);
+      persist();
+      render();
+      showToast(completed ? "已记录为确认完成。" : "已撤销这项本机确认记录。");
+      return;
+    }
+
+    const sourceButton = event.target.closest("[data-source-id]");
+    if (sourceButton) {
+      openSource(sourceButton.dataset.sourceId);
+    }
+  });
 }
 announceHostReady();
 
@@ -230,33 +297,177 @@ function readCalibrationResult(moduleDocument) {
 
 function render() {
   const overview = getOverviewState(state);
+  const quickRules = getRecommendations(state.optimizationProfile, "quick");
+  const quickProgress = getOptimizationProgress(state.optimizationChecks, quickRules);
   elements.activeChangeMetric.textContent = formatCount(overview.activeOptimizationCount);
-  elements.calibrationMetric.textContent = formatCount(overview.calibrationCount);
+  elements.readinessMetric.textContent = `${quickProgress.percent}%`;
+  elements.readinessNavCount.textContent = `${quickProgress.percent}%`;
+  elements.readinessNavCount.classList.toggle("is-empty", quickProgress.completed === 0);
   elements.recoveryMetric.textContent = overview.requiresRecovery ? "ACTION" : "CLEAR";
   elements.recoveryNavCount.textContent = formatCount(overview.activeOptimizationCount);
   elements.recoveryNavCount.classList.toggle("is-empty", overview.activeOptimizationCount === 0);
 
-  renderLatestCalibration(overview.latestCalibration);
+  renderQuickProgress(quickProgress);
+  renderOptimizer();
   renderHistory();
   renderRecovery();
 }
 
-function renderLatestCalibration(record) {
-  elements.latestCalibrationReadout.replaceChildren();
+function renderQuickProgress(progress) {
+  elements.quickProgressReadout.replaceChildren();
   const label = document.createElement("span");
-  label.textContent = "LAST RESULT";
+  label.textContent = "QUICK PLAN";
   const value = document.createElement("strong");
   const note = document.createElement("small");
+  value.textContent = progress.total ? `${progress.completed} / ${progress.total} 已确认` : "尚未生成";
+  note.textContent = progress.percent === 100 ? "快速检查已完成；进入方案页可随时重新核对。" : "完成状态仅保存在本机，由你逐项确认。";
+  elements.quickProgressReadout.append(label, value, note);
+}
 
-  if (record) {
-    value.textContent = record.command;
-    note.textContent = `${record.effectiveDpi ?? "—"} eDPI · ${record.centimetersPer360 ?? "—"} cm/360 · ${formatDateTime(record.completedAt)}`;
-  } else {
-    value.textContent = "尚无校准记录";
-    note.textContent = "使用你的实际鼠标与 DPI 开始第一次测试。";
+function renderOptimizer() {
+  const profile = state.optimizationProfile;
+  elements.osSelect.value = profile.os;
+  elements.gpuSelect.value = profile.gpuVendor;
+  elements.platformSelect.value = profile.platform;
+  document.querySelectorAll("[data-plan-mode]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.planMode === profile.planMode);
+  });
+
+  const recommendations = getRecommendations(profile, profile.planMode);
+  const progress = getOptimizationProgress(state.optimizationChecks, recommendations);
+  elements.planProgressLabel.textContent = `${progress.completed} / ${progress.total} 已确认`;
+  elements.planProgressTitle.textContent = progress.percent === 100
+    ? "当前方案已逐项确认"
+    : profile.planMode === "quick" ? "约三分钟完成核心检查" : "完整检查包含条件项与故障修复";
+  elements.planProgressBar.style.width = `${progress.percent}%`;
+
+  elements.recommendationList.replaceChildren();
+  recommendations.forEach((rule, index) => {
+    elements.recommendationList.append(createRecommendationCard(rule, index, Boolean(state.optimizationChecks[rule.id])));
+  });
+
+  elements.rejectedTweaksList.replaceChildren();
+  REJECTED_TWEAKS.forEach((copy) => {
+    const item = document.createElement("li");
+    item.textContent = copy;
+    elements.rejectedTweaksList.append(item);
+  });
+}
+
+function createRecommendationCard(rule, index, completed) {
+  const card = document.createElement("article");
+  card.className = `recommendation-card level-${rule.level}${completed ? " is-complete" : ""}`;
+  card.dataset.ruleId = rule.id;
+
+  const sequence = document.createElement("span");
+  sequence.className = "recommendation-sequence";
+  sequence.textContent = String(index + 1).padStart(2, "0");
+
+  const content = document.createElement("div");
+  content.className = "recommendation-content";
+  const meta = document.createElement("div");
+  meta.className = "recommendation-meta";
+  const group = document.createElement("span");
+  group.textContent = groupLabel(rule.group);
+  const level = document.createElement("b");
+  level.textContent = levelLabel(rule.level);
+  meta.append(group, level);
+
+  const title = document.createElement("h3");
+  title.textContent = rule.title;
+  const summary = document.createElement("p");
+  summary.className = "recommendation-summary";
+  summary.textContent = rule.summary;
+
+  const steps = document.createElement("ol");
+  steps.className = "recommendation-steps";
+  rule.steps.forEach((step) => {
+    const item = document.createElement("li");
+    item.textContent = step;
+    steps.append(item);
+  });
+
+  const detail = document.createElement("details");
+  detail.className = "recommendation-detail";
+  const detailSummary = document.createElement("summary");
+  detailSummary.textContent = "为什么做，以及如何验证";
+  const why = document.createElement("p");
+  why.textContent = rule.why;
+  const verify = document.createElement("p");
+  const verifyLabel = document.createElement("strong");
+  verifyLabel.textContent = "验证：";
+  verify.append(verifyLabel, rule.verify);
+  const path = document.createElement("p");
+  path.className = "recommendation-path";
+  const pathLabel = document.createElement("strong");
+  pathLabel.textContent = "操作路径：";
+  path.append(pathLabel, rule.action.fallback);
+  const sources = document.createElement("div");
+  sources.className = "source-list";
+  rule.sources.forEach((sourceId) => {
+    const source = getSource(sourceId);
+    if (!source) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.sourceId = sourceId;
+    button.textContent = `${source.publisher} ↗`;
+    button.title = source.title;
+    sources.append(button);
+  });
+  detail.append(detailSummary, why, verify, path, sources);
+
+  const actions = document.createElement("div");
+  actions.className = "recommendation-actions";
+  const action = document.createElement("button");
+  action.className = "button button-secondary";
+  action.type = "button";
+  action.dataset.ruleAction = rule.id;
+  action.textContent = rule.action.label;
+  action.disabled = rule.action.type === "none";
+  const complete = document.createElement("button");
+  complete.className = `button ${completed ? "button-confirmed" : "button-primary"}`;
+  complete.type = "button";
+  complete.dataset.ruleComplete = rule.id;
+  complete.textContent = completed ? "已确认 ✓" : "我已检查";
+  actions.append(action, complete);
+
+  content.append(meta, title, summary, steps, detail, actions);
+  card.append(sequence, content);
+  return card;
+}
+
+function runRecommendationAction(ruleId) {
+  const rule = getRecommendations(state.optimizationProfile, "full").find((item) => item.id === ruleId);
+  if (!rule || rule.action.type === "none") return;
+
+  if (rule.action.type === "settings" && window.chrome?.webview) {
+    postToHost("system.open-settings", { pageId: rule.action.pageId });
+    showToast("已请求 Windows 打开对应设置页；请按卡片逐项确认。");
+    return;
   }
 
-  elements.latestCalibrationReadout.append(label, value, note);
+  copyText(rule.action.fallback, rule.action.type === "settings"
+    ? "当前是浏览器预览，已复制 Windows 设置路径。"
+    : "操作路径已复制。");
+}
+
+function openSource(sourceId) {
+  const source = getSource(sourceId);
+  if (!source) return;
+  if (window.chrome?.webview) {
+    postToHost("source.open", { sourceId });
+    showToast("已在默认浏览器打开官方资料。");
+    return;
+  }
+  copyText(source.url, "官方资料链接已复制。");
+}
+
+function groupLabel(group) {
+  return ({ windows: "WINDOWS", session: "SESSION", gpu: "GPU", cs2: "CS2", platform: "PLATFORM", repair: "REPAIR" })[group] ?? group.toUpperCase();
+}
+
+function levelLabel(level) {
+  return ({ essential: "核心", recommended: "建议", troubleshoot: "故障时" })[level] ?? level;
 }
 
 function renderHistory() {
@@ -353,11 +564,15 @@ function applyMotionPreference() {
 
 function exportDiagnosticSummary() {
   const overview = getOverviewState(state);
+  const recommendations = getRecommendations(state.optimizationProfile, state.optimizationProfile.planMode);
+  const readiness = getOptimizationProgress(state.optimizationChecks, recommendations);
   const text = [
     "OPT / LAB local diagnostic summary",
     `Generated: ${new Date().toISOString()}`,
     `Calibration history: ${overview.calibrationCount}`,
     `Active transactions: ${overview.activeOptimizationCount}`,
+    `Readiness profile: ${state.optimizationProfile.os} / ${state.optimizationProfile.gpuVendor} / ${state.optimizationProfile.platform}`,
+    `Readiness confirmations: ${readiness.completed}/${readiness.total}`,
     "No mouse path, game configuration, account, or network data is included."
   ].join("\n");
 
@@ -372,8 +587,10 @@ function exportDiagnosticSummary() {
 }
 
 async function copyText(text, successMessage) {
+  let copied = false;
   try {
     await navigator.clipboard.writeText(text);
+    copied = true;
   } catch {
     const area = document.createElement("textarea");
     area.value = text;
@@ -382,17 +599,22 @@ async function copyText(text, successMessage) {
     area.style.opacity = "0";
     document.body.append(area);
     area.select();
-    document.execCommand("copy");
+    try {
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
     area.remove();
   }
-  showToast(successMessage);
+  showToast(copied ? successMessage : "复制失败，请按卡片中显示的操作路径完成。" );
+  return copied;
 }
 
 function announceHostReady() {
   postToHost("shell.ready", {
     protocolVersion: 1,
     mode: window.chrome?.webview ? "webview2" : "preview",
-    moduleCount: 1
+    moduleCount: 2
   });
 }
 

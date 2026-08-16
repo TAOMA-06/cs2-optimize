@@ -21,10 +21,15 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>
           <span>总览</span>
         </button>
+        <button class="nav-item" data-view="optimizer" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M8 12h8m-5 6h2M7 4v4m10 2v4m-5 2v4"/></svg>
+          <span>开赛准备</span>
+          <b class="nav-count" id="readinessNavCount">00%</b>
+        </button>
         <button class="nav-item" data-view="modules" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.5 7.8 12 12.6l8.5-4.8L12 3Zm-8.5 9.3L12 17l8.5-4.7M3.5 16.7 12 21l8.5-4.3"/></svg>
           <span>优化方案</span>
-          <b class="nav-count">01</b>
+          <b class="nav-count">02</b>
         </button>
         <button class="nav-item" data-view="recovery" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.7M20 4v7h-7"/></svg>
@@ -67,12 +72,12 @@
         <div class="status-tape" aria-label="当前执行状态">
           <div class="tape-main">
             <span class="tape-index">STATUS / 0.1</span>
-            <h2 id="overviewHeading">没有正在运行的系统优化。</h2>
-            <p>本机保持原状。只有你在方案页明确启动并确认后，OPT / LAB 才会创建可恢复的变更。</p>
+            <h2 id="overviewHeading">先用三分钟确认真正影响 CS2 的项目。</h2>
+            <p>根据 Windows 版本、显卡和游戏平台给出适配步骤。每项都说明原因、验证方法与恢复边界。</p>
           </div>
           <div class="tape-signals" aria-label="状态指标">
             <div><span>ACTIVE CHANGES</span><strong id="activeChangeMetric">00</strong></div>
-            <div><span>CALIBRATIONS</span><strong id="calibrationMetric">00</strong></div>
+            <div><span>READY CHECK</span><strong id="readinessMetric">0%</strong></div>
             <div><span>RECOVERY STATE</span><strong id="recoveryMetric">CLEAR</strong></div>
           </div>
           <div class="tape-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -81,18 +86,18 @@
         <div class="overview-grid">
           <article class="panel focus-panel">
             <div class="panel-head">
-              <div><span class="eyebrow">READY NOW</span><h3>从一项可验证的校准开始</h3></div>
-              <span class="panel-code">MOD / 01</span>
+              <div><span class="eyebrow">3-MINUTE START</span><h3>按你的电脑生成开赛检查</h3></div>
+              <span class="panel-code">PLAN / LIVE</span>
             </div>
-            <p class="panel-copy">CS2 SENS / LAB 已接入。它不读取你的游戏文件，也不修改鼠标或系统设置；完成测试后会把可复制的 CS2 命令保存到本机记录。</p>
-            <div class="calibration-readout" id="latestCalibrationReadout">
-              <span>LAST RESULT</span>
-              <strong>尚无校准记录</strong>
-              <small>使用你的实际鼠标与 DPI 开始第一次测试。</small>
+            <p class="panel-copy">默认只保留最重要的项目：刷新率、Game Mode、会话后台、显卡低延迟能力和平台自己的当前优化入口。</p>
+            <div class="calibration-readout" id="quickProgressReadout">
+              <span>QUICK PLAN</span>
+              <strong>尚未开始</strong>
+              <small>完成状态仅保存在本机，由你逐项确认。</small>
             </div>
             <div class="panel-actions">
-              <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">打开 CS2 灵敏度实验室 <span aria-hidden="true">→</span></button>
-              <button class="text-button" data-view="history" type="button">查看本机记录</button>
+              <button class="button button-primary" data-view="optimizer" type="button">开始开赛检查 <span aria-hidden="true">→</span></button>
+              <button class="text-button" data-open-module="cs2-sensitivity" type="button">灵敏度实验室</button>
             </div>
           </article>
 
@@ -119,18 +124,52 @@
           <div class="module-snapshot-list">
             <article class="snapshot-row">
               <div class="snapshot-state is-ready">READY</div>
+              <div class="snapshot-title"><strong>CS2 开赛准备</strong><span>Windows · 显卡 · Steam / 完美 / 5E 适配检查</span></div>
+              <div class="snapshot-permission">USER CONFIRM</div>
+              <button class="row-action" data-view="optimizer" type="button">开始 <span aria-hidden="true">↗</span></button>
+            </article>
+            <article class="snapshot-row">
+              <div class="snapshot-state is-ready">READY</div>
               <div class="snapshot-title"><strong>CS2 SENS / LAB</strong><span>个人灵敏度校准 · 离线网页模块</span></div>
               <div class="snapshot-permission">NO ADMIN</div>
               <button class="row-action" data-open-module="cs2-sensitivity" type="button">打开 <span aria-hidden="true">↗</span></button>
             </article>
-            <article class="snapshot-row is-muted">
-              <div class="snapshot-state">LOCKED</div>
-              <div class="snapshot-title"><strong>系统优化规则</strong><span>签名、快照与恢复引擎已就绪；规则尚未发布。</span></div>
-              <div class="snapshot-permission">NO RULES</div>
-              <span class="row-action is-disabled">等待验证</span>
-            </article>
           </div>
         </section>
+      </section>
+
+      <section class="view" data-view-panel="optimizer" aria-labelledby="optimizerHeading">
+        <div class="optimizer-hero">
+          <div>
+            <span class="eyebrow">EVIDENCE-BASED / LOCAL CHECKLIST</span>
+            <h2 id="optimizerHeading">CS2 开赛准备</h2>
+            <p>先选环境，再一次只处理一项。OPT / LAB 不会在后台偷偷改注册表、停服务或结束反作弊进程。</p>
+          </div>
+          <div class="research-stamp"><span>RESEARCH CUT-OFF</span><strong>2026-08-15</strong><small>官方资料优先</small></div>
+        </div>
+
+        <div class="profile-strip" aria-label="优化适配信息">
+          <label><span>Windows</span><select id="osSelect"><option value="windows11">Windows 11</option><option value="windows10">Windows 10</option></select></label>
+          <label><span>显卡</span><select id="gpuSelect"><option value="unknown">暂不确定</option><option value="nvidia">NVIDIA</option><option value="amd">AMD Radeon</option><option value="other">Intel / 其他</option></select></label>
+          <label><span>主要入口</span><select id="platformSelect"><option value="perfect">完美世界竞技平台</option><option value="fivee">5E 对战平台</option><option value="steam">Steam / 官匹</option></select></label>
+          <div class="plan-switch" role="group" aria-label="检查深度">
+            <button class="is-active" data-plan-mode="quick" type="button"><b>快速</b><small>约 3 分钟</small></button>
+            <button data-plan-mode="full" type="button"><b>完整</b><small>含排障项</small></button>
+          </div>
+        </div>
+
+        <div class="plan-progress" aria-live="polite">
+          <div><span id="planProgressLabel">0 / 0 已确认</span><strong id="planProgressTitle">准备生成适配方案</strong></div>
+          <div class="progress-track"><i id="planProgressBar"></i></div>
+          <p>“已确认”只代表你按步骤检查过，不代表网页自动读取或修改了系统。</p>
+        </div>
+
+        <div class="recommendation-list" id="recommendationList"></div>
+
+        <details class="rejected-tweaks">
+          <summary><span>GUARDRAILS</span> 本应用明确不做的“优化”</summary>
+          <div><p>这些项目缺少当前一手证据、会扩大安全风险，或极易与游戏平台和反作弊冲突。</p><ul id="rejectedTweaksList"></ul></div>
+        </details>
       </section>
 
       <section class="view" data-view-panel="modules" aria-labelledby="modulesHeading">
@@ -140,6 +179,14 @@
         </div>
 
         <div class="module-library">
+          <article class="module-card module-card-ready">
+            <div class="module-card-top"><span class="module-tag">MATCH READINESS</span><span class="module-state"><i></i> READY</span></div>
+            <div class="module-ident"><span class="module-mark mark-bars" aria-hidden="true"></span><div><h3>CS2 开赛准备</h3><p>按系统、显卡与平台生成适配方案</p></div></div>
+            <p class="module-description">把散落在 Windows、CS2、Steam、完美和 5E 中的可信设置整理为一条短流程；默认只展开低风险、高适用性的项目。</p>
+            <dl class="module-facts"><div><dt>默认耗时</dt><dd>约 3 分钟</dd></div><div><dt>执行</dt><dd>用户逐项确认</dd></div><div><dt>依据</dt><dd>官方资料优先</dd></div></dl>
+            <button class="button button-primary" data-view="optimizer" type="button">生成我的方案 <span aria-hidden="true">→</span></button>
+          </article>
+
           <article class="module-card module-card-featured">
             <div class="module-card-top"><span class="module-tag">CALIBRATION</span><span class="module-state"><i></i> READY</span></div>
             <div class="module-ident"><span class="module-mark mark-cross" aria-hidden="true"></span><div><h3>CS2 SENS / LAB</h3><p>Counter-Strike 2 个人灵敏度校准</p></div></div>
@@ -148,13 +195,6 @@
             <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">开始校准 <span aria-hidden="true">→</span></button>
           </article>
 
-          <article class="module-card module-card-contract">
-            <div class="module-card-top"><span class="module-tag">SYSTEM OPTIMIZATION</span><span class="module-state is-pending">AUDIT REQUIRED</span></div>
-            <div class="module-ident"><span class="module-mark mark-grid" aria-hidden="true"></span><div><h3>自动化优化底座</h3><p>为未来 Windows 与游戏平台模块准备</p></div></div>
-            <p class="module-description">该载体已经具备权限、事务、验证、恢复与签名模块边界；具体优化规则尚未通过兼容性审计，因此不会提前执行。</p>
-            <dl class="module-facts"><div><dt>动作</dt><dd>尚未发布</dd></div><div><dt>策略</dt><dd>持续至手动恢复</dd></div><div><dt>权限</dt><dd>按动作请求</dd></div></dl>
-            <button class="button button-secondary" type="button" disabled title="等待单独的规则审计">规则审核中</button>
-          </article>
         </div>
 
         <aside class="module-policy">

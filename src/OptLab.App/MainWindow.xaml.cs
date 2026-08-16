@@ -99,7 +99,10 @@ public sealed partial class MainWindow : Window
                 return;
             }
 
-            await moduleBridge.ReceiveAsync(message);
+            if (!await TryHandleExternalNavigationAsync(message))
+            {
+                await moduleBridge.ReceiveAsync(message);
+            }
             sender.PostWebMessageAsJson(JsonSerializer.Serialize(new
             {
                 protocolVersion = 1,
@@ -124,6 +127,57 @@ public sealed partial class MainWindow : Window
 #else
         return false;
 #endif
+    }
+
+    private static async Task<bool> TryHandleExternalNavigationAsync(HostMessage message)
+    {
+        Uri target;
+        switch (message.Type)
+        {
+            case "system.open-settings":
+                var pageId = ReadPayloadString(message.Payload, "pageId");
+                if (!ExternalNavigationCatalog.TryGetSettingsUri(pageId, out target))
+                {
+                    throw new InvalidOperationException("The requested Windows settings page is not published by OPT / LAB.");
+                }
+                break;
+            case "source.open":
+                var sourceId = ReadPayloadString(message.Payload, "sourceId");
+                if (!ExternalNavigationCatalog.TryGetSourceUri(sourceId, out target))
+                {
+                    throw new InvalidOperationException("The requested research source is not published by OPT / LAB.");
+                }
+                break;
+            default:
+                return false;
+        }
+
+        try
+        {
+            if (!await Windows.System.Launcher.LaunchUriAsync(target))
+            {
+                throw new InvalidOperationException("Windows could not open the requested destination.");
+            }
+        }
+        catch (Exception exception) when (exception is not InvalidOperationException)
+        {
+            throw new InvalidOperationException("Windows could not open the requested destination.", exception);
+        }
+
+        return true;
+    }
+
+    private static string ReadPayloadString(JsonElement payload, string propertyName)
+    {
+        if (payload.ValueKind != JsonValueKind.Object ||
+            !payload.TryGetProperty(propertyName, out var value) ||
+            value.ValueKind != JsonValueKind.String ||
+            string.IsNullOrWhiteSpace(value.GetString()))
+        {
+            throw new InvalidOperationException($"Browser message is missing {propertyName}.");
+        }
+
+        return value.GetString()!;
     }
 
     private static bool IsTrustedLocalUri(string candidate) =>

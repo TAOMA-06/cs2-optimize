@@ -1,13 +1,21 @@
 export const APP_STORAGE_KEY = "opt-lab.shell.v1";
 export const MAX_HISTORY_ITEMS = 20;
+export const APP_SCHEMA_VERSION = 2;
 
 export function createInitialState() {
   return {
-    schemaVersion: 1,
+    schemaVersion: APP_SCHEMA_VERSION,
     activeView: "overview",
     activeModuleId: null,
     calibrationHistory: [],
     transactions: [],
+    optimizationProfile: {
+      os: "windows11",
+      gpuVendor: "unknown",
+      platform: "perfect",
+      planMode: "quick"
+    },
+    optimizationChecks: {},
     preferences: {
       checkForUpdates: true,
       reducedMotion: false
@@ -17,19 +25,22 @@ export function createInitialState() {
 
 export function normalizeState(candidate) {
   const initial = createInitialState();
-  if (!candidate || candidate.schemaVersion !== initial.schemaVersion) {
+  if (!candidate || ![1, APP_SCHEMA_VERSION].includes(candidate.schemaVersion)) {
     return initial;
   }
 
   return {
     ...initial,
     ...candidate,
+    schemaVersion: APP_SCHEMA_VERSION,
     calibrationHistory: Array.isArray(candidate.calibrationHistory)
       ? candidate.calibrationHistory.filter(isCalibrationRecord).slice(0, MAX_HISTORY_ITEMS)
       : [],
     transactions: Array.isArray(candidate.transactions)
       ? candidate.transactions.filter(isTransactionRecord)
       : [],
+    optimizationProfile: normalizeOptimizationProfile(candidate.optimizationProfile),
+    optimizationChecks: normalizeOptimizationChecks(candidate.optimizationChecks),
     preferences: {
       ...initial.preferences,
       ...(candidate.preferences ?? {})
@@ -109,6 +120,54 @@ export function getOverviewState(state) {
   };
 }
 
+export function normalizeOptimizationProfile(candidate) {
+  return {
+    os: ["windows11", "windows10"].includes(candidate?.os) ? candidate.os : "windows11",
+    gpuVendor: ["nvidia", "amd", "other", "unknown"].includes(candidate?.gpuVendor) ? candidate.gpuVendor : "unknown",
+    platform: ["perfect", "fivee", "steam"].includes(candidate?.platform) ? candidate.platform : "perfect",
+    planMode: ["quick", "full"].includes(candidate?.planMode) ? candidate.planMode : "quick"
+  };
+}
+
+export function normalizeOptimizationChecks(candidate) {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(candidate)
+      .filter(([id, completed]) => /^[a-z0-9-]+$/.test(id) && completed === true)
+      .slice(0, 100)
+  );
+}
+
+export function setOptimizationCheck(checks, ruleId, completed) {
+  if (!/^[a-z0-9-]+$/.test(ruleId)) {
+    throw new Error("优化检查项 ID 无效。");
+  }
+
+  const next = normalizeOptimizationChecks(checks);
+  if (completed) {
+    next[ruleId] = true;
+  } else {
+    delete next[ruleId];
+  }
+  return next;
+}
+
+export function getOptimizationProgress(checks, recommendations) {
+  const safeChecks = normalizeOptimizationChecks(checks);
+  const ids = recommendations.map((rule) => rule.id);
+  const completed = ids.filter((id) => safeChecks[id]).length;
+  const total = ids.length;
+  return {
+    completed,
+    total,
+    percent: total ? Math.round((completed / total) * 100) : 0,
+    nextRuleId: ids.find((id) => !safeChecks[id]) ?? null
+  };
+}
+
 export function formatDateTime(isoDate, locale = "zh-CN") {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
@@ -133,4 +192,3 @@ function integerOrNull(value) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.round(number) : null;
 }
-

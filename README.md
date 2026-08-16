@@ -1,10 +1,12 @@
 # OPT / LAB
 
-面向 Windows 10/11 x64 的本地优先游戏优化载体。首个模块承接现有 CS2 灵敏度实验室；后续系统优化以签名模块、受限动作和可恢复事务接入。
+面向 Windows 11 x64、兼容 Windows 10 x64 的本地优先游戏优化载体。首个模块承接现有 CS2 灵敏度实验室；开赛准备模块把 Windows、显卡、Steam、完美世界竞技平台与 5E 的可信步骤整理成适配方案。Windows 10 已结束常规支持，不能作为首选发布环境。
 
 ## 当前交付状态
 
-- 可直接预览的产品外壳：总览、模块库、CS2 实验室、恢复中心、运行记录、设置。
+- 可直接预览的产品外壳：总览、三分钟开赛准备、模块库、CS2 实验室、恢复中心、运行记录、设置。
+- 开赛准备会按 Windows 版本、显卡品牌和游戏平台生成快速/完整方案，保存用户确认进度，并提供官方来源和验证步骤。
+- Windows 宿主只允许打开编译内置的系统设置页和官方资料；网页不能构造任意 URI，也不会自行修改设置。
 - 现有 `cs2-sensitivity-lab.html` 保持独立可离线打开；外壳以 iframe 承接其最终结果，不修改原始交互逻辑。
 - Windows WinUI/WebView2 宿主、模块协议、事务日志和 Broker 源码骨架已建立。
 - **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。** 自动化底座会拒绝未知动作，不能把架构代码误认为系统优化已生效。
@@ -41,7 +43,9 @@ dotnet build OptLab.sln -c Release -p:Platform=x64
 ## 项目结构
 
 - `web/`：可离线预览的产品外壳和模块承接层。
+- `web/optimization-catalog.mjs`：截至 2026-08-15 的本地优化规则、适用条件与官方来源目录。
 - `src/OptLab.App/`：Windows WinUI 3/WebView2 非管理员桌面宿主。
 - `src/OptLab.Core/`：模块、签名与可恢复事务的共享契约。
 - `src/OptLab.Broker/`：Windows 受限自动化 Broker；目前只暴露只读诊断动作。
 - `cs2-sensitivity-lab.html`：已完成的独立 CS2 灵敏度工具，保留为模块源文件。
+- `docs/cs2-optimization-research-2026-08-15.md`：研究证据、采纳规则和明确拒绝项。
