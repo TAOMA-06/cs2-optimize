@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "cs2-sensitivity",
   "name": "CS2 SENS / LAB",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "kind": "Calibration",
-  "entryPoint": "../cs2-sensitivity-lab.html",
+  "entryPoint": "index.html",
   "minimumHostVersion": "0.1.0",
   "permissions": [
     {
@@ -21,4 +21,3 @@
     "value": "__DETACHED_SIGNATURE__"
   }
 }
-

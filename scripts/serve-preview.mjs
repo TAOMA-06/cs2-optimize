@@ -22,18 +22,16 @@ function resolveAsset(urlPathname) {
   if (pathname === "/" || pathname === "/index.html") {
     return path.join(webDirectory, "index.html");
   }
-  if (pathname === "/cs2-sensitivity-lab.html") {
-    return path.join(workspace, "cs2-sensitivity-lab.html");
-  }
   if (pathname.includes("..") || pathname.startsWith("//")) {
     return null;
   }
-  return path.join(webDirectory, pathname);
+  const asset = path.resolve(webDirectory, pathname.replace(/^\/+/, ""));
+  return asset.startsWith(`${webDirectory}${path.sep}`) ? asset : null;
 }
 
 const server = http.createServer(async (request, response) => {
   const asset = resolveAsset(new URL(request.url, "http://localhost").pathname);
-  if (!asset || !asset.startsWith(workspace) || !existsSync(asset)) {
+  if (!asset || !existsSync(asset)) {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("Not found");
     return;

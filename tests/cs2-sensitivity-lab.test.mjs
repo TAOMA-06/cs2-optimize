@@ -6,7 +6,7 @@ import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const htmlPath = path.join(workspace, "cs2-sensitivity-lab.html");
+const htmlPath = path.join(workspace, "web", "modules", "cs2-sensitivity", "index.html");
 const html = readFileSync(htmlPath, "utf8");
 
 function scriptElements(source = html) {

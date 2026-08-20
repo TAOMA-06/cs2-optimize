@@ -5,7 +5,17 @@ import { fileURLToPath } from "node:url";
 import { getRecommendations, SOURCES } from "../web/optimization-catalog.mjs";
 
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const files = ["web/index.html", "web/styles.css", "web/app.js", "web/core.mjs", "web/optimization-catalog.mjs"];
+const files = [
+  "index.html",
+  "web/index.html",
+  "web/styles.css",
+  "web/app.js",
+  "web/core.mjs",
+  "web/optimization-catalog.mjs",
+  "web/modules/cs2-sensitivity/index.html",
+  "web/modules/cs2-sensitivity/legacy-share.html",
+  "web/modules/cs2-sensitivity/manifest.template.json"
+];
 const requiredHtmlTokens = [
   "OPT / LAB",
   'id="moduleFrame"',
@@ -36,6 +46,26 @@ for (const token of requiredHtmlTokens) {
 
 if (/https?:\/\//i.test(html)) {
   throw new Error("The offline shell must not embed external URLs.");
+}
+
+const rootEntry = readFileSync(path.join(workspace, "index.html"), "utf8");
+if (!rootEntry.includes("url=./web/index.html") || !rootEntry.includes("OPT / LAB")) {
+  throw new Error("The repository root must launch the OPT / LAB application.");
+}
+
+const appSource = readFileSync(path.join(workspace, "web/app.js"), "utf8");
+if (!appSource.includes("./modules/cs2-sensitivity/index.html")) {
+  throw new Error("The sensitivity lab must load from the application module directory.");
+}
+
+const moduleManifest = JSON.parse(readFileSync(path.join(workspace, "web/modules/cs2-sensitivity/manifest.template.json"), "utf8"));
+if (moduleManifest.id !== "cs2-sensitivity" || moduleManifest.version !== "3.0.0" || moduleManifest.entryPoint !== "index.html") {
+  throw new Error("The sensitivity module manifest does not target its canonical submodule entry point.");
+}
+
+const appProject = readFileSync(path.join(workspace, "src/OptLab.App/OptLab.App.csproj"), "utf8");
+if (appProject.includes("cs2-sensitivity-lab.html")) {
+  throw new Error("The Windows app must package sensitivity through web/modules, not a root-level product file.");
 }
 
 const nativeNavigation = readFileSync(path.join(workspace, "src/OptLab.App/Services/ExternalNavigationCatalog.cs"), "utf8");

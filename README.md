@@ -1,6 +1,8 @@
 # OPT / LAB
 
-面向 Windows 11 x64、兼容 Windows 10 x64 的本地优先游戏优化载体。首个模块承接现有 CS2 灵敏度实验室；开赛准备模块把 Windows、显卡、Steam、完美世界竞技平台与 5E 的可信步骤整理成适配方案。Windows 10 已结束常规支持，不能作为首选发布环境。
+本仓库的主产品是 **OPT / LAB Windows 游戏优化工作台**，而不是单独的灵敏度网页。应用面向 Windows 11 x64、兼容 Windows 10 x64；内置的 CS2 灵敏度实验室只是其中一个无管理员权限的校准子模块。开赛准备模块把 Windows、显卡、Steam、完美世界竞技平台与 5E 的可信步骤整理成适配方案。Windows 10 已结束常规支持，不能作为首选发布环境。
+
+直接打开仓库根目录的 `index.html` 会进入 OPT / LAB 应用；网页工作台的正式入口是 `web/index.html`。
 
 ## 当前交付状态
 
@@ -10,7 +12,8 @@
 - 外壳通过版本化握手区分 Windows 桌面宿主、浏览器预览和宿主失联；只有收到原生成功回执后才显示本机动作已完成。
 - 总览把环境确认、快速检查、灵敏度基线和恢复状态串成一条可继续的开赛流程；环境变化会使先前确认自动失效。
 - 本机诊断页只展示宿主主动提供的系统、架构、版本和能力边界，不扫描进程、平台账号或游戏文件。
-- 现有 `cs2-sensitivity-lab.html` 保持独立可离线打开；外壳以 iframe 承接其最终结果，不修改原始交互逻辑。
+- 灵敏度实验室的正式模块入口是 `web/modules/cs2-sensitivity/index.html`；仍可独立离线打开，但产品、测试和 Windows 打包都把它视为应用子功能。
+- 根目录旧灵敏度文件只保留为兼容跳转，既有书签不会直接失效，也不再承担仓库主入口职责。
 - Windows WinUI/WebView2 宿主、模块协议、事务日志和 Broker 源码骨架已建立。
 - **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。** 自动化底座会拒绝未知动作，不能把架构代码误认为系统优化已生效。
 - 当前 Broker 使用当前用户限定的本地命名管道，只发布只读机器摘要；管理员启动器、服务安装、代码签名和真实写入动作属于 Windows 发布门禁，尚未实现。
@@ -19,7 +22,7 @@
 
 ```bash
 node scripts/serve-preview.mjs
-node --test tests/core.test.mjs
+node --test tests/*.test.mjs
 node scripts/check-web.mjs
 ```
 
@@ -45,10 +48,14 @@ dotnet build OptLab.sln -c Release -p:Platform=x64
 
 ## 项目结构
 
-- `web/`：可离线预览的产品外壳和模块承接层。
+- `index.html`：仓库级应用入口，跳转到正式 OPT / LAB 工作台。
+- `web/`：可离线预览的 OPT / LAB 产品外壳和内置模块目录。
+- `web/modules/cs2-sensitivity/index.html`：已完成的 CS2 灵敏度子模块；仍可单独离线使用。
+- `web/modules/cs2-sensitivity/legacy-share.html`：为既有分享场景保留的旧版轻量页面。
 - `web/optimization-catalog.mjs`：截至 2026-08-15 的本地优化规则、适用条件与官方来源目录。
 - `src/OptLab.App/`：Windows WinUI 3/WebView2 非管理员桌面宿主。
 - `src/OptLab.Core/`：模块、签名与可恢复事务的共享契约。
 - `src/OptLab.Broker/`：Windows 受限自动化 Broker；目前只暴露只读诊断动作。
-- `cs2-sensitivity-lab.html`：已完成的独立 CS2 灵敏度工具，保留为模块源文件。
+- `cs2-sensitivity-lab.html`、`cs2-sensitivity-friend.html`：旧地址兼容跳转，不是产品源文件。
 - `docs/cs2-optimization-research-2026-08-15.md`：研究证据、采纳规则和明确拒绝项。
+- `docs/repository-architecture.md`：主应用、内置模块和旧地址兼容层的长期边界。

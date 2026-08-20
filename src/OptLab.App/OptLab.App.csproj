@@ -27,10 +27,5 @@
       <Link>Assets\Shell\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\cs2-sensitivity-lab.html">
-      <Link>Assets\cs2-sensitivity-lab.html</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>
-

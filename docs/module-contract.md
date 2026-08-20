@@ -1,5 +1,7 @@
 # 模块与 Broker 契约
 
+正式内置模块统一位于 `web/modules/<module-id>/`。CS2 灵敏度模块的规范入口是 `web/modules/cs2-sensitivity/index.html`；根目录同名文件仅用于旧地址兼容，不得作为宿主、测试或打包来源。
+
 ## 模块边界
 
 浏览器模块不获得原生系统权限。它们只能向 WinUI 宿主发送下列版本化消息：

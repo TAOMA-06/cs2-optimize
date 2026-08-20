@@ -253,7 +253,7 @@ function loadModuleFrame({ force = false } = {}) {
   elements.moduleFrameStatus.textContent = "正在加载离线校准模块…";
   elements.retryModuleButton.hidden = true;
   const retrySuffix = force ? `?reload=${Date.now()}` : "";
-  elements.moduleFrame.src = `../cs2-sensitivity-lab.html${retrySuffix}`;
+  elements.moduleFrame.src = `./modules/cs2-sensitivity/index.html${retrySuffix}`;
   moduleFrameInitialized = true;
   moduleLoadTimeout = window.setTimeout(() => {
     showModuleFrameFailure("模块加载时间超过预期。可以重试；这不会清除灵敏度实验室自己的本机进度。");
