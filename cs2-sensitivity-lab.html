@@ -286,6 +286,20 @@
     .result-card-head h3 { margin: 0; font-size: 15px; }
     .result-card-head span { color: var(--muted); font-family: var(--mono); font-size: 9px; text-align: right; }
     .result-card-body { padding: 18px; }
+    .fast-guide {
+      display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(270px, .85fr); gap: 1px; margin-top: 18px;
+      border: 1px solid var(--line-strong); background: var(--line-strong); box-shadow: var(--shadow);
+    }
+    .fast-guide[hidden] { display: none; }
+    .fast-guide-copy, .fast-guide-plan { padding: 22px; background: var(--ink-2); }
+    .fast-guide-kicker { display: block; margin-bottom: 8px; color: var(--orange-soft); font-family: var(--mono); font-size: 9px; letter-spacing: .14em; }
+    .fast-guide h3 { margin: 0 0 7px; font-size: 20px; }
+    .fast-guide p { margin: 0; color: var(--muted); font-size: 12px; }
+    .fast-guide-plan > span { display: block; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
+    .fast-guide-plan > strong { display: block; margin: 5px 0; color: var(--paper); font-family: var(--display); font-size: 42px; line-height: 1; }
+    .fast-guide-plan > small { display: block; color: var(--paper-2); font-size: 10px; }
+    .fast-guide-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .fast-guide-actions .btn { min-height: 38px; padding: 0 13px; }
     .range-list { display: grid; gap: 9px; }
     .range-option { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); background: var(--ink-2); }
     .range-option.is-main { border-color: var(--orange); background: rgba(223,116,68,.07); }
@@ -327,7 +341,7 @@
       .brand span, .stepper { display: none; }
       .section-head { display: block; }
       .section-head p { margin-top: 12px; }
-      .field-grid, .choice-grid, .mode-grid, .result-grid, .lab-side { grid-template-columns: 1fr; }
+      .field-grid, .choice-grid, .mode-grid, .result-grid, .lab-side, .fast-guide { grid-template-columns: 1fr; }
       .form-section, .form-actions { padding: 20px; }
       .form-actions, .result-actions { align-items: stretch; flex-direction: column; }
       .form-actions .btn, .result-actions .btn, .result-actions > div { width: 100%; }
@@ -443,9 +457,9 @@
         <div class="form-section">
           <div class="form-section-title"><span class="form-index">01C</span><strong>选择测试深度</strong></div>
           <div class="mode-grid">
-            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio"><label for="mode-express"><b>EXPRESS</b><strong>极速试跑</strong><span>3 个候选各做一轮超短三项测试，先排除明显不适合的方向。</span><em>约 100 秒 · 活动 84 秒 · 仅粗筛带</em></label></div>
+            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio" checked><label for="mode-express"><b>EXPRESS · 首次推荐</b><strong>极速方向筛选</strong><span>约 100 秒比较 3 个候选，告诉你下一步应向慢、中心还是快的方向继续。</span><em>硬截止 120 秒 · 只给方向和粗筛带</em></label></div>
             <div class="mode-card"><input id="mode-quick" name="mode" value="quick" type="radio"><label for="mode-quick"><b>QUICK</b><strong>快速粗筛</strong><span>3 个候选各测试一次，适合先排除明显不合适的方向。</span><em>约 4–6 分钟 · 不输出稳定候选</em></label></div>
-            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio" checked><label for="mode-standard"><b>STANDARD</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>基础约 13–15 分钟 · 外缘扩展会更久</em></label></div>
+            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio"><label for="mode-standard"><b>STANDARD</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>基础约 13–15 分钟 · 外缘扩展会更久</em></label></div>
             <div class="mode-card"><input id="mode-deep" name="mode" value="deep" type="radio"><label for="mode-deep"><b>DEEP</b><strong>深度细筛</strong><span>标准粗筛后，再完成三轮 ±6% 精筛。</span><em>通常 27–30 分钟 · 边界扩展会更久</em></label></div>
           </div>
           <div class="capability-line"><span class="capability-dot" id="capabilityDot"></span><span id="capabilityStatus" aria-live="polite">正在检测浏览器输入能力…</span></div>
@@ -539,7 +553,7 @@
           <div class="command-box"><code id="commandText">sensitivity 1.000</code><button class="btn" id="copyCommand" type="button">复制命令</button></div>
         </div>
         <div class="result-side">
-          <div class="result-metric"><span>TESTED RANGE</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
+          <div class="result-metric"><span id="rangeMetricLabel">TESTED RANGE</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
           <div class="result-metric"><span>DISTANCE / 360°</span><strong id="resultCm">--</strong><small id="resultEdpi">--</small></div>
           <div class="result-metric"><span>EVIDENCE</span><strong id="resultEvidence">--</strong><small id="evidenceCopy">网页测试状态</small></div>
         </div>
@@ -548,9 +562,26 @@
         <span id="resultConfidence" hidden></span>
       </div>
 
+      <section class="fast-guide" id="fastGuide" aria-labelledby="fastGuideTitle" hidden>
+        <div class="fast-guide-copy">
+          <span class="fast-guide-kicker">FAST SCREENING / NEXT STEP</span>
+          <h3 id="fastGuideTitle">快速方向结论</h3>
+          <p id="fastGuideCopy">单轮粗筛只负责确定下一步搜索方向，不把一次成绩包装成最终灵敏度。</p>
+        </div>
+        <div class="fast-guide-plan">
+          <span>NEXT SEARCH CENTER · 非最终推荐</span>
+          <strong id="fastGuideCenter">--</strong>
+          <small id="fastGuideEvidence">等待快速粗筛完成</small>
+          <div class="fast-guide-actions">
+            <button class="btn" id="repeatFast" type="button">再跑一次快速筛选</button>
+            <button class="btn btn-primary" id="upgradeFast" type="button">进入快速复测</button>
+          </div>
+        </div>
+      </section>
+
       <div class="result-grid">
         <article class="result-card">
-          <div class="result-card-head"><h3>实际测试过的范围</h3><span>CANDIDATE RANGE</span></div>
+          <div class="result-card-head"><h3 id="rangeCardTitle">实际测试过的范围</h3><span id="rangeCardMeta">CANDIDATE RANGE</span></div>
           <div class="result-card-body"><div class="range-list" id="rangeList"></div></div>
         </article>
         <article class="result-card">
@@ -600,12 +631,12 @@
       // unique recommendation harder, keeping the fixed synthetic FPR gate.
       var DECISION_EPSILON = Math.log(1.002);
       var ALGORITHM_VERSION = "3.0.0";
-      var TASK_VERSION = "angles-3.0.0";
+      var TASK_VERSION = "angles-3.1.0";
       var STORAGE_KEY = "cs2-sens-lab-v3";
       var PREVIOUS_STORAGE_KEYS = ["cs2-sens-lab-v2", "cs2-sens-lab-v1"];
       var TASKS = ["flick", "track", "lateral"];
       var MODES = {
-        express: { label: "极速试跑", passes: 1, adaptMs: 4000, taskMs: 8000, rangeOnly: true, deep: false },
+        express: { label: "极速方向筛选", passes: 1, adaptMs: 4000, taskMs: 8000, budgetMs: 120000, rangeOnly: true, deep: false },
         quick: { label: "快速粗筛", passes: 1, adaptMs: 12000, taskMs: 25000, rangeOnly: true, deep: false },
         standard: { label: "标准平衡比较", passes: 3, adaptMs: 12000, taskMs: 25000, rangeOnly: false, deep: false },
         deep: { label: "深度细筛", passes: 3, adaptMs: 12000, taskMs: 25000, rangeOnly: false, deep: true }
@@ -1042,6 +1073,40 @@
         }
         return { rows: rows, medians: medians, ranking: ranking, best: ranking[0] || null, uniqueLeader: unique, rangeCandidates: rangeCandidates, pairwise: pairwise, drift: drift, anomaly: Boolean(options.anomaly) };
       }
+      function createFastGuidance(stage, evaluation) {
+        var sorted = stage && Array.isArray(stage.candidates) ? stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; }) : [];
+        var ranking = evaluation && Array.isArray(evaluation.ranking) ? evaluation.ranking : [];
+        var storedCenter = stage && Number(stage.searchCenterSensitivity);
+        var center = Number.isFinite(storedCenter)
+          ? sorted.reduce(function (closest, candidate) { return !closest || Math.abs(candidate.sensitivity - storedCenter) < Math.abs(closest.sensitivity - storedCenter) ? candidate : closest; }, null)
+          : sorted[Math.floor((sorted.length - 1) / 2)] || null;
+        var centerSensitivity = Number.isFinite(storedCenter) ? Number(formatSensitivity(storedCenter)) : center ? center.sensitivity : null;
+        var best = ranking[0] || null;
+        var second = ranking[1] || null;
+        var bestLoss = best && evaluation && evaluation.medians ? Number(evaluation.medians[best.key]) : NaN;
+        var secondLoss = second && evaluation && evaluation.medians ? Number(evaluation.medians[second.key]) : NaN;
+        var margin = Number.isFinite(bestLoss) && Number.isFinite(secondLoss) ? Math.max(0, secondLoss - bestLoss) : 0;
+        var signalThreshold = Math.log(1.03);
+        var clearThreshold = Math.log(1.08);
+        var hasSignal = Boolean(best && !evaluation.anomaly && margin >= signalThreshold);
+        var direction = !hasSignal ? "unclear" : Math.abs(best.sensitivity - centerSensitivity) < 0.0005 ? "center" : best.sensitivity < centerSensitivity ? "slower" : "faster";
+        var labels = { unclear: "本轮无明确方向", slower: "方向偏慢", faster: "方向偏快", center: "保留当前中心" };
+        var clarity = !hasSignal ? "unclear" : margin >= clearThreshold ? "clear" : "tentative";
+        var nextCenter = hasSignal ? best : center;
+        return {
+          direction: direction,
+          directionLabel: labels[direction],
+          clarity: clarity,
+          margin: margin,
+          marginRatio: Math.expm1(margin),
+          signalThreshold: signalThreshold,
+          clearThreshold: clearThreshold,
+          bestKey: best ? best.key : null,
+          bestSensitivity: best ? best.sensitivity : null,
+          nextCenterSensitivity: nextCenter ? nextCenter.sensitivity : null,
+          centerSensitivity: centerSensitivity
+        };
+      }
       function isBoundaryLeader(stage, evaluation) {
         if (!evaluation.uniqueLeader) return false;
         if (stage.outwardKey) return evaluation.uniqueLeader.key === stage.outwardKey;
@@ -1130,10 +1195,14 @@
         return copy;
       }
       function restorableSession(session) {
-        return Boolean(session && session.version === ALGORITHM_VERSION && session.taskVersion === TASK_VERSION && session.profile && Array.isArray(session.stages) && session.stages.length && Array.isArray(session.blocks) && Array.isArray(session.interruptions) && Array.isArray(session.anomalies));
+        if (!(session && session.version === ALGORITHM_VERSION && session.taskVersion === TASK_VERSION && session.profile && Array.isArray(session.stages) && session.stages.length && Array.isArray(session.blocks) && Array.isArray(session.interruptions) && Array.isArray(session.anomalies))) return false;
+        if ((session.mode === "express" || session.mode === "quick") && !Number.isFinite(Number(session.stages[0].searchCenterSensitivity))) return false;
+        return true;
       }
       function restorableResult(result) {
-        return Boolean(result && result.algorithmVersion === ALGORITHM_VERSION && result.taskVersion === TASK_VERSION && result.profile && Array.isArray(result.range) && Array.isArray(result.testedCandidates) && result.evaluation && typeof result.evidence === "string");
+        if (!(result && result.algorithmVersion === ALGORITHM_VERSION && result.taskVersion === TASK_VERSION && result.profile && Array.isArray(result.range) && Array.isArray(result.testedCandidates) && result.evaluation && typeof result.evidence === "string")) return false;
+        if ((result.mode === "express" || result.mode === "quick") && !(result.fastGuidance && Number.isFinite(Number(result.fastGuidance.nextCenterSensitivity)))) return false;
+        return true;
       }
       function migratePersistedState(payloads) {
         payloads = payloads || {};
@@ -1142,6 +1211,7 @@
           var session = restorableSession(current.session) ? clone(current.session) : null;
           var result = restorableResult(current.result) ? clone(current.result) : null;
           if (result && (!session || session.status !== "complete" || session.id !== result.sessionId)) result = null;
+          if (session && session.status === "complete" && !result) session = null;
           return { profile: normalizeProfile(current.profile), session: session, result: result, history: Array.isArray(current.history) ? current.history.filter(function (item) { return item && item.algorithmVersion === ALGORITHM_VERSION && item.taskVersion === TASK_VERSION; }).slice(-100) : [], migratedFrom: null };
         }
         var previous = payloads.v2 || payloads.v1;
@@ -1185,7 +1255,7 @@
         createDwellState: createDwellState, updateDwell: updateDwell, summarizeTracking: summarizeTracking,
         createAxisState: createAxisState, updateAxisState: updateAxisState,
         logRelativeLoss: logRelativeLoss, calculatePassLosses: calculatePassLosses, theilSenSlope: theilSenSlope,
-        sessionDrift: sessionDrift, evaluateStage: evaluateStage, isBoundaryLeader: isBoundaryLeader,
+        sessionDrift: sessionDrift, evaluateStage: evaluateStage, createFastGuidance: createFastGuidance, isBoundaryLeader: isBoundaryLeader,
         estimateDuration: estimateDuration, profileSignature: profileSignature, gridSignature: gridSignature,
         createSessionSummary: createSessionSummary, appendHistory: appendHistory,
         findCrossSessionConfirmation: findCrossSessionConfirmation, normalizeProfile: normalizeProfile,
@@ -2668,7 +2738,6 @@
         });
         showView("lab");
       }
-
       els.form.addEventListener("submit", function (event) {
         event.preventDefault();
         startFromProfile();
@@ -2908,8 +2977,9 @@
         "capabilityDot", "capabilityStatus", "inputRequirement", "miniDpi", "miniYaw", "miniPitch",
         "miniMode", "miniInput", "completionText", "progressTrack", "progressFill", "queueList", "startSession",
         "pauseSession", "resultSens", "resultPrimaryLabel", "resultUnit", "commandText", "copyCommand",
-        "rangeSens", "rangeCopy", "resultCm", "resultEdpi", "resultEvidence", "evidenceCopy",
-        "rangeList", "reasonList", "taskSummary", "gameReviewList", "methodYaw", "methodPitch",
+        "rangeSens", "rangeCopy", "rangeMetricLabel", "resultCm", "resultEdpi", "resultEvidence", "evidenceCopy",
+        "rangeList", "rangeCardTitle", "rangeCardMeta", "reasonList", "taskSummary", "gameReviewList", "methodYaw", "methodPitch",
+        "fastGuide", "fastGuideTitle", "fastGuideCopy", "fastGuideCenter", "fastGuideEvidence", "repeatFast", "upgradeFast",
         "reproductionBlock", "confirmSession", "precisionSens", "speedSens", "resultConfidence", "toast"
       ].forEach(function (id) { els[id] = document.getElementById(id); });
 
@@ -2929,7 +2999,8 @@
         lock: { awaiting: false, mode: null, acquired: false, rawConfirmed: false, token: 0, timer: 0, sessionId: null },
         intentionalExit: false,
         exitingForResult: false,
-        toastTimer: 0
+        toastTimer: 0,
+        expressBudgetTimer: 0
       };
 
       function byId(id) { return document.getElementById(id); }
@@ -3055,6 +3126,9 @@
         var passes = options.confirmation ? 3 : C.modes[profile.mode].passes;
         var stage = Core.createBalancedStage(options.confirmation ? "confirm" : "coarse", candidates, seed, passes, Boolean(options.confirmation), options.labelBySensitivity || null);
         stage.kind = options.confirmation ? "confirm" : "coarse";
+        stage.searchCenterSensitivity = options.grid
+          ? candidates[Math.floor((candidates.length - 1) / 2)].sensitivity
+          : Number(Core.formatSensitivity(Core.startingCenter(profile)));
         return {
           id: id,
           version: C.algorithmVersion,
@@ -3070,6 +3144,8 @@
           stageIndex: 0,
           blocks: [],
           activeBlock: null,
+          expressStartedAt: null,
+          expressDeadlineAt: null,
           boundaryExpansionUsed: false,
           boundaryLimited: false,
           status: "ready",
@@ -3400,9 +3476,9 @@
       }
       function blockValidityIssue(run) {
         if (run.inputEvents < MIN_INPUT_EVENTS || run.rawDistance < MIN_RAW_DISTANCE) return "鼠标输入样本不足，本组未记入。";
-        var minimumHits = state.session.mode === "express" ? 1 : 3;
-        if (!run.taskResults.flick || run.taskResults.flick.hits < minimumHits) return "小目标获取的有效命中不足，本组未记入。";
-        if (!run.taskResults.lateral || run.taskResults.lateral.hits < minimumHits) return "横向急停的有效命中不足，本组未记入。";
+        var minimumHits = state.session.mode === "express" ? 0 : 3;
+        if (minimumHits && (!run.taskResults.flick || run.taskResults.flick.hits < minimumHits)) return "小目标获取的有效命中不足，本组未记入。";
+        if (minimumHits && (!run.taskResults.lateral || run.taskResults.lateral.hits < minimumHits)) return "横向急停的有效命中不足，本组未记入。";
         if (!run.taskResults.track || run.taskResults.track.sampleMs < run.mode.taskMs * 0.9) return "追踪样本时长不足，本组未记入。";
         return "";
       }
@@ -3412,9 +3488,43 @@
           runFrame(run, now);
         });
       }
+      function expressBudgetRemaining() {
+        if (!state.session || state.session.mode !== "express" || !state.session.expressDeadlineAt) return Infinity;
+        return Math.max(0, state.session.expressDeadlineAt - Date.now());
+      }
+      function clearExpressBudgetTimer() {
+        if (state.expressBudgetTimer) window.clearTimeout(state.expressBudgetTimer);
+        state.expressBudgetTimer = 0;
+      }
+      function armExpressBudgetTimer() {
+        clearExpressBudgetTimer();
+        if (!state.session || state.session.mode !== "express" || !state.session.expressDeadlineAt || state.session.status === "complete") return;
+        var remaining = expressBudgetRemaining();
+        if (remaining <= 0) { finalizeExpressInsufficient("极速筛选达到 120 秒硬截止，未把缺失样本伪装成方向结论。"); return; }
+        var sessionId = state.session.id;
+        var deadline = state.session.expressDeadlineAt;
+        state.expressBudgetTimer = window.setTimeout(function () {
+          state.expressBudgetTimer = 0;
+          if (state.session && state.session.id === sessionId && state.session.expressDeadlineAt === deadline && state.session.mode === "express" && state.session.status !== "complete") finalizeExpressInsufficient("极速筛选达到 120 秒硬截止，未把缺失样本伪装成方向结论。");
+        }, remaining);
+      }
+      function expressCanCompleteRemaining() {
+        if (!state.session || state.session.mode !== "express") return true;
+        var remainingBlocks = Math.max(0, estimatedBlocks() - state.session.blocks.length);
+        var blockMs = Core.estimateDuration("express", 1) / 3;
+        return expressBudgetRemaining() >= remainingBlocks * blockMs;
+      }
       function startBlock(block) {
-        if (!state.session || document.pointerLockElement !== els.arena) return;
+        if (!state.session || state.session.status === "complete" || document.pointerLockElement !== els.arena) return;
         if (!block) { advanceSession(); return; }
+        if (state.session.mode === "express") {
+          if (!state.session.expressStartedAt) {
+            state.session.expressStartedAt = Date.now();
+            state.session.expressDeadlineAt = state.session.expressStartedAt + C.modes.express.budgetMs;
+            armExpressBudgetTimer();
+          }
+          if (expressBudgetRemaining() <= 0) { finalizeExpressInsufficient("极速筛选达到 120 秒硬截止，未把缺失样本伪装成方向结论。"); return; }
+        }
         var now = performance.now();
         var run = createRun(block, now);
         state.active = run;
@@ -3429,6 +3539,10 @@
       }
       function runFrame(run, now) {
         if (state.active !== run || run.token !== state.runToken) return;
+        if (state.session.mode === "express" && expressBudgetRemaining() <= 0) {
+          finalizeExpressInsufficient("极速筛选达到 120 秒硬截止，未把缺失样本伪装成方向结论。");
+          return;
+        }
         if (!sameViewport(run.viewport, viewportSnapshot())) {
           invalidateActive("窗口尺寸、缩放或 DPR 发生变化，本组已作废。", "viewport-change");
           return;
@@ -3508,6 +3622,10 @@
           state.session.interruptions.push({ at: new Date().toISOString(), code: "insufficient-input", reason: issue, stageId: run.block.stageId, pass: run.block.pass, candidateKey: run.block.candidateKey });
           state.session.anomalies.push("insufficient-input");
           state.session.status = "paused";
+          if (state.session.mode === "express") {
+            finalizeExpressInsufficient(issue);
+            return;
+          }
           if (document.pointerLockElement === els.arena && document.exitPointerLock) { state.intentionalExit = true; document.exitPointerLock(); }
           saveState();
           renderLab();
@@ -3643,6 +3761,10 @@
         }
         saveState();
         renderLab();
+        if (!options.abandoning && state.session && state.session.mode === "express" && !expressCanCompleteRemaining()) {
+          finalizeExpressInsufficient(reason + " 剩余时间不足以在 120 秒内完成三个候选。");
+          return;
+        }
         setOverlay({ kicker: "BLOCK INVALIDATED", title: "当前分组已作废", copy: reason + " 倒计时与计分已停止。本会话可继续完成范围筛选；如需唯一推荐，请在结果页重新建立无异常会话。", actionLabel: "继续范围筛选", action: requestSessionLock });
       }
 
@@ -3695,6 +3817,7 @@
       function maybeStartRawLock() {
         if (!state.lock.awaiting || state.lock.mode !== "raw") return;
         if (!state.session || state.lock.sessionId !== state.session.id) { cancelLockAttempt(true); return; }
+        if (state.session.status === "complete") { cancelLockAttempt(true); return; }
         if (!state.lock.acquired || !state.lock.rawConfirmed) return;
         if (document.pointerLockElement !== els.arena) { offerCompatibilityRetry("Pointer Lock 在原始输入确认完成前已经释放。"); return; }
         if (state.lock.timer) window.clearTimeout(state.lock.timer);
@@ -3767,6 +3890,7 @@
       }
       function requestCompatibilityLock(rebuild) {
         if (rebuild) {
+          clearExpressBudgetTimer();
           var compatibilityMode = state.profile.mode === "express" ? "express" : "quick";
           var compatProfile = Core.clone(state.profile);
           compatProfile.mode = compatibilityMode;
@@ -3793,6 +3917,10 @@
       }
       function requestSessionLock() {
         if (!state.session || state.session.status === "complete" || state.active || state.lock.awaiting || state.intentionalExit) return;
+        if (state.session.mode === "express" && state.session.expressDeadlineAt && expressBudgetRemaining() <= 0) {
+          finalizeExpressInsufficient("极速筛选达到 120 秒硬截止，未把缺失样本伪装成方向结论。");
+          return;
+        }
         if (document.pointerLockElement === els.arena) {
           if (state.session.inputMode === "raw" || state.session.inputMode === "compat") {
             var block = nextBlock();
@@ -3819,6 +3947,7 @@
           state.lock.acquired = true;
           if (state.lock.mode === "raw") maybeStartRawLock();
           else if (state.lock.mode === "compat" && state.lock.awaiting) {
+            if (!state.session || state.session.status === "complete") { cancelLockAttempt(true); return; }
             if (state.lock.timer) window.clearTimeout(state.lock.timer);
             state.lock.timer = 0;
             state.lock.awaiting = false;
@@ -3888,9 +4017,10 @@
         if (index === sorted.length - 1) return "网页粗筛偏向较快灵敏度";
         return "网页粗筛偏向当前中心";
       }
-      function displayBias(range, evaluation, priority) {
+      function displayBias(range, evaluation, priority, fastGuidance) {
         if (!range.length) return null;
         var sorted = range.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
+        if (fastGuidance && fastGuidance.clarity === "unclear") return sorted[Math.floor((sorted.length - 1) / 2)];
         if (priority === "speed") return sorted[sorted.length - 1];
         if (priority === "control") return sorted[0];
         return sorted.find(function (candidate) { return evaluation.best && candidate.key === evaluation.best.key; }) || sorted[Math.floor((sorted.length - 1) / 2)];
@@ -3907,11 +4037,32 @@
         };
       }
       function logLossPercent(value) { return (Math.expm1(Math.max(0, Number(value) || 0)) * 100).toFixed(2) + "%"; }
-      function finalizeSession(stage, evaluation) {
+      function finalizeExpressInsufficient(reason) {
+        if (!state.session || state.session.mode !== "express" || state.session.status === "complete") return;
+        var run = state.active;
+        state.session.activeBlock = null;
+        state.session.expressIncompleteReason = reason;
+        if (state.session.anomalies.indexOf("express-incomplete") < 0) state.session.anomalies.push("express-incomplete");
+        state.session.interruptions.push({
+          at: new Date().toISOString(), code: "express-incomplete", reason: reason,
+          stageId: run && run.block ? run.block.stageId : currentStage().id,
+          pass: run && run.block ? run.block.pass : null,
+          candidateKey: run && run.block ? run.block.candidateKey : null
+        });
+        var stage = currentStage();
+        var evaluation = Core.evaluateStage(state.session.blocks, stage, state.profile.role, { mode: "express", rangeOnly: true, anomaly: true });
+        finalizeSession(stage, evaluation, { expressInsufficient: true, insufficientReason: reason });
+      }
+      function finalizeSession(stage, evaluation, options) {
+        options = options || {};
+        clearExpressBudgetTimer();
+        cancelLockAttempt(false);
         scheduler.cancel();
         state.active = null;
         resetScene();
         var mode = state.session.mode;
+        var isFastMode = mode === "express" || mode === "quick";
+        var insufficient = Boolean(options.expressInsufficient);
         var range = evaluation.rangeCandidates.slice();
         if (mode === "express") range = stage.candidates.slice().sort(function (a, b) { return a.sensitivity - b.sensitivity; });
         if (mode === "quick") range = evaluation.ranking.slice(0, 2).sort(function (a, b) { return a.sensitivity - b.sensitivity; });
@@ -3929,8 +4080,9 @@
           });
         });
         tested = dedupeCandidates(tested);
+        var fastGuidance = isFastMode ? Core.createFastGuidance(stage, evaluation) : null;
         var completedAt = new Date().toISOString();
-        var evidence = state.session.anomalies.length ? "数据异常 · 仅保留范围" : state.session.inputMode === "compat" ? "兼容估算" : mode === "express" ? "极速粗筛" : mode === "quick" ? "快速粗筛" : main ? "重复一致" : "当前测试无法进一步区分";
+        var evidence = insufficient ? "样本不足 · 无方向" : state.session.anomalies.length ? "数据异常 · 仅保留范围" : state.session.inputMode === "compat" ? "兼容估算" : mode === "express" ? "极速粗筛" : mode === "quick" ? "快速粗筛" : main ? "重复一致" : "当前测试无法进一步区分";
         var result = {
           algorithmVersion: C.algorithmVersion,
           taskVersion: C.taskVersion,
@@ -3942,11 +4094,15 @@
           main: main,
           range: range,
           testedCandidates: tested,
+          plannedCandidates: Core.clone(stage.candidates),
           evaluation: Core.clone(evaluation),
           repeatability: repeatabilitySummary(evaluation),
           evidence: evidence,
-          direction: directionSignal(stage, evaluation),
-          displayBias: displayBias(range, evaluation, state.profile.priority),
+          direction: fastGuidance ? fastGuidance.directionLabel : directionSignal(stage, evaluation),
+          fastGuidance: fastGuidance,
+          displayBias: insufficient ? null : displayBias(range, evaluation, state.profile.priority, fastGuidance),
+          insufficient: insufficient,
+          insufficientReason: insufficient ? options.insufficientReason : null,
           boundaryLimited: state.session.boundaryLimited,
           anomalies: state.session.anomalies.slice(),
           validTaskMs: state.session.validTaskMs,
@@ -3965,6 +4121,7 @@
         result.historyEvidence = cross;
         if (cross.stable) result.evidence = "跨会话稳定候选";
         state.session.result = result;
+        state.intentionalExit = false;
         if (document.pointerLockElement === els.arena && document.exitPointerLock) {
           state.exitingForResult = true;
           document.exitPointerLock();
@@ -3985,14 +4142,21 @@
         var low = range[0];
         var high = range[range.length - 1];
         var main = result.main;
-        els.resultPrimaryLabel.textContent = main ? "SESSION MAIN RECOMMENDATION" : "TESTED RANGE · NO UNIQUE VALUE";
-        els.resultSens.textContent = main ? Core.formatSensitivity(main.sensitivity) : rangeText(range);
+        var isExpress = result.mode === "express";
+        var isFastMode = isExpress || result.mode === "quick";
+        var guidance = result.fastGuidance;
+        var nextCenter = guidance && Number.isFinite(Number(guidance.nextCenterSensitivity)) ? Core.formatSensitivity(guidance.nextCenterSensitivity) : "--";
+        els.resultPrimaryLabel.textContent = isExpress ? "FAST DIRECTION SIGNAL" : main ? "SESSION MAIN RECOMMENDATION" : "TESTED RANGE · NO UNIQUE VALUE";
+        els.resultSens.textContent = isExpress ? (guidance ? guidance.directionLabel : "本轮无明确方向") : main ? Core.formatSensitivity(main.sensitivity) : rangeText(range);
         els.resultSens.style.fontSize = main ? "" : "clamp(42px, 7vw, 84px)";
-        els.resultUnit.textContent = main ? "CS2 sensitivity · 本次实测候选" : "当前测试无法进一步区分；请保留范围";
-        els.commandText.textContent = main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) : "当前范围不提供单一命令";
+        els.resultUnit.textContent = isExpress ? "下一轮搜索中心 " + nextCenter + " · 不是最终推荐" : main ? "CS2 sensitivity · 本次实测候选" : "当前测试无法进一步区分；请保留范围";
+        els.commandText.textContent = main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) : isExpress ? "极速方向筛选不提供单一命令" : result.mode === "quick" ? "快速粗筛不提供单一命令" : "当前范围不提供单一命令";
         els.copyCommand.disabled = !main;
         els.rangeSens.textContent = rangeText(range);
-        els.rangeCopy.textContent = result.anomalies && result.anomalies.length ? "数据异常，本次仅保留实测范围" : result.boundaryLimited ? "搜索触及已测外缘，保留邻近范围" : range.length > 1 ? "当前测试无法进一步区分" : "三轮对手均被支配";
+        els.rangeMetricLabel.textContent = result.insufficient ? "PLANNED BAND" : "TESTED RANGE";
+        els.rangeCopy.textContent = result.insufficient ? "计划粗筛带；未完整测试三个候选" : result.anomalies && result.anomalies.length ? "数据异常，本次仅保留实测范围" : result.boundaryLimited ? "搜索触及已测外缘，保留邻近范围" : range.length > 1 ? "当前测试无法进一步区分" : "三轮对手均被支配";
+        els.rangeCardTitle.textContent = result.insufficient ? "本轮计划粗筛带" : "实际测试过的范围";
+        els.rangeCardMeta.textContent = result.insufficient ? "INCOMPLETE SCREEN" : "CANDIDATE RANGE";
         if (main) {
           els.resultCm.textContent = formatCm(main.cm) + " cm";
           els.resultEdpi.textContent = Math.round(main.sensitivity * result.profile.dpi) + " eDPI";
@@ -4010,32 +4174,72 @@
         els.methodPitch.textContent = formatCvar(result.profile.mPitch);
         els.reproductionBlock.textContent = (main ? "sensitivity " + Core.formatSensitivity(main.sensitivity) + "\n" : "# 范围结果，无单一 sensitivity 命令\n") + "m_yaw " + formatCvar(result.profile.mYaw) + "\n" + "m_pitch " + formatCvar(result.profile.mPitch);
 
+        els.fastGuide.hidden = !isFastMode;
+        if (isFastMode && guidance) {
+          var clarityLabels = { unclear: "差距不足 3% · 本轮不判方向", tentative: "差距超过 3% · 初步方向", clear: "差距超过 8% · 方向较明显" };
+          els.fastGuideTitle.textContent = guidance.directionLabel;
+          els.fastGuideCenter.textContent = nextCenter;
+          els.fastGuideEvidence.textContent = (clarityLabels[guidance.clarity] || "单轮方向信号") + " · 单轮相对损失差 " + (guidance.marginRatio * 100).toFixed(1) + "%";
+          els.fastGuideCopy.textContent = result.insufficient
+            ? result.insufficientReason
+            : guidance.clarity === "unclear"
+              ? "三个候选的单轮差距不足以支持移动搜索中心。建议保持当前中心再跑一次，避免追逐噪声。"
+              : "这个数值只作为下一轮候选网格的中心。再跑一次极速筛选，或进入更长的 Quick 对照后，才决定是否继续收窄。";
+          els.repeatFast.textContent = result.mode === "express" ? (guidance.clarity === "unclear" ? "同中心再跑约 100 秒" : "沿此方向再跑约 100 秒") : "用该中心再做一次 Quick";
+          els.upgradeFast.textContent = result.mode === "express" ? "进入 4–6 分钟 Quick" : "进入标准验证";
+        }
+
         var rangeKeys = {};
         range.forEach(function (candidate) { rangeKeys[Core.formatSensitivity(candidate.sensitivity)] = true; });
-        els.rangeList.innerHTML = result.testedCandidates.map(function (candidate) {
+        var testedKeys = {};
+        result.testedCandidates.forEach(function (candidate) { testedKeys[Core.formatSensitivity(candidate.sensitivity)] = true; });
+        var listedCandidates = result.insufficient ? (result.plannedCandidates || range) : result.testedCandidates;
+        els.rangeList.innerHTML = listedCandidates.map(function (candidate) {
           var key = Core.formatSensitivity(candidate.sensitivity);
-          var tag = main && key === Core.formatSensitivity(main.sensitivity) ? "主推荐" : rangeKeys[key] ? "保留范围" : "已测但被支配";
+          var tag = result.insufficient ? testedKeys[key] ? "已完成" : "未完成" : main && key === Core.formatSensitivity(main.sensitivity) ? "主推荐" : rangeKeys[key] ? (isExpress ? "粗筛候选" : "保留范围") : "已测但被支配";
           var isMain = main && key === Core.formatSensitivity(main.sensitivity);
           return '<div class="range-row' + (isMain ? ' is-main' : '') + '"><span><b>' + key + '</b><small>' + formatCm(candidate.cm) + ' cm/360°</small></span><em>' + tag + '</em></div>';
         }).join("");
         var reasons = [];
         reasons.push(result.inputMode === "raw" ? "Pointer Lock 与 <b>unadjustedMovement</b> Promise 均已确认。" : "未能确认未加速输入，结果只是<b>兼容估算</b>。");
         reasons.push("<b>" + result.direction + "</b>；A/B/C 标签与数值是种子化盲映射。");
-        if (!result.main && result.displayBias) reasons.push("你的速度 / 控制偏好只把 <b>" + Core.formatSensitivity(result.displayBias.sensitivity) + "</b> 标为范围内展示偏向，不会把平局改写成唯一最优。");
-        if (result.anomalies && result.anomalies.length) reasons.push("本次会话发生过 <b>" + result.anomalies.length + " 次数据异常</b>；按门禁只保留范围，不输出唯一命令。");
-        if (result.main) reasons.push("该候选在三个 pass 中均优于另两个候选，且对数损失差超过 MAD / 漂移门槛及 0.2% 三轮有限样本保护项。");
-        else if (!(result.anomalies && result.anomalies.length)) reasons.push("未满足“三个 pass 全部胜出且超过噪声门槛”，所以没有强行选唯一值。");
-        reasons.push(result.historyEvidence && result.historyEvidence.stable ? "已与相隔至少 24 小时的同配置、同网格会话一致。" : "未达到跨日双会话确认；不使用虚构置信度。");
+        if (isFastMode) {
+          reasons.push((isExpress ? "Express 只有一轮、三个候选，总流程受 120 秒硬截止约束；" : "Quick 只有一轮；") + "单轮不能估计复测波动，也不会输出唯一值或游戏命令。");
+          if (guidance && guidance.clarity === "unclear") reasons.push("第一名与第二名的单轮差距低于 <b>3%</b>，因此保持当前中心，不把排序并列误写成偏慢或偏快。");
+          else if (guidance) reasons.push("方向信号来自第一名与第二名的单轮对数损失差；下一轮中心 <b>" + nextCenter + "</b> 仍不是最终推荐。");
+          if (result.insufficient) reasons.push("本轮因 <b>样本不足或达到硬截止</b> 提前结束；计划粗筛带不等于三个候选都已完成。");
+        } else {
+          if (!result.main && result.displayBias) reasons.push("你的速度 / 控制偏好只把 <b>" + Core.formatSensitivity(result.displayBias.sensitivity) + "</b> 标为范围内展示偏向，不会把平局改写成唯一最优。");
+          if (result.anomalies && result.anomalies.length) reasons.push("本次会话发生过 <b>" + result.anomalies.length + " 次数据异常</b>；按门禁只保留范围，不输出唯一命令。");
+          if (result.main) reasons.push("该候选在三个 pass 中均优于另两个候选，且对数损失差超过 MAD / 漂移门槛及 0.2% 三轮有限样本保护项。");
+          else if (!(result.anomalies && result.anomalies.length)) reasons.push("未满足“三个 pass 全部胜出且超过噪声门槛”，所以没有强行选唯一值。");
+          reasons.push(result.historyEvidence && result.historyEvidence.stable ? "已与相隔至少 24 小时的同配置、同网格会话一致。" : "未达到跨日双会话确认；不使用虚构置信度。");
+        }
         els.reasonList.innerHTML = reasons.map(function (reason) { return "<li>" + reason + "</li>"; }).join("");
 
         var tasks = result.tasks;
         var repeatability = result.repeatability || repeatabilitySummary(result.evaluation);
-        els.taskSummary.innerHTML = [
+        var taskRows = [
           "<li><span>小目标获取</span><b>漏失 " + formatPercent(tasks.flick.missRate) + " · 欠冲 " + tasks.flick.undershoots.toFixed(1) + " · 过冲 " + tasks.flick.overshoots.toFixed(1) + "</b></li>",
           "<li><span>横向急停</span><b>漏失 " + formatPercent(tasks.lateral.missRate) + " · 回拉 " + tasks.lateral.corrections.toFixed(1) + "</b></li>",
-          "<li><span>平滑追踪</span><b>RMS " + tasks.track.rmsError.toFixed(2) + "° · 脱靶 " + formatPercent(tasks.track.offTargetRatio) + "</b></li>",
+          "<li><span>平滑追踪</span><b>RMS " + tasks.track.rmsError.toFixed(2) + "° · 脱靶 " + formatPercent(tasks.track.offTargetRatio) + "</b></li>"
+        ];
+        if (isFastMode) taskRows.push("<li><span>单轮证据</span><b>未估计复测 MAD / 漂移 · 只能用于下一步搜索方向</b></li>");
+        else taskRows.push(
           "<li><span>复测波动</span><b>配对 MAD 中位 " + logLossPercent(repeatability.medianMad) + " · 最大 " + logLossPercent(repeatability.maxMad) + "</b></li>",
           "<li><span>区分门槛</span><b>最大 " + logLossPercent(repeatability.maxThreshold) + " · 漂移 " + logLossPercent(repeatability.drift) + " · 另加 0.20% 保护</b></li>"
+        );
+        if (result.insufficient) taskRows = ["<li><span>样本状态</span><b>未完整完成三个候选，不计算方向或复测波动</b></li>"];
+        els.taskSummary.innerHTML = taskRows.join("");
+
+        els.gameReviewList.innerHTML = isFastMode ? [
+          "<li>本轮<b>没有可粘贴的 sensitivity 命令</b>；上方数值只是下一轮候选网格中心。</li>",
+          "<li>想继续保持简短，可再跑一次 Express；想得到更窄范围，使用同中心进入 Quick。</li>",
+          "<li>只有 Standard / Deep 满足重复一致门禁后，页面才可能给出单一游戏命令；仍需在 CS2 内人工复核。</li>"
+        ].join("") : [
+          "<li>在控制台粘贴上方 <b>sensitivity</b> 命令并回车，再输入 <b>sensitivity</b> 查看回显。</li>",
+          "<li>至少在同一训练场景分别尝试主推荐与范围端点；网页结果不等于已经证明实战提升。</li>",
+          "<li>若改过 <b>m_yaw</b> 或 <b>m_pitch</b>，必须保持页面与游戏内数值一致。</li>"
         ].join("");
 
         var summary = state.history.find(function (item) { return item.id === result.sessionId; });
@@ -4051,28 +4255,44 @@
       function reportText() {
         var result = state.result;
         if (!result) return "";
-        var mainText = result.main ? Core.formatSensitivity(result.main.sensitivity) : "无（当前测试无法进一步区分）";
+        var isFastMode = result.mode === "express" || result.mode === "quick";
+        var mainText = result.main ? Core.formatSensitivity(result.main.sensitivity) : isFastMode ? "无（单轮只给方向与范围）" : "无（当前测试无法进一步区分）";
         var repeatability = result.repeatability || repeatabilitySummary(result.evaluation);
-        return [
+        var lines = [
           "CS2 SENS / LAB v" + C.algorithmVersion,
           "模式：" + C.modes[result.mode].label,
           "输入模式：" + (result.inputMode === "raw" ? "Pointer Lock + 已确认 unadjustedMovement" : "兼容 Pointer Lock 粗筛"),
-          "实际测试候选：" + result.testedCandidates.map(function (candidate) { return Core.formatSensitivity(candidate.sensitivity); }).join(", "),
-          "保留范围：" + rangeText(result.range),
+          "实际测试候选：" + (result.testedCandidates.length ? result.testedCandidates.map(function (candidate) { return Core.formatSensitivity(candidate.sensitivity); }).join(", ") : "无完整候选"),
+          (result.insufficient ? "计划粗筛带：" : "保留范围：") + rangeText(result.range),
           "会话主推荐：" + mainText,
           "控制台命令：" + (result.main ? "sensitivity " + Core.formatSensitivity(result.main.sensitivity) : "无单一命令"),
           "m_yaw：" + formatCvar(result.profile.mYaw),
-          "m_pitch：" + formatCvar(result.profile.mPitch),
-          "复测波动（配对 MAD 中位 / 最大）：" + logLossPercent(repeatability.medianMad) + " / " + logLossPercent(repeatability.maxMad),
-          "区分阈值（最大配对 / 会话漂移）：" + logLossPercent(repeatability.maxThreshold) + " / " + logLossPercent(repeatability.drift),
-          "三轮有限样本保护项：0.2% log-loss（只会收紧唯一推荐）",
+          "m_pitch：" + formatCvar(result.profile.mPitch)
+        ];
+        if (isFastMode) {
+          lines.push(
+            "粗筛方向：" + result.direction,
+            "下一轮搜索中心：" + (result.fastGuidance ? Core.formatSensitivity(result.fastGuidance.nextCenterSensitivity) : "无"),
+            "单轮相对损失差：" + (result.fastGuidance ? (result.fastGuidance.marginRatio * 100).toFixed(1) + "%" : "无"),
+            "单轮边界：未估计复测 MAD / 漂移；下一轮中心不是最终推荐"
+          );
+        } else {
+          lines.push(
+            "复测波动（配对 MAD 中位 / 最大）：" + logLossPercent(repeatability.medianMad) + " / " + logLossPercent(repeatability.maxMad),
+            "区分阈值（最大配对 / 会话漂移）：" + logLossPercent(repeatability.maxThreshold) + " / " + logLossPercent(repeatability.drift),
+            "三轮有限样本保护项：0.2% log-loss（只会收紧唯一推荐）"
+          );
+        }
+        lines.push(
           "有效任务时长：" + (result.validTaskMs / 60000).toFixed(1) + " 分钟",
           "证据标签：" + result.evidence,
+          "完成状态：" + (result.insufficient ? "样本不足 — " + result.insufficientReason : "本轮完整"),
           "边界状态：" + (result.boundaryLimited ? "已触及搜索外缘，禁止单一命令" : "未触及工具外缘"),
           "数据异常：" + (result.anomalies && result.anomalies.length ? result.anomalies.join(", ") + "（只保留范围）" : "无"),
           "非官方网页模拟，不连接 Aim Lab。",
           "未经过 CS2 游戏内提升验证。"
-        ].join("\n");
+        );
+        return lines.join("\n");
       }
       function copyText(value, success) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -4117,11 +4337,13 @@
             recoveredInterruptedBlock = true;
           }
         }
+        if (state.session && state.session.mode === "express" && state.session.status !== "complete" && state.session.expressDeadlineAt) armExpressBudgetTimer();
         if (migrated.migratedFrom || recoveredInterruptedBlock) saveState();
       }
       function startFromProfile() {
         try {
           cancelLockAttempt(true);
+          clearExpressBudgetTimer();
           var profile = readProfile();
           state.profile = profile;
           state.session = createSession(profile);
@@ -4140,10 +4362,35 @@
       function restartSameProfile() {
         if (!state.profile) return;
         cancelLockAttempt(true);
+        clearExpressBudgetTimer();
         state.session = createSession(state.profile);
         state.result = null;
         saveState(); renderLab();
         setOverlay({ kicker: "NEW V3 SESSION", title: "已建立新的盲测会话", copy: "新标签映射和种子已生成。", actionLabel: "锁定并开始", action: requestSessionLock });
+        showView("lab");
+      }
+      function startFastFollowup(mode) {
+        if (!state.result || !state.result.fastGuidance) return;
+        var center = Number(state.result.fastGuidance.nextCenterSensitivity);
+        if (!Number.isFinite(center)) return;
+        cancelLockAttempt(true);
+        clearExpressBudgetTimer();
+        var profile = Core.clone(state.result.profile || state.profile);
+        profile.currentSens = Number(Core.formatSensitivity(center));
+        profile.mode = mode;
+        state.profile = profile;
+        fillProfile(profile);
+        state.session = createSession(profile);
+        state.result = null;
+        saveState();
+        renderLab();
+        setOverlay({
+          kicker: mode === "express" ? "FAST DIRECTION RECHECK" : mode === "quick" ? "QUICK RANGE CHECK" : "STANDARD VERIFICATION",
+          title: "已用 " + Core.formatSensitivity(center) + " 建立下一轮中心",
+          copy: "这个数值仍只是候选网格中心，不是最终推荐。新会话使用新的标签映射与目标种子。",
+          actionLabel: "锁定鼠标并开始",
+          action: requestSessionLock
+        });
         showView("lab");
       }
       function startConfirmationSession() {
@@ -4153,6 +4400,7 @@
         var eligibleAt = new Date(state.result.historyEvidence.nextEligibleAt || new Date(state.result.completedAt).getTime() + 86400000).getTime();
         if (Date.now() < eligibleAt) { showToast("跨日确认需要相隔至少 24 小时。"); return; }
         cancelLockAttempt(true);
+        clearExpressBudgetTimer();
         var profile = Core.clone(state.profile);
         profile.mode = state.result.mode === "deep" ? "deep" : "standard";
         state.profile = profile;
@@ -4163,8 +4411,15 @@
         showView("lab");
       }
       function leaveLabForProfile() {
-        if (state.active) invalidateActive("已离开测试页，当前分组已作废。", "user-left");
+        var abandoningExpress = Boolean(state.session && state.session.mode === "express" && state.session.status !== "complete");
+        clearExpressBudgetTimer();
+        if (state.active) invalidateActive("已离开测试页，当前分组已作废。", "user-left", { abandoning: true });
         else cancelLockAttempt(true);
+        if (abandoningExpress) {
+          state.session = null;
+          state.result = null;
+          saveState();
+        }
         showView("profile");
       }
       els.profileForm.addEventListener("submit", function (event) { event.preventDefault(); startFromProfile(); });
@@ -4185,7 +4440,9 @@
       });
       byId("copyReport").addEventListener("click", function () { if (state.result) copyText(reportText(), "完整报告已复制"); });
       byId("restartTests").addEventListener("click", restartSameProfile);
-      byId("newProfile").addEventListener("click", function () { cancelLockAttempt(true); state.session = null; state.result = null; saveState(); showView("profile"); });
+      els.repeatFast.addEventListener("click", function () { if (state.result) startFastFollowup(state.result.mode === "express" ? "express" : "quick"); });
+      els.upgradeFast.addEventListener("click", function () { if (state.result) startFastFollowup(state.result.mode === "express" ? "quick" : "standard"); });
+      byId("newProfile").addEventListener("click", function () { cancelLockAttempt(true); clearExpressBudgetTimer(); state.session = null; state.result = null; saveState(); showView("profile"); });
       els.confirmSession.addEventListener("click", startConfirmationSession);
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("pointerlockchange", onPointerLockChange);
@@ -4244,6 +4501,13 @@
           anomalyCount: state.session ? state.session.anomalies.length : 0,
           hasMain: Boolean(state.result && state.result.main),
           evidence: state.result ? state.result.evidence : null,
+          resultMode: state.result ? state.result.mode : null,
+          resultRange: state.result ? state.result.range.map(function (candidate) { return candidate.sensitivity; }) : null,
+          testedCandidateCount: state.result ? state.result.testedCandidates.length : 0,
+          fastDirection: state.result && state.result.fastGuidance ? state.result.fastGuidance.direction : null,
+          fastNextCenter: state.result && state.result.fastGuidance ? state.result.fastGuidance.nextCenterSensitivity : null,
+          insufficient: Boolean(state.result && state.result.insufficient),
+          historyCount: state.history.length,
           activePhase: run ? run.phase : null,
           activeTask: run ? run.taskName : null,
           activePhaseEndsAt: run ? run.phaseEndsAt : null,

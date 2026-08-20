@@ -132,6 +132,7 @@ function completedSessionPayload(core, options = {}) {
   const candidates = core.buildCoarseCandidates(profile, options.prefix ?? "persisted");
   const stage = core.createBalancedStage("coarse", candidates, options.seed ?? 0xA11CE, core.constants.modes[mode].passes, false);
   stage.kind = "coarse";
+  stage.searchCenterSensitivity = Number(core.formatSensitivity(core.startingCenter(profile)));
   const factors = options.factors ?? Array.from(
     { length: stage.passes },
     () => [1.15, 0.8, 1.15]
@@ -373,9 +374,9 @@ class FakeDocument extends FakeEventTarget {
       ["priority-speed", "priority", "speed", false],
       ["priority-balance", "priority", "balance", true],
       ["priority-control", "priority", "control", false],
-      ["mode-express", "mode", "express", false],
+      ["mode-express", "mode", "express", true],
       ["mode-quick", "mode", "quick", false],
-      ["mode-standard", "mode", "standard", true],
+      ["mode-standard", "mode", "standard", false],
       ["mode-deep", "mode", "deep", false]
     ];
     radios.forEach(([id, name, value, checked]) => {
@@ -460,6 +461,16 @@ function createAppHarness(options = {}) {
   const document = new FakeDocument();
   const storage = new FakeStorage();
   const clock = createVirtualRaf();
+  const epochMs = Date.parse("2026-08-20T00:00:00.000Z");
+  class HarnessDate extends Date {
+    constructor(...args) {
+      if (args.length) super(...args);
+      else super(epochMs + clock.now());
+    }
+    static now() {
+      return epochMs + clock.now();
+    }
+  }
   const window = new FakeEventTarget();
   const visualViewport = new FakeEventTarget();
   const errors = [];
@@ -539,6 +550,7 @@ function createAppHarness(options = {}) {
     navigator,
     localStorage: storage,
     location,
+    Date: HarnessDate,
     performance: { now: () => clock.now() },
     console: {
       log() {},
@@ -653,6 +665,54 @@ function moveToActiveTarget(harness) {
   });
 }
 
+function addInputSamples(harness, count = 20) {
+  for (let index = 0; index < count; index += 1) {
+    harness.document.dispatchEvent({
+      type: "mousemove",
+      movementX: index % 2 === 0 ? 5 : -5,
+      movementY: index % 3 === 0 ? 3 : -3
+    });
+  }
+}
+
+function advanceActivePhase(harness) {
+  const end = harness.diagnostics().activePhaseEndsAt;
+  assert.ok(Number.isFinite(end), "an active phase deadline is required");
+  advanceClock(harness.clock, Math.max(0, end - harness.clock.now()));
+}
+
+function completeStaticTask(harness, hitCount) {
+  for (let index = 0; index < hitCount; index += 1) {
+    moveToActiveTarget(harness);
+    harness.clock.frame(Core.constants.dwellMs);
+    if (index < hitCount - 1) harness.clock.frame(120);
+  }
+  advanceActivePhase(harness);
+}
+
+function completeLiveExpressBlock(harness, options = {}) {
+  const staticHits = options.staticHits ?? 2;
+  assert.equal(harness.diagnostics().activePhase, "countdown");
+  advanceActivePhase(harness);
+  assert.equal(harness.diagnostics().activePhase, "adapt");
+  addInputSamples(harness, 24);
+  advanceActivePhase(harness);
+
+  assert.equal(harness.diagnostics().activeTask, "flick");
+  completeStaticTask(harness, staticHits);
+  assert.equal(harness.diagnostics().activePhase, "intermission");
+  advanceActivePhase(harness);
+
+  assert.equal(harness.diagnostics().activeTask, "track");
+  addInputSamples(harness, 12);
+  advanceActivePhase(harness);
+  assert.equal(harness.diagnostics().activePhase, "intermission");
+  advanceActivePhase(harness);
+
+  assert.equal(harness.diagnostics().activeTask, "lateral");
+  completeStaticTask(harness, staticHits);
+}
+
 async function resumePersistedSessionToResult(harness, inputMode) {
   harness.start();
   if (inputMode === "raw") {
@@ -671,6 +731,7 @@ test("lab-core is extracted from the real HTML and exposes a frozen, DOM-free AP
   assert.equal(Object.isFrozen(Core.constants), true);
   assert.equal(Object.isFrozen(Core.constants.modes), true);
   assert.equal(Core.version, "3.0.0");
+  assert.equal(Core.constants.taskVersion, "angles-3.1.0");
   assert.equal(Core.constants.storageKey, "cs2-sens-lab-v3");
   assert.doesNotMatch(scriptById("lab-core"), /\b(?:document|localStorage|requestAnimationFrame)\b/);
 });
@@ -697,6 +758,407 @@ test("lab-app initializes against the real core without console errors", () => {
   assert.equal(diagnostics.pendingRaf, 0);
   assert.deepEqual(harness.errors, []);
   assert.equal(harness.app.runSelfTests(), "CS2 SENS / LAB v3 smoke tests passed.");
+});
+
+test("an invalid completed fast result falls back to the profile instead of a disabled resume screen", () => {
+  const harness = createAppHarness({
+    preload: (core) => {
+      const payload = completedSessionPayload(core, { mode: "express", inputMode: "raw", id: "invalid-fast-result" });
+      payload.session.status = "complete";
+      const candidates = payload.session.stages[0].candidates;
+      payload.result = {
+        algorithmVersion: core.version,
+        taskVersion: core.constants.taskVersion,
+        sessionId: payload.session.id,
+        profile: payload.profile,
+        mode: "express",
+        range: candidates,
+        testedCandidates: candidates,
+        evaluation: { pairwise: [] },
+        evidence: "极速粗筛"
+      };
+      payload.session.result = payload.result;
+      return payload;
+    }
+  });
+  const diagnostics = harness.diagnostics();
+  assert.equal(diagnostics.view, "profile");
+  assert.equal(diagnostics.sessionStatus, null);
+  assert.equal(diagnostics.resultMode, null);
+  assert.equal(diagnostics.active, false);
+});
+
+test("the default profile builds one balanced Express pass with three blind candidates", () => {
+  const harness = createAppHarness();
+  harness.document.getElementById("currentSens").value = "1.25";
+  harness.document.getElementById("profileForm").dispatchEvent({ type: "submit" });
+
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  const stage = stored.session.stages[0];
+  assert.equal(diagnostics.view, "lab");
+  assert.equal(diagnostics.mode, "express");
+  assert.equal(stage.passes, 1);
+  assert.equal(stage.candidates.length, 3);
+  assert.deepEqual(stage.candidates.map((candidate) => candidate.sensitivity), [1.042, 1.25, 1.5]);
+  assert.deepEqual(stage.orders[0].map((key) => stage.keyToLabel[key]).sort(), ["A", "B", "C"]);
+  assert.equal(harness.elements.get("completionText").textContent, "0 / 3");
+  assert.equal(stored.result, null);
+});
+
+test("a tied Express result keeps the real search center and repeats the same centered grid", async () => {
+  const harness = createAppHarness({
+    preload: (core) => completedSessionPayload(core, {
+      mode: "express",
+      inputMode: "raw",
+      id: "tied-express",
+      factors: [[1, 1, 1]]
+    })
+  });
+  await resumePersistedSessionToResult(harness, "raw");
+  const diagnostics = harness.diagnostics();
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.fastDirection, "unclear");
+  assert.equal(diagnostics.fastNextCenter, 1.25);
+  assert.equal(harness.elements.get("repeatFast").textContent, "同中心再跑约 100 秒");
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+  assert.equal(diagnostics.resultRange.length, 3);
+
+  harness.elements.get("repeatFast").click();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(stored.profile.currentSens, 1.25);
+  assert.deepEqual(stored.session.stages[0].candidates.map((candidate) => candidate.sensitivity), [1.042, 1.25, 1.5]);
+  assert.equal(stored.session.stages[0].searchCenterSensitivity, 1.25);
+});
+
+test("a live Express flow completes three valid candidates in 97.8 seconds and renders an actionable no-command result", async () => {
+  const harness = await startRawApp("express");
+  for (let index = 0; index < 3; index += 1) {
+    completeLiveExpressBlock(harness, { staticHits: 2 });
+    if (index < 2) assert.equal(harness.diagnostics().completedBlocks, index + 1);
+  }
+
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.clock.now(), 97_800);
+  assert.ok(harness.clock.now() < Core.constants.modes.express.budgetMs);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.resultMode, "express");
+  assert.equal(diagnostics.completedBlocks, 3);
+  assert.equal(stored.session.validTaskMs, 72_000);
+  assert.equal(diagnostics.testedCandidateCount, 3);
+  assert.equal(diagnostics.resultRange.length, 3);
+  assert.equal(diagnostics.hasMain, false);
+  assert.equal(diagnostics.insufficient, false);
+  assert.equal(diagnostics.evidence, "极速粗筛");
+  const stageSensitivities = stored.session.stages[0].candidates.map((candidate) => candidate.sensitivity).sort((a, b) => a - b);
+  assert.deepEqual(diagnostics.resultRange.slice().sort((a, b) => a - b), stageSensitivities);
+  assert.deepEqual(stored.result.testedCandidates.map((candidate) => candidate.sensitivity).sort((a, b) => a - b), stageSensitivities);
+  assert.deepEqual(stored.result.finalGrid.slice().sort((a, b) => a - b), stageSensitivities);
+  assert.equal(harness.elements.get("progressTrack").getAttribute("aria-valuenow"), "100");
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+  assert.equal(harness.elements.get("commandText").textContent, "极速方向筛选不提供单一命令");
+  assert.equal(harness.elements.get("fastGuide").hidden, false);
+  assert.match(harness.elements.get("resultUnit").textContent, /下一轮搜索中心 .*不是最终推荐/);
+  assert.match(harness.elements.get("taskSummary").innerHTML, /未估计复测 MAD/);
+  assert.doesNotMatch(harness.elements.get("taskSummary").innerHTML, /MAD 中位 .*0\.00%/);
+  assert.match(harness.elements.get("gameReviewList").innerHTML, /没有可粘贴的 sensitivity 命令/);
+  assert.equal(stored.history.at(-1).eligible, false);
+  assert.equal(harness.elements.get("confirmSession").hidden, true);
+
+  const report = harness.app.reportText();
+  assert.match(report, /粗筛方向：/);
+  assert.match(report, /下一轮搜索中心：/);
+  assert.match(report, /单轮边界：未估计复测 MAD/);
+  assert.doesNotMatch(report, /复测波动（配对 MAD/);
+
+  const previousSessionId = stored.session.id;
+  const previousHistoryCount = diagnostics.historyCount;
+  const expectedCenter = diagnostics.fastNextCenter;
+  harness.elements.get("repeatFast").click();
+  const restarted = harness.diagnostics();
+  const restartedState = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(restarted.view, "lab");
+  assert.equal(restarted.mode, "express");
+  assert.equal(restarted.completedBlocks, 0);
+  assert.equal(restarted.historyCount, previousHistoryCount);
+  assert.notEqual(restartedState.session.id, previousSessionId);
+  assert.equal(restartedState.profile.currentSens, Number(Core.formatSensitivity(expectedCenter)));
+  assert.deepEqual(
+    restartedState.session.stages[0].candidates.map((candidate) => candidate.sensitivity),
+    plain(Core.buildCoarseCandidates(restartedState.profile, "expected-repeat").map((candidate) => candidate.sensitivity))
+  );
+  assert.equal(restartedState.session.expressStartedAt, null);
+  assert.equal(restartedState.session.expressDeadlineAt, null);
+  assert.equal(restartedState.result, null);
+  assert.equal(harness.elements.get("completionText").textContent, "0 / 3");
+
+  harness.start();
+  harness.rawRequests[1].resolve();
+  await harness.flushPromises();
+  harness.acquirePointer();
+  const startedRepeat = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.diagnostics().active, true);
+  assert.equal(harness.diagnostics().inputMode, "raw");
+  assert.ok(startedRepeat.session.stages[0].candidates.some((candidate) => candidate.sensitivity === harness.diagnostics().activeCandidateSensitivity));
+  assert.equal(startedRepeat.session.expressDeadlineAt - startedRepeat.session.expressStartedAt, 120_000);
+});
+
+test("Express keeps zero-hit candidates as worst evidence instead of retrying forever", async () => {
+  const harness = await startRawApp("express");
+  for (let index = 0; index < 3; index += 1) completeLiveExpressBlock(harness, { staticHits: 0 });
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.clock.now(), 97_800);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.completedBlocks, 3);
+  assert.equal(diagnostics.anomalyCount, 0);
+  assert.equal(diagnostics.hasMain, false);
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+  for (const block of stored.session.blocks) {
+    for (const task of ["flick", "lateral"]) {
+      assert.equal(block.tasks[task].hits, 0);
+      assert.ok(block.tasks[task].misses > 0);
+      assert.equal(block.tasks[task].missRate, 1);
+      assert.equal(block.tasks[task].timePerId, Core.constants.modes.express.taskMs);
+      assert.equal(block.tasks[task].settleMs, Core.constants.modes.express.taskMs);
+      assert.equal(block.tasks[task].pathInefficiency, 3);
+    }
+  }
+});
+
+test("the Express result can carry its evidence-based next center into a clean Quick session", async () => {
+  const harness = await startRawApp("express");
+  for (let index = 0; index < 3; index += 1) completeLiveExpressBlock(harness, { staticHits: 2 });
+  const expectedCenter = harness.diagnostics().fastNextCenter;
+  const oldSessionId = JSON.parse(harness.storage.getItem(Core.constants.storageKey)).session.id;
+
+  harness.elements.get("upgradeFast").click();
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(diagnostics.view, "lab");
+  assert.equal(diagnostics.mode, "quick");
+  assert.equal(diagnostics.completedBlocks, 0);
+  assert.equal(stored.profile.currentSens, Number(Core.formatSensitivity(expectedCenter)));
+  assert.equal(stored.session.stages[0].passes, 1);
+  assert.equal(stored.session.stages[0].candidates.length, 3);
+  assert.deepEqual(
+    stored.session.stages[0].candidates.map((candidate) => candidate.sensitivity),
+    plain(Core.buildCoarseCandidates(stored.profile, "expected-quick").map((candidate) => candidate.sensitivity))
+  );
+  assert.equal(stored.session.expressStartedAt, null);
+  assert.equal(stored.session.expressDeadlineAt, null);
+  assert.notEqual(stored.session.id, oldSessionId);
+  assert.equal(stored.result, null);
+
+  harness.start();
+  harness.rawRequests[1].resolve();
+  await harness.flushPromises();
+  harness.acquirePointer();
+  const startedQuick = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.diagnostics().active, true);
+  assert.equal(harness.diagnostics().inputMode, "raw");
+  assert.ok(startedQuick.session.stages[0].candidates.some((candidate) => candidate.sensitivity === harness.diagnostics().activeCandidateSensitivity));
+  assert.equal(startedQuick.session.expressStartedAt, null);
+  assert.equal(startedQuick.session.expressDeadlineAt, null);
+});
+
+test("an input-starved Express block ends honestly before the 120 second budget instead of looping", async () => {
+  const harness = await startRawApp("express");
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+
+  const diagnostics = harness.diagnostics();
+  assert.ok(harness.clock.now() < 120_000);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.insufficient, true);
+  assert.equal(diagnostics.fastDirection, "unclear");
+  assert.equal(diagnostics.completedBlocks, 0);
+  assert.equal(diagnostics.testedCandidateCount, 0);
+  assert.equal(diagnostics.resultRange.length, 3);
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+  assert.match(harness.elements.get("rangeCopy").textContent, /未完整测试三个候选/);
+  assert.match(harness.elements.get("rangeList").innerHTML, /未完成/);
+});
+
+test("Express has a real 120 second wall-clock cutoff even while RAF progression is paused", async () => {
+  const harness = await startRawApp("express");
+  assert.equal(harness.diagnostics().active, true);
+  harness.advanceTimers(Core.constants.modes.express.budgetMs - 1);
+  assert.equal(harness.clock.now(), 119_999);
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(harness.diagnostics().active, true);
+  assert.equal(harness.diagnostics().insufficient, false);
+
+  harness.advanceTimers(1);
+
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.clock.now(), 120_000);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.active, false);
+  assert.equal(diagnostics.pendingRaf, 0);
+  assert.equal(diagnostics.insufficient, true);
+  assert.equal(diagnostics.fastDirection, "unclear");
+  assert.equal(stored.session.status, "complete");
+  assert.equal(stored.session.activeBlock, null);
+  assert.equal(stored.history.at(-1).eligible, false);
+  assert.equal(harness.document.pointerLockElement, null);
+  assert.match(harness.elements.get("fastGuideCopy").textContent, /120 秒硬截止/);
+});
+
+test("the RAF deadline branch independently seals Express at exactly 120 seconds", async () => {
+  const harness = await startRawApp("express");
+  harness.clock.elapse(119_999);
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(harness.diagnostics().active, true);
+
+  harness.clock.frame(1);
+  assert.equal(harness.clock.now(), 120_000);
+  assert.equal(harness.diagnostics().view, "result");
+  assert.equal(harness.diagnostics().insufficient, true);
+  assert.equal(harness.diagnostics().pendingRaf, 0);
+  assert.equal(harness.diagnostics().historyCount, 1);
+  harness.advanceTimers(0);
+  assert.equal(harness.diagnostics().historyCount, 1, "the cleared wall timer must not finalize the same session twice");
+});
+
+test("a cutoff after one valid Express candidate keeps only that candidate as tested evidence", async () => {
+  const harness = await startRawApp("express");
+  completeLiveExpressBlock(harness, { staticHits: 2 });
+  assert.equal(harness.diagnostics().completedBlocks, 1);
+  harness.advanceTimers(Core.constants.modes.express.budgetMs - harness.clock.now());
+
+  const diagnostics = harness.diagnostics();
+  assert.equal(harness.clock.now(), 120_000);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.insufficient, true);
+  assert.equal(diagnostics.testedCandidateCount, 1);
+  assert.equal(diagnostics.resultRange.length, 3);
+  assert.equal(diagnostics.fastDirection, "unclear");
+  assert.equal((harness.elements.get("rangeList").innerHTML.match(/已完成/g) || []).length, 1);
+  assert.equal((harness.elements.get("rangeList").innerHTML.match(/未完成/g) || []).length, 2);
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+});
+
+test("leaving an active Express session abandons its timer and cannot navigate away from the profile later", async () => {
+  const harness = await startRawApp("express");
+  harness.elements.get("backToProfile").click();
+  assert.equal(harness.diagnostics().view, "profile");
+  harness.advanceTimers(130_000);
+
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(diagnostics.view, "profile");
+  assert.equal(diagnostics.resultMode, null);
+  assert.equal(diagnostics.mode, null);
+  assert.equal(diagnostics.historyCount, 0);
+  assert.equal(stored.session, null);
+  assert.equal(stored.result, null);
+});
+
+test("a deadline atomically cancels a pending raw handshake so late callbacks cannot duplicate history", async () => {
+  const harness = await startRawApp("express");
+  harness.window.dispatchEvent({ type: "blur" });
+  harness.advanceTimers(118_000);
+  harness.start();
+  assert.equal(harness.rawRequests.length, 2);
+  assert.equal(harness.diagnostics().awaitingLock, true);
+
+  harness.advanceTimers(2_000);
+  assert.equal(harness.diagnostics().view, "result");
+  assert.equal(harness.diagnostics().awaitingLock, false);
+  assert.equal(harness.diagnostics().historyCount, 1);
+
+  harness.rawRequests[1].resolve();
+  await harness.flushPromises();
+  harness.acquirePointer();
+  assert.equal(harness.diagnostics().view, "result");
+  assert.equal(harness.diagnostics().active, false);
+  assert.equal(harness.diagnostics().historyCount, 1);
+  assert.equal(harness.document.pointerLockElement, null);
+});
+
+test("rebuilding compatibility input clears the old Express deadline before the new session starts", async () => {
+  const harness = createAppHarness({ compatPromise: true });
+  harness.submitProfile("express");
+  harness.start();
+  harness.rawRequests[0].resolve();
+  await harness.flushPromises();
+  harness.acquirePointer();
+  harness.window.dispatchEvent({ type: "blur" });
+  harness.advanceTimers(118_000);
+
+  harness.start();
+  harness.rawRequests[1].reject(new Error("raw denied"));
+  await harness.flushPromises();
+  harness.elements.get("overlayAction").click();
+  assert.equal(harness.compatRequests.length, 1);
+  assert.equal(harness.diagnostics().awaitingLock, true);
+  harness.advanceTimers(2_000);
+  assert.equal(harness.clock.now(), 120_000);
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(harness.diagnostics().insufficient, false);
+  assert.equal(harness.diagnostics().completedBlocks, 0);
+
+  harness.acquirePointer();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.diagnostics().active, true);
+  assert.equal(harness.diagnostics().inputMode, "compat");
+  assert.equal(stored.session.expressStartedAt, Date.parse("2026-08-20T00:00:00.000Z") + 120_000);
+  assert.equal(stored.session.expressDeadlineAt - stored.session.expressStartedAt, 120_000);
+});
+
+test("a persisted Express deadline survives refresh and cannot reset the two-minute budget", () => {
+  const harness = createAppHarness({
+    preload: (core) => {
+      const payload = completedSessionPayload(core, { mode: "express", inputMode: "raw", id: "persisted-deadline" });
+      payload.session.blocks = payload.session.blocks.slice(0, 1);
+      payload.session.validTaskMs = payload.session.blocks[0].validTaskMs;
+      payload.session.status = "paused";
+      payload.session.expressStartedAt = Date.parse("2026-08-19T23:58:01.000Z");
+      payload.session.expressDeadlineAt = Date.parse("2026-08-20T00:00:01.000Z");
+      return payload;
+    }
+  });
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(harness.diagnostics().completedBlocks, 1);
+  harness.advanceTimers(999);
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(harness.diagnostics().insufficient, false);
+  harness.advanceTimers(1);
+  assert.equal(harness.diagnostics().view, "result");
+  assert.equal(harness.diagnostics().insufficient, true);
+  assert.equal(harness.diagnostics().testedCandidateCount, 1);
+});
+
+test("a compatibility Express session completes the full range without a command or stable history", async () => {
+  const harness = createAppHarness({ compatPromise: true });
+  harness.submitProfile("express");
+  harness.start();
+  harness.rawRequests[0].reject(new Error("raw denied"));
+  await harness.flushPromises();
+  harness.elements.get("overlayAction").click();
+  harness.acquirePointer();
+  assert.equal(harness.diagnostics().inputMode, "compat");
+
+  for (let index = 0; index < 3; index += 1) completeLiveExpressBlock(harness, { staticHits: 2 });
+  const diagnostics = harness.diagnostics();
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.clock.now(), 97_800);
+  assert.equal(diagnostics.view, "result");
+  assert.equal(diagnostics.inputMode, "compat");
+  assert.equal(diagnostics.evidence, "兼容估算");
+  assert.equal(diagnostics.testedCandidateCount, 3);
+  assert.equal(diagnostics.resultRange.length, 3);
+  assert.equal(diagnostics.hasMain, false);
+  assert.equal(harness.elements.get("copyCommand").disabled, true);
+  assert.equal(stored.history.at(-1).eligible, false);
 });
 
 test("raw input starts only after both Promise confirmation and pointerlockchange", async () => {
@@ -1049,6 +1511,7 @@ test("raw rejection requires the CTA before rebuilding a clean compatibility ses
       const candidates = core.buildCoarseCandidates(profile, `preload-${mode}`);
       const stage = core.createBalancedStage("coarse", candidates, 1234, core.constants.modes[mode].passes, false);
       stage.kind = "coarse";
+      stage.searchCenterSensitivity = Number(core.formatSensitivity(core.startingCenter(profile)));
       const key = stage.orders[0][0];
       const candidate = stage.candidates.find((entry) => entry.key === key);
       return {
@@ -1818,6 +2281,55 @@ test("Express and Quick never create a unique winner from pure stage evaluation"
   }
 });
 
+test("fast guidance requires a real single-pass gap and never turns a tie or anomaly into a direction", () => {
+  const candidates = Core.buildCandidates(baseProfile(), 1.25, 1.2, "fast-guidance");
+  const stage = Core.createBalancedStage("fast-guidance-stage", candidates, 41, 1, false);
+  function guidance(factors, anomaly = false) {
+    const evaluation = Core.evaluateStage(stageBlocks(stage, [factors]), stage, "rifle", { mode: "express", rangeOnly: true, anomaly });
+    return Core.createFastGuidance(stage, evaluation);
+  }
+
+  const tied = guidance([1, 1, 1]);
+  assert.equal(tied.direction, "unclear");
+  assert.equal(tied.clarity, "unclear");
+  assert.equal(tied.nextCenterSensitivity, candidates[1].sensitivity);
+
+  assert.equal(guidance([0.82, 1, 1.12]).direction, "slower");
+  assert.equal(guidance([1, 0.82, 1.12]).direction, "center");
+  assert.equal(guidance([1.12, 1, 0.82]).direction, "faster");
+
+  const anomalous = guidance([0.82, 1, 1.12], true);
+  assert.equal(anomalous.direction, "unclear");
+  assert.equal(anomalous.nextCenterSensitivity, candidates[1].sensitivity);
+});
+
+test("fast guidance compares against the true search center at both tool boundaries", () => {
+  function boundary(center, factors) {
+    const profile = baseProfile({ currentSens: center, mode: "express" });
+    const candidates = Core.buildCoarseCandidates(profile, `boundary-${center}`);
+    const stage = Core.createBalancedStage(`boundary-stage-${center}`, candidates, 73, 1, false);
+    stage.searchCenterSensitivity = Number(Core.formatSensitivity(Core.startingCenter(profile)));
+    const evaluation = Core.evaluateStage(stageBlocks(stage, [factors]), stage, "rifle", { mode: "express", rangeOnly: true });
+    return { candidates, guidance: Core.createFastGuidance(stage, evaluation) };
+  }
+
+  const lowTie = boundary(0.1, [1, 1, 1]);
+  assert.deepEqual(plain(lowTie.candidates.map((candidate) => candidate.sensitivity)), [0.1, 0.12, 0.144]);
+  assert.equal(lowTie.guidance.direction, "unclear");
+  assert.equal(lowTie.guidance.nextCenterSensitivity, 0.1);
+  assert.equal(boundary(0.1, [0.82, 1, 1.12]).guidance.direction, "center");
+  assert.equal(boundary(0.1, [1, 0.82, 1.12]).guidance.direction, "faster");
+  assert.equal(boundary(0.1, [1.12, 1, 0.82]).guidance.direction, "faster");
+
+  const highTie = boundary(8, [1, 1, 1]);
+  assert.deepEqual(plain(highTie.candidates.map((candidate) => candidate.sensitivity)), [5.556, 6.667, 8]);
+  assert.equal(highTie.guidance.direction, "unclear");
+  assert.equal(highTie.guidance.nextCenterSensitivity, 8);
+  assert.equal(boundary(8, [0.82, 1, 1.12]).guidance.direction, "slower");
+  assert.equal(boundary(8, [1, 0.82, 1.12]).guidance.direction, "slower");
+  assert.equal(boundary(8, [1.12, 1, 0.82]).guidance.direction, "center");
+});
+
 test("synthetic 8% leadership is found reliably while <=3% gaps rarely produce a unique value", () => {
   const candidates = Core.buildCandidates(baseProfile(), 1.25, 1.2, "simulation");
   const stage = Core.createBalancedStage("simulation-stage", candidates, 73, 3, false);
@@ -1850,6 +2362,7 @@ test("advertised base mode durations stay inside their declared windows", () => 
   const deep = Core.estimateDuration("deep", 2);
 
   assert.ok(express < 120000, `Express was ${(express / 1000).toFixed(1)} seconds`);
+  assert.equal(Core.constants.modes.express.budgetMs, 120000);
   assert.ok(quick >= 4 * 60000 && quick <= 6 * 60000, `Quick was ${(quick / 60000).toFixed(1)} minutes`);
   assert.ok(standard >= 13 * 60000 && standard <= 15 * 60000, `Standard was ${(standard / 60000).toFixed(1)} minutes`);
   assert.ok(deep >= 27 * 60000 && deep <= 30 * 60000, `Deep was ${(deep / 60000).toFixed(1)} minutes`);
@@ -1922,15 +2435,39 @@ test("v3 migration restores only matching algorithm data and caps history at 100
   assert.equal(incompatible.result, null);
 
   const staleSession = plain(current);
-  staleSession.session.taskVersion = "angles-2.9.0";
+  staleSession.session.taskVersion = "angles-3.0.0";
   const withoutStaleSession = plain(Core.migratePersistedState({ v3: staleSession }));
   assert.equal(withoutStaleSession.session, null, "a session from another task definition must be discarded");
   assert.equal(withoutStaleSession.result, null, "a result cannot survive without its matching completed session");
 
+  const missingTaskVersion = plain(current);
+  delete missingTaskVersion.session.taskVersion;
+  const withoutVersionedSession = plain(Core.migratePersistedState({ v3: missingTaskVersion }));
+  assert.equal(withoutVersionedSession.session, null, "a session without an explicit task version must be discarded");
+  assert.equal(withoutVersionedSession.result, null);
+
+  const incompleteFastSession = plain(current);
+  incompleteFastSession.session.mode = "express";
+  incompleteFastSession.session.profile.mode = "express";
+  delete incompleteFastSession.session.stages[0].searchCenterSensitivity;
+  const withoutFastCenter = plain(Core.migratePersistedState({ v3: incompleteFastSession }));
+  assert.equal(withoutFastCenter.session, null, "a current fast session without its true search center must be discarded");
+  assert.equal(withoutFastCenter.result, null);
+
+  const incompleteFastResult = plain(current);
+  incompleteFastResult.session.mode = "express";
+  incompleteFastResult.session.profile.mode = "express";
+  incompleteFastResult.session.stages[0].searchCenterSensitivity = 1.25;
+  incompleteFastResult.result.mode = "express";
+  delete incompleteFastResult.result.fastGuidance;
+  const withoutFastGuidance = plain(Core.migratePersistedState({ v3: incompleteFastResult }));
+  assert.equal(withoutFastGuidance.session, null, "a completed session without a valid result must not deadlock restoration");
+  assert.equal(withoutFastGuidance.result, null, "a current fast result without actionable guidance must be discarded");
+
   const staleResult = plain(current);
-  staleResult.result.taskVersion = "angles-2.9.0";
+  staleResult.result.taskVersion = "angles-3.0.0";
   const withoutStaleResult = plain(Core.migratePersistedState({ v3: staleResult }));
-  assert.equal(withoutStaleResult.session.id, "session");
+  assert.equal(withoutStaleResult.session, null, "a completed session cannot remain after its result is discarded");
   assert.equal(withoutStaleResult.result, null, "a result from another task definition must be discarded");
 
   const filteredHistory = plain(Core.migratePersistedState({
@@ -1938,7 +2475,7 @@ test("v3 migration restores only matching algorithm data and caps history at 100
       ...current,
       history: [
         { id: "matching-task", algorithmVersion: Core.version, taskVersion: Core.constants.taskVersion },
-        { id: "stale-task", algorithmVersion: Core.version, taskVersion: "angles-2.9.0" }
+        { id: "stale-task", algorithmVersion: Core.version, taskVersion: "angles-3.0.0" }
       ]
     }
   }));
