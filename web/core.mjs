@@ -1,6 +1,6 @@
 export const APP_STORAGE_KEY = "opt-lab.shell.v1";
 export const MAX_HISTORY_ITEMS = 20;
-export const APP_SCHEMA_VERSION = 2;
+export const APP_SCHEMA_VERSION = 3;
 
 export function createInitialState() {
   return {
@@ -16,6 +16,9 @@ export function createInitialState() {
       planMode: "quick"
     },
     optimizationChecks: {},
+    workspace: {
+      reviewedProfileKey: null
+    },
     preferences: {
       checkForUpdates: true,
       reducedMotion: false
@@ -25,7 +28,7 @@ export function createInitialState() {
 
 export function normalizeState(candidate) {
   const initial = createInitialState();
-  if (!candidate || ![1, APP_SCHEMA_VERSION].includes(candidate.schemaVersion)) {
+  if (!candidate || ![1, 2, APP_SCHEMA_VERSION].includes(candidate.schemaVersion)) {
     return initial;
   }
 
@@ -41,6 +44,7 @@ export function normalizeState(candidate) {
       : [],
     optimizationProfile: normalizeOptimizationProfile(candidate.optimizationProfile),
     optimizationChecks: normalizeOptimizationChecks(candidate.optimizationChecks),
+    workspace: normalizeWorkspace(candidate.workspace),
     preferences: {
       ...initial.preferences,
       ...(candidate.preferences ?? {})
@@ -141,6 +145,30 @@ export function normalizeOptimizationChecks(candidate) {
   );
 }
 
+export function normalizeWorkspace(candidate) {
+  return {
+    reviewedProfileKey: typeof candidate?.reviewedProfileKey === "string" && candidate.reviewedProfileKey.length <= 80
+      ? candidate.reviewedProfileKey
+      : null
+  };
+}
+
+export function getOptimizationProfileKey(candidate) {
+  const profile = normalizeOptimizationProfile(candidate);
+  return [profile.os, profile.gpuVendor, profile.platform].join(":");
+}
+
+export function isOptimizationProfileReviewed(workspace, profile) {
+  return normalizeWorkspace(workspace).reviewedProfileKey === getOptimizationProfileKey(profile);
+}
+
+export function reviewOptimizationProfile(workspace, profile) {
+  return {
+    ...normalizeWorkspace(workspace),
+    reviewedProfileKey: getOptimizationProfileKey(profile)
+  };
+}
+
 export function setOptimizationCheck(checks, ruleId, completed) {
   if (!/^[a-z0-9-]+$/.test(ruleId)) {
     throw new Error("优化检查项 ID 无效。");
@@ -168,6 +196,79 @@ export function getOptimizationProgress(checks, recommendations) {
   };
 }
 
+export function getWorkspaceJourney(state, quickRecommendations) {
+  const profileReviewed = isOptimizationProfileReviewed(state.workspace, state.optimizationProfile);
+  const readiness = getOptimizationProgress(state.optimizationChecks, quickRecommendations);
+  const overview = getOverviewState(state);
+  const readinessComplete = readiness.total > 0 && readiness.completed === readiness.total;
+  const hasCalibration = overview.calibrationCount > 0;
+
+  return [
+    {
+      id: "profile",
+      title: "确认电脑与平台",
+      summary: profileReviewed ? "当前环境已经由你确认。" : "核对 Windows、显卡和主要游戏平台。",
+      status: profileReviewed ? "complete" : "current",
+      action: "optimizer",
+      actionLabel: profileReviewed ? "重新核对" : "去确认"
+    },
+    {
+      id: "readiness",
+      title: "完成三分钟检查",
+      summary: `${readiness.completed} / ${readiness.total} 项已确认`,
+      status: readinessComplete ? "complete" : profileReviewed ? "current" : "pending",
+      action: "optimizer",
+      actionLabel: readinessComplete ? "复查" : "继续检查"
+    },
+    {
+      id: "sensitivity",
+      title: "保留灵敏度基线",
+      summary: hasCalibration ? overview.latestCalibration.command : "可选；完成后会保存可复制命令。",
+      status: hasCalibration ? "complete" : readinessComplete ? "current" : "optional",
+      action: hasCalibration ? "history" : "module",
+      actionLabel: hasCalibration ? "查看记录" : "打开实验室"
+    },
+    {
+      id: "recovery",
+      title: "确认恢复状态",
+      summary: overview.requiresRecovery ? "存在必须处理的恢复事务。" : "当前没有待恢复的系统变更。",
+      status: overview.requiresRecovery ? "attention" : "complete",
+      action: "recovery",
+      actionLabel: overview.requiresRecovery ? "立即处理" : "查看账本"
+    }
+  ];
+}
+
+export function normalizeHostContext(candidate) {
+  const mode = ["preview", "connecting", "desktop", "unavailable"].includes(candidate?.mode)
+    ? candidate.mode
+    : "preview";
+  const capabilities = candidate?.capabilities && typeof candidate.capabilities === "object"
+    ? candidate.capabilities
+    : {};
+  const connected = mode === "desktop" && candidate?.connected === true;
+
+  return {
+    mode,
+    connected,
+    hostVersion: safeHostText(candidate?.hostVersion, "—"),
+    platform: safeHostText(candidate?.platform, mode === "preview" ? "Browser preview" : "Windows"),
+    operatingSystem: safeHostText(candidate?.operatingSystem, "未由桌面宿主提供"),
+    architecture: safeHostText(candidate?.architecture, "—"),
+    runtime: safeHostText(candidate?.runtime, mode === "preview" ? "Web preview" : "—"),
+    dataBoundary: candidate?.dataBoundary === "local-only" ? "local-only" : "local-only",
+    capabilities: {
+      nativeShell: connected && capabilities.nativeShell === true,
+      openSettings: connected && capabilities.openSettings === true,
+      openSources: connected && capabilities.openSources === true,
+      calibrationArchive: connected && capabilities.calibrationArchive === true,
+      brokerDiagnostics: connected && capabilities.brokerDiagnostics === true,
+      signedUpdates: connected && capabilities.signedUpdates === true,
+      systemMutations: connected && capabilities.systemMutations === true
+    }
+  };
+}
+
 export function formatDateTime(isoDate, locale = "zh-CN") {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
@@ -191,4 +292,10 @@ function numberOrNull(value) {
 function integerOrNull(value) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.round(number) : null;
+}
+
+function safeHostText(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  const normalized = value.trim();
+  return normalized && normalized.length <= 160 ? normalized : fallback;
 }

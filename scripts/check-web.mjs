@@ -9,7 +9,11 @@ const files = ["web/index.html", "web/styles.css", "web/app.js", "web/core.mjs",
 const requiredHtmlTokens = [
   "OPT / LAB",
   'id="moduleFrame"',
+  'id="retryModuleButton"',
+  'id="journeyList"',
   'data-view-panel="optimizer"',
+  'data-view-panel="diagnostics"',
+  'id="diagnosticHostBadge"',
   'id="recommendationList"',
   'data-view-panel="recovery"',
   'data-open-module="cs2-sensitivity"'
@@ -35,6 +39,27 @@ if (/https?:\/\//i.test(html)) {
 }
 
 const nativeNavigation = readFileSync(path.join(workspace, "src/OptLab.App/Services/ExternalNavigationCatalog.cs"), "utf8");
+const nativeHost = readFileSync(path.join(workspace, "src/OptLab.App/MainWindow.xaml.cs"), "utf8");
+const nativeWindow = readFileSync(path.join(workspace, "src/OptLab.App/MainWindow.xaml"), "utf8");
+const hostContextProvider = readFileSync(path.join(workspace, "src/OptLab.App/Services/HostContextProvider.cs"), "utf8");
+for (const token of ["host.context", "host.acknowledged", "host.error"]) {
+  if (!nativeHost.includes(`\"${token}\"`)) {
+    throw new Error(`Native host response is missing: ${token}`);
+  }
+}
+for (const token of ["SystemMutations: false", "BrokerDiagnostics: false", "SignedUpdates: false"]) {
+  if (!hostContextProvider.includes(token)) {
+    throw new Error(`Desktop capability boundary is missing: ${token}`);
+  }
+}
+for (const token of ["OnRetryClick", "OnCloseClick", "FallbackProgress"]) {
+  if (!nativeWindow.includes(token)) {
+    throw new Error(`Native fallback control is missing: ${token}`);
+  }
+}
+if (!nativeHost.includes("OnNavigationCompleted")) {
+  throw new Error("Native navigation failure recovery is missing.");
+}
 for (const sourceId of Object.keys(SOURCES)) {
   if (!nativeNavigation.includes(`["${sourceId}"]`)) {
     throw new Error(`Research source is not present in the native allowlist: ${sourceId}`);

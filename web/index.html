@@ -17,37 +17,41 @@
       </a>
 
       <nav class="main-nav" aria-label="工作区">
-        <button class="nav-item is-active" data-view="overview" type="button">
+        <button class="nav-item is-active" data-view="overview" type="button" aria-label="总览">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>
           <span>总览</span>
         </button>
-        <button class="nav-item" data-view="optimizer" type="button">
+        <button class="nav-item" data-view="optimizer" type="button" aria-label="开赛准备">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M8 12h8m-5 6h2M7 4v4m10 2v4m-5 2v4"/></svg>
           <span>开赛准备</span>
           <b class="nav-count" id="readinessNavCount">00%</b>
         </button>
-        <button class="nav-item" data-view="modules" type="button">
+        <button class="nav-item" data-view="modules" type="button" aria-label="优化方案">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.5 7.8 12 12.6l8.5-4.8L12 3Zm-8.5 9.3L12 17l8.5-4.7M3.5 16.7 12 21l8.5-4.3"/></svg>
           <span>优化方案</span>
-          <b class="nav-count">02</b>
+          <b class="nav-count">03</b>
         </button>
-        <button class="nav-item" data-view="recovery" type="button">
+        <button class="nav-item" data-view="diagnostics" type="button" aria-label="本机诊断">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16M6 15V8m4 7V5m4 10v-4m4 4V7M4 4h16v16H4z"/></svg>
+          <span>本机诊断</span>
+        </button>
+        <button class="nav-item" data-view="recovery" type="button" aria-label="恢复中心">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.7M20 4v7h-7"/></svg>
           <span>恢复中心</span>
           <b class="nav-count is-empty" id="recoveryNavCount">00</b>
         </button>
-        <button class="nav-item" data-view="history" type="button">
+        <button class="nav-item" data-view="history" type="button" aria-label="运行记录">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16M8 15v-3m4 3V8m4 7v-5"/></svg>
           <span>运行记录</span>
         </button>
       </nav>
 
       <div class="rail-footer">
-        <div class="machine-chip" aria-label="本机模式">
-          <span class="machine-led" aria-hidden="true"></span>
-          <div><small>EXECUTION MODE</small><strong>LOCAL ONLY</strong></div>
+        <div class="machine-chip" id="machineChip" aria-label="本机模式">
+          <span class="machine-led" id="machineLed" aria-hidden="true"></span>
+          <div><small id="machineMode">CONNECTING</small><strong id="machineDetail">CHECKING HOST</strong></div>
         </div>
-        <button class="nav-item settings-nav" data-view="settings" type="button">
+        <button class="nav-item settings-nav" data-view="settings" type="button" aria-label="设置">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12 .9 2.1 2.2.5 1.9-1.2 1.9 1.9-1.2 1.9.5 2.2 2.1.9v2.6l-2.1.9-.5 2.2 1.2 1.9-1.9 1.9-1.9-1.2-2.2.5-.9 2.1H10l-.9-2.1-2.2-.5-1.9 1.2-1.9-1.9 1.2-1.9-.5-2.2-2.1-.9v-2.6l2.1-.9.5-2.2-1.2-1.9 1.9-1.9 1.9 1.2 2.2-.5L10 3.5h2Z"/></svg>
           <span>设置</span>
         </button>
@@ -82,6 +86,21 @@
           </div>
           <div class="tape-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
+
+        <div class="host-strip" aria-label="桌面宿主能力">
+          <div><span>HOST MODE</span><strong id="hostModeLabel">正在确认</strong></div>
+          <div><span>RUNTIME</span><strong id="hostRuntimeLabel">LOCAL WEB</strong></div>
+          <div><span>WINDOWS LINKS</span><strong id="hostSettingsLabel">等待宿主</strong></div>
+          <div><span>SYSTEM WRITES</span><strong id="hostMutationLabel">DISABLED</strong></div>
+        </div>
+
+        <section class="section-block journey-block" aria-labelledby="journeyHeading">
+          <div class="section-head journey-head">
+            <div><span class="eyebrow">MATCH SESSION / CONTROL FLOW</span><h2 id="journeyHeading">一次开赛，只看下一步</h2></div>
+            <p id="journeySummary">正在汇总本机进度。</p>
+          </div>
+          <div class="journey-list" id="journeyList"></div>
+        </section>
 
         <div class="overview-grid">
           <article class="panel focus-panel">
@@ -158,6 +177,11 @@
           </div>
         </div>
 
+        <div class="profile-confirmation" id="profileConfirmation">
+          <div><span>ENVIRONMENT REVIEW</span><strong id="profileReviewText">请确认这套设备与平台信息</strong></div>
+          <button class="button button-secondary" id="confirmProfileButton" type="button">确认这套环境</button>
+        </div>
+
         <div class="plan-progress" aria-live="polite">
           <div><span id="planProgressLabel">0 / 0 已确认</span><strong id="planProgressTitle">准备生成适配方案</strong></div>
           <div class="progress-track"><i id="planProgressBar"></i></div>
@@ -195,6 +219,14 @@
             <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">开始校准 <span aria-hidden="true">→</span></button>
           </article>
 
+          <article class="module-card module-card-diagnostic">
+            <div class="module-card-top"><span class="module-tag">HOST DIAGNOSTICS</span><span class="module-state" id="diagnosticModuleState"><i></i> CHECKING</span></div>
+            <div class="module-ident"><span class="module-mark mark-pulse" aria-hidden="true"></span><div><h3>本机环境摘要</h3><p>桌面宿主、架构与能力边界</p></div></div>
+            <p class="module-description">读取桌面宿主主动提供的非敏感运行信息，明确哪些能力已连接、哪些仍未发布；不会扫描进程、账号或游戏文件。</p>
+            <dl class="module-facts"><div><dt>权限</dt><dd>只读</dd></div><div><dt>来源</dt><dd>桌面宿主</dd></div><div><dt>上传</dt><dd>从不自动</dd></div></dl>
+            <button class="button button-secondary" data-view="diagnostics" type="button">查看本机状态 <span aria-hidden="true">→</span></button>
+          </article>
+
         </div>
 
         <aside class="module-policy">
@@ -210,9 +242,44 @@
           <div class="module-host-state"><span><i></i> LOCAL MODULE</span><small>NO SYSTEM CHANGES</small></div>
         </div>
         <div class="module-frame-wrap">
-          <div class="module-frame-loading" id="moduleFrameLoading"><span class="loader-mark" aria-hidden="true"></span><p>正在加载离线校准模块…</p></div>
+          <div class="module-frame-loading" id="moduleFrameLoading"><span class="loader-mark" aria-hidden="true"></span><p id="moduleFrameStatus">正在加载离线校准模块…</p><button class="button button-secondary" id="retryModuleButton" type="button" hidden>重新加载</button></div>
           <iframe id="moduleFrame" title="CS2 SENS / LAB 校准模块" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
         </div>
+      </section>
+
+      <section class="view" data-view-panel="diagnostics" aria-labelledby="diagnosticsHeading">
+        <div class="section-head diagnostics-head">
+          <div><span class="eyebrow">DESKTOP HOST / READ-ONLY</span><h2 id="diagnosticsHeading">本机环境摘要</h2></div>
+          <p>只展示桌面宿主主动提供的运行信息。浏览器预览不会伪装成 Windows 检测结果。</p>
+        </div>
+
+        <div class="diagnostics-hero">
+          <div>
+            <span class="diagnostic-badge" id="diagnosticHostBadge">CONNECTING</span>
+            <h3 id="diagnosticHostTitle">正在等待桌面宿主</h3>
+            <p id="diagnosticHostCopy">若当前是普通浏览器，将自动切换为受限预览模式。</p>
+          </div>
+          <dl class="host-facts">
+            <div><dt>系统</dt><dd id="diagnosticOs">等待宿主</dd></div>
+            <div><dt>架构</dt><dd id="diagnosticArchitecture">—</dd></div>
+            <div><dt>宿主版本</dt><dd id="diagnosticVersion">—</dd></div>
+            <div><dt>运行时</dt><dd id="diagnosticRuntime">LOCAL WEB</dd></div>
+          </dl>
+        </div>
+
+        <div class="capability-grid" aria-label="桌面能力状态">
+          <article><span>01</span><div><strong>Windows 设置入口</strong><p id="capabilitySettings">等待桌面宿主确认。</p></div></article>
+          <article><span>02</span><div><strong>官方资料入口</strong><p id="capabilitySources">等待桌面宿主确认。</p></div></article>
+          <article><span>03</span><div><strong>本机校准归档</strong><p id="capabilityArchive">等待桌面宿主确认。</p></div></article>
+          <article><span>04</span><div><strong>Broker 诊断</strong><p id="capabilityBroker">尚未接入桌面工作台。</p></div></article>
+          <article><span>05</span><div><strong>签名模块更新</strong><p id="capabilityUpdates">尚未配置正式更新源。</p></div></article>
+          <article class="capability-critical"><span>06</span><div><strong>系统写入动作</strong><p id="capabilityMutations">默认拒绝，未发布。</p></div></article>
+        </div>
+
+        <aside class="diagnostic-boundary">
+          <div><span>DATA BOUNDARY</span><strong>仅本机 · 不读取账号 · 不上传</strong><p>诊断说明只包含宿主模式、环境选择、完成计数和恢复状态，不包含鼠标轨迹、CS2 配置或平台账号。</p></div>
+          <button class="button button-secondary" data-export-diagnostics type="button">导出诊断说明</button>
+        </aside>
       </section>
 
       <section class="view" data-view-panel="recovery" aria-labelledby="recoveryHeading">
@@ -243,7 +310,7 @@
         <div class="settings-stack">
           <article class="setting-row"><div><strong>官方模块更新</strong><p>仅检查已签名的官方模块更新；不会在有活动事务时安装。</p></div><label class="toggle"><input id="updatesToggle" type="checkbox" checked><span></span></label></article>
           <article class="setting-row"><div><strong>减少动态效果</strong><p>关闭非必要的状态动画，保留成功、失败和进行中的反馈。</p></div><label class="toggle"><input id="motionToggle" type="checkbox"><span></span></label></article>
-          <article class="setting-row"><div><strong>诊断数据</strong><p>不自动上传。出现问题时，只能由你主动导出本机脱敏诊断包。</p></div><button class="button button-secondary" id="exportDiagnostics" type="button">导出说明</button></article>
+          <article class="setting-row"><div><strong>诊断数据</strong><p>不自动上传。出现问题时，只能由你主动导出本机脱敏诊断包。</p></div><button class="button button-secondary" id="exportDiagnostics" data-export-diagnostics type="button">导出说明</button></article>
           <article class="setting-row"><div><strong>更新检查</strong><p>本地预览模式不会连接任何更新服务；Windows 发布版会显示已验证的版本和签名来源。</p></div><button class="button button-secondary" id="checkUpdates" type="button">检查更新</button></article>
         </div>
       </section>

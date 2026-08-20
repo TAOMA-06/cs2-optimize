@@ -13,8 +13,12 @@
             <StackPanel Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560">
                 <TextBlock Text="OPT / LAB 无法启动本地工作台" FontSize="28" FontWeight="SemiBold" />
                 <TextBlock x:Name="FallbackText" TextWrapping="Wrap" Foreground="#C8C5BB" />
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                    <Button x:Name="RetryButton" Content="重新初始化" Click="OnRetryClick" />
+                    <Button Content="关闭应用" Click="OnCloseClick" />
+                    <ProgressRing x:Name="FallbackProgress" Width="22" Height="22" IsActive="False" />
+                </StackPanel>
             </StackPanel>
         </Grid>
     </Grid>
 </Window>
-

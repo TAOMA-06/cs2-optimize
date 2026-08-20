@@ -7,8 +7,12 @@ import {
   createInitialState,
   getActiveTransactions,
   getOptimizationProgress,
+  getWorkspaceJourney,
   getOverviewState,
+  isOptimizationProfileReviewed,
   loadState,
+  normalizeHostContext,
+  reviewOptimizationProfile,
   saveState,
   setOptimizationCheck,
   upsertCalibrationRecord
@@ -55,6 +59,24 @@ test("schema v1 state migrates without losing existing calibration history", () 
   assert.equal(migrated.calibrationHistory.length, 1);
   assert.equal(migrated.activeView, "history");
   assert.equal(migrated.optimizationProfile.platform, "perfect");
+  assert.equal(migrated.workspace.reviewedProfileKey, null);
+});
+
+test("schema v2 state migrates into the composite workspace model", () => {
+  const storage = createStorage();
+  storage.setItem(APP_STORAGE_KEY, JSON.stringify({
+    schemaVersion: 2,
+    activeView: "optimizer",
+    calibrationHistory: [],
+    transactions: [],
+    optimizationProfile: { os: "windows10", gpuVendor: "amd", platform: "fivee", planMode: "full" },
+    optimizationChecks: { "refresh-rate": true }
+  }));
+
+  const migrated = loadState(storage);
+  assert.equal(migrated.schemaVersion, APP_SCHEMA_VERSION);
+  assert.equal(migrated.optimizationProfile.gpuVendor, "amd");
+  assert.equal(migrated.workspace.reviewedProfileKey, null);
 });
 
 test("valid CS2 result becomes a normalized calibration record", () => {
@@ -121,4 +143,43 @@ test("readiness progress only counts rules in the active plan", () => {
   assert.equal(progress.completed, 1);
   assert.equal(progress.total, rules.length);
   assert.equal(progress.percent, Math.round(100 / rules.length));
+});
+
+test("profile review is tied to the exact environment selection", () => {
+  const state = createInitialState();
+  state.workspace = reviewOptimizationProfile(state.workspace, state.optimizationProfile);
+
+  assert.equal(isOptimizationProfileReviewed(state.workspace, state.optimizationProfile), true);
+  assert.equal(isOptimizationProfileReviewed(state.workspace, { ...state.optimizationProfile, gpuVendor: "nvidia" }), false);
+});
+
+test("workspace journey advances without inventing system state", () => {
+  const state = createInitialState();
+  const rules = getRecommendations(state.optimizationProfile, "quick");
+  let journey = getWorkspaceJourney(state, rules);
+  assert.equal(journey.find((step) => step.id === "profile").status, "current");
+  assert.equal(journey.find((step) => step.id === "readiness").status, "pending");
+
+  state.workspace = reviewOptimizationProfile(state.workspace, state.optimizationProfile);
+  state.optimizationChecks = Object.fromEntries(rules.map((rule) => [rule.id, true]));
+  journey = getWorkspaceJourney(state, rules);
+  assert.equal(journey.find((step) => step.id === "readiness").status, "complete");
+  assert.equal(journey.find((step) => step.id === "sensitivity").status, "current");
+  assert.equal(journey.find((step) => step.id === "recovery").status, "complete");
+});
+
+test("host context fails closed outside an authenticated desktop handshake", () => {
+  const preview = normalizeHostContext({ mode: "preview", capabilities: { systemMutations: true } });
+  assert.equal(preview.connected, false);
+  assert.equal(preview.capabilities.systemMutations, false);
+
+  const desktop = normalizeHostContext({
+    mode: "desktop",
+    connected: true,
+    hostVersion: "1.0.0",
+    capabilities: { nativeShell: true, openSettings: true, systemMutations: false }
+  });
+  assert.equal(desktop.connected, true);
+  assert.equal(desktop.capabilities.openSettings, true);
+  assert.equal(desktop.capabilities.systemMutations, false);
 });
