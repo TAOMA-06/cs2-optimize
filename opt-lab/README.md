@@ -23,7 +23,7 @@ OPT / LAB 是 Windows 游戏优化工作台载体。应用面向 Windows 11 x64�
 
 ```bash
 node scripts/serve-preview.mjs
-node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs
+node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs cs2-lineups/tests/*.test.mjs
 node scripts/check-web.mjs
 ```
 

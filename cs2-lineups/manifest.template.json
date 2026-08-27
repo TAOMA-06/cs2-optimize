@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "cs2-lineups",
   "name": "CS2 LINEUPS",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "Reference",
   "entryPoint": "index.html",
   "minimumHostVersion": "0.1.0",
