@@ -1,71 +1,71 @@
 # CS2 Lineups 开发交接
 
-- 更新时间：2026-08-26T18:57:52+08:00
-- 当前分支：main
-- 当前 HEAD：4973492f83c450cb02a489276ee9f48926c60363
-- 总体状态：**外部素材阻塞 / 代码原型待正式内容验收**
-- 最后完成的阶段：Mirage / Dust II 官方游戏雷达内嵌、地图切换与直接点击验证
+- 更新时间：2026-08-27T17:37:21Z
+- 当前分支：cursor/cs2-lineups-nav-stack-3377
+- 已验证代码提交：a92c7b3111c434508382734e402c68d52ef5ea6b
+- 交接文档提交：本文件随后续 docs 提交进入同一分支
+- 总体状态：**导航改版在 Chromium 预览、独立模块入口、OPT / LAB iframe 与 file:// 自动化下已通过；正式瞄点素材仍为 BLOCKED_EXTERNAL**
+- 最后完成的阶段：点击式层级导航栈（NAV-001，Chromium 证据）
 - 唯一运行文件：`cs2-lineups/index.html`
 
 ## 已完成
 
 - [x] 创建完全自包含的 `cs2-lineups/index.html`，CSS、JavaScript、地图结构与演示数据全部内嵌。
-- [x] 实现 Mirage 战术示意雷达、手动位置点击、当前区域与相邻通路查询。
-- [x] 实现起投站聚合、最多 6 个附近结果和最多 3 个“较远可用”回退。
-- [x] 实现 T/CT、烟/闪/火/雷筛选、文本搜索与收藏筛选。
-- [x] 实现站位/瞄点/落点三帧详情、投法、用途、收藏、最近查看和本机备注。
+- [x] 实现 Mirage / Dust II 官方游戏雷达、手动位置点击、当前区域与相邻通路查询。
 - [x] 实现 T/CT 各 5 个出生锚点、雷达圆点、内部编号和第一视角识别示意。
 - [x] 实现 T/CT 各三个目标的个人开局路线、购买清单、手动步骤推进和新回合重置。
 - [x] 加入全局醒目的“交互演示、未经实战验证”边界；所有演示条目使用 status: demo。
-- [x] 完成桌面、360×800 竖屏和 844×390 横屏响应式检查；横屏已调整为地图与结果左右并排。
 - [x] 确认页面没有游戏读取、网络请求、屏幕/OCR、WebView 或输入模拟 API。
 - [x] 内嵌来自当前 CS2 游戏资源的 Mirage 与 Dust II 1024×1024 雷达底图；运行时不联网。
-- [x] 加入地图选择器；切换地图会清除上一张地图的位置、出生点、目标和路线进度。
 - [x] 为 Dust II 建立独立区域、出生点、起投站、演示瞄点与 T/CT 六类开局路线数据。
-- [x] 在桌面与 360×800 手机视口验证两张官方雷达均可直接点击。
+- [x] 将工作台式同屏布局改为单 HTML 导航栈：L0 地图 → L1 阵营 → L2 雷达 → L3 附近瞄点 → L4 详情；开局路线为雷达页同屏模式后的下级页面。
+- [x] 现役 7 图目录（Cache / Mirage / Dust II / Inferno / Nuke / Ancient / Anubis）；仅 Mirage、Dust II 可进入。
+- [x] Hash 路由、`history.pushState` / `replaceState`、v1→v2 本机状态迁移、详情不再使用 `<dialog>`。
+- [x] NAV-001：五层核心路径、浏览器返回、360/844/1024/1440 视口、file:// / 独立预览 / OPT-LAB iframe 均有 Chromium 真实证据。
 
 ## 正在进行
 
-- [ ] CONTENT-001：把内嵌演示目录替换为用户已授权的正式 Mirage 内容。
-- 已完成到哪一步：运行结构、查询算法、内容校验器和所有展示容器已经就绪。
-- 下一步精确动作：取得下方“素材与外部输入”列出的文件和元数据后，逐条替换 MAP_DATA 中的 demo 条目；只有内容权利、地图版本和作者状态齐全时才能改为 active。
+- 无进行中的导航实现任务。
+- 当前层：NAV-001 已完成（Chromium）。下一优先任务仍是 CONTENT-001，状态 BLOCKED_EXTERNAL。
+- 已完成屏幕（实现 + Chromium 证据）：L0 地图选择、L1 阵营、L2 雷达（附近/开局模式）、L3 附近列表、L4 详情、开局出生点。开局目标/预览/步骤有自动化断言，无单独截图。
+- 失败测试：本轮 Node 100/100、`check-web`、`git diff --check`、Chromium 31/31 均通过。
+- 下一步精确动作：等待授权正式瞄点/出生点/开局素材；在 Safari、Edge 和真实手机上补 QA-002。不要把 demo 条目改成已验证。
 
 ## 未完成任务
 
 | ID | 任务 | 当前状态 | 阻塞原因 | 下一步动作 | 涉及位置 | 完成标准 |
 |---|---|---|---|---|---|---|
-| CONTENT-001 | 正式 Mirage 瞄点目录 | BLOCKED_EXTERNAL | 工作区没有已授权雷达、站位图、瞄点图、落点图或结构化目录 | 用户提供授权素材包；按稳定 ID 嵌入并移除对应演示条目 | cs2-lineups/index.html 的 MAP_DATA.lineups | 24–30 条正式内容，媒体和元数据完整，无 demo 状态 |
+| NAV-001 | 点击式层级导航改版 | COMPLETE | 无。Safari / Edge / 真机仍见 QA-002，不回退本任务 | 无代码动作；后续只修回归 | cs2-lineups/index.html、tests、scripts/check-web.mjs | 五层核心路径、浏览器返回、移动端和 file:// / 独立预览 / OPT-LAB iframe 均有真实证据；不得把演示数据写成实战瞄点验证 |
+| CONTENT-001 | 正式 Mirage 瞄点目录 | BLOCKED_EXTERNAL | 工作区没有已授权站位图、瞄点图、落点图或结构化目录 | 用户提供授权素材包；按稳定 ID 嵌入并移除对应演示条目 | cs2-lineups/index.html 的 MAP_DATA.lineups | 24–30 条正式内容，媒体和元数据完整，无 demo 状态 |
 | CONTENT-002 | 真实 T/CT 出生锚点与身位瞄点 | BLOCKED_EXTERNAL | 当前 10 个锚点是交互示意，不是当前游戏版本的实测出生池 | 提供当前 Mirage 版本的物理出生点、第一视角识别图和适配瞄点 | MAP_DATA.spawnAnchors、eligibleSpawnAnchorIds | 每个正式锚点可由雷达与视角图唯一识别，错误锚点不会得到精确推荐 |
 | CONTENT-003 | 正式双阵营个人开局路线 | BLOCKED_EXTERNAL | 当前六类路线仅验证了状态机，没有实战连续性证据 | 提供或验收 T/CT 各 A/中/B 路线、购买清单、移动顺序和作者状态 | MAP_DATA.openingPlans | 所有正式路线引用正式瞄点，携带上限与连续步骤通过内容验收 |
-| QA-001 | file:// 直接打开验证 | NOT_RUN | 自动化浏览器安全策略禁止访问本机 file:// URL，未采用绕过方式 | 用户或后续开发者双击 HTML，检查加载、地图点击、详情和本机存储 | cs2-lineups/index.html | Chrome/Edge/Safari 至少一个浏览器直接打开无控制台错误 |
-| QA-002 | Safari、Edge 和真实手机验证 | NOT_RUN | 当前只在 Codex 内置 Chromium 浏览器和模拟视口验证 | 在目标设备执行相同主流程并记录截图/控制台 | 浏览器/设备外部门禁 | 目标浏览器主流程通过、无横向溢出、收藏与备注可恢复 |
-| DUST2-001 | Dust II 正式瞄点内容 | PARTIAL_DEMO | 官方雷达、切换、点击和演示目录已完成；正式授权瞄点素材未提供 | 提供 Dust II 正式三帧素材、出生锚点证据和开局路线 | DUST2_DATA | 正式内容替换全部 demo 条目，并通过内容验收 |
+| QA-001 | file:// 直接打开验证 | COMPLETE_CHROMIUM | Safari / Edge 人工双击仍未跑 | 用户可在目标浏览器双击 HTML 做人工复核 | cs2-lineups/index.html | Chrome/Edge/Safari 至少一个浏览器直接打开无控制台错误。本轮 Chromium `file:///workspace/cs2-lineups/index.html` 已加载 7 张地图卡并进入 `#/maps` |
+| QA-002 | Safari、Edge 和真实手机验证 | NOT_RUN | 当前环境只能做 Chromium 预览与模拟视口 | 在目标设备执行相同主流程并记录截图/控制台 | 浏览器/设备外部门禁 | 目标浏览器主流程通过、无横向溢出、收藏与备注可恢复 |
+| DUST2-001 | Dust II 正式瞄点内容 | PARTIAL_DEMO | 官方雷达、导航栈和演示目录已完成；正式授权瞄点素材未提供 | 提供 Dust II 正式三帧素材、出生锚点证据和开局路线 | DUST2_DATA | 正式内容替换全部 demo 条目，并通过内容验收 |
 
 ## 验证记录
 
 | 命令或场景 | 结果 | 是否通过 | 证据或错误摘要 |
 |---|---|---|---|
-| 内联脚本语法编译 | Inline script syntax passed. | 通过 | 使用 Node 读取 script 并由 new Function 编译 |
-| rg 禁止 API 检查 | 无匹配，退出码 1 | 通过 | 未发现 fetch、XHR、WebSocket、屏幕/媒体采集或 chrome.webview |
-| 外部资源扫描 | 只命中 SVG/XML 命名空间常量 | 通过 | 两个 w3.org 字符串仅是 DOM 命名空间，不产生网络请求 |
-| node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs | 91/91 | 通过 | 现有测试全部通过 |
-| node scripts/check-web.mjs | Web shell source checks passed. | 通过 | 现有 OPT / LAB 未被修改 |
-| git diff --check | 无输出 | 通过 | 未发现空白错误 |
-| 桌面浏览器初始渲染 | 页面完整、无横向溢出 | 通过 | 本地 http://127.0.0.1:4173/modules/cs2-lineups/
-| 地图点击 → 邻区结果 | 中路点击返回 2 个起投站 | 通过 | 地图和侧栏同步显示 |
-| 详情、三帧、收藏、备注 | 备注关闭后重新打开仍存在 | 通过 | 本机存储路径已验证 |
-| T 开局路线 | T-01 → 中路控制 → 4 步手动路线 | 通过 | 瞄点详情与移动步骤均可推进 |
-| CT 开局路线 | CT-05 → B 防守方案 | 通过 | 双阵营目标切换正确 |
-| 新回合 | 清除出生点，三个目标重新禁用 | 通过 | 地图/阵营之外的回合状态被清理 |
-| 360×800 | 无横向溢出，地图与底部内容可滚动 | 通过 | Chromium 模拟视口 |
-| 844×390 | 地图与结果左右并排，无横向溢出 | 通过 | Chromium 模拟视口 |
-| 浏览器控制台 | [] | 通过 | 无 warning/error |
-| Mirage 官方雷达 | 内嵌显示、直接点击、结果与雷达同步 | 通过 | 桌面 Chromium 实测 |
-| Dust II 地图切换 | 切换后位置清空，雷达与目录同时变化 | 通过 | 地图选择器实测 |
-| Dust II 直接点击 | 中路点击返回 1 个对应起投站 | 通过 | 未串入 Mirage 数据 |
-| Dust II 开局路线 | T-05 → A 进攻方案 | 通过 | 出生点、目标和路线均使用 Dust II 数据 |
-| 官方雷达移动端 | 360×800 无横向溢出 | 通过 | Dust II 雷达与地图选择器均可见 |
-| file:// 浏览器自动化 | 被浏览器安全策略拒绝 | 未运行 | 未尝试绕过安全限制 |
+| `node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs cs2-lineups/tests/*.test.mjs` | 100 pass / 0 fail | 通过 | 含 9 条 lineups：空 hash、7 图可用性、hash 往返、非法回退、Mirage 中路分组、Dust II 目录隔离、v1→v2 迁移、开局父路由、缺失媒体不造假图 |
+| `node scripts/check-web.mjs` | Web shell source checks passed | 通过 | 断言 nav-header / screenHost、canonical hash、`cs2-lineups-map.v2`、manifest 0.2.0、以及旧 `detailDialog` / `mapSelect` / `filterRow` / `<dialog` / `side-panel` / `searchInput` 已移除 |
+| `git diff --check` | 无空白错误 | 通过 | 在含本交接文档的干净工作树上执行 |
+| 五层核心路径（Chromium 1440×900，预览 `http://127.0.0.1:4173/modules/cs2-lineups/`） | L0 `#/maps` → L1 `#/side/mirage` → L2 `#/radar/mirage/T/nearby` → 中路点击 `#/nearby/mirage/T/575/484` → L4 `#/lineup/mirage/demo-t-connector-smoke` 默认瞄点图 | 通过 | 7 卡；Cache 不可进；附近按烟 1 / 闪 1 分组且无 `.side-panel` / `dialog`；详情显示「素材未提供」。截图：`nav_l0_map_select.png` … `nav_l4_detail.png` |
+| 无效雷达点击 | 留在 `#/radar/mirage/T/nearby`，toast「请点击地图有效区域」 | 通过 | puppeteer 点雷达左上透明边界 |
+| 键盘切图不新增历史 | 右键 result、左键 stance，hash 仍为同一 lineup | 通过 | ArrowRight / ArrowLeft |
+| 浏览器返回顺序 | 详情 → 附近 → 雷达 → 阵营 → `#/maps` | 通过 | `page.goBack()` 四次 |
+| 开局路线支线 | 5 个出生圆点；spawn → objective → plan；step/1 push；complete replace 到 step/2；再返回到 plan | 通过 | `#/radar/mirage/T/opening` 截图 `nav_l2_opening_spawns.png` |
+| 非法深链 | `#/lineup/mirage/does-not-exist` 新页加载后落到 `#/radar/mirage/T/nearby` | 通过 | 新 page，不依赖 hashchange |
+| Dust II | `#/radar/dust2/CT/nearby` | 通过 | 地图选择 → CT |
+| 独立预览 | `/modules/cs2-lineups/` 空 hash 初始化为 `#/maps` | 通过 | 预览服务器 200 |
+| OPT / LAB iframe | 壳层 `data-open-module="cs2-lineups"` 打开 iframe，冷启动 `#/maps` | 通过 | `nav_opt_lab_iframe.png`；壳层 favicon 404 已忽略 |
+| file:// | `file:///workspace/cs2-lineups/index.html` 加载 7 卡、`#/maps`、无 pageerror | 通过 | Chromium automation，`nav_file_protocol.png`。不是 Safari/Edge 人工双击 |
+| 360×800 / 844×390 / 1024×768 / 1440×900 | 无横向溢出、无工作台、可见按钮 ≥44px | 通过 | 雷达屏实测；360 截图 `nav_viewport_360x800.png` |
+| Chromium console | lineups 模块无 pageerror；唯一 404 为 OPT / LAB favicon | 通过 | 过滤 favicon 后错误数组为空 |
+
+本轮证据只证明导航栈、hash、入口和视口。演示瞄点、出生圆点和开局步骤仍是交互原型，**不能**当作实战投掷验证。
+
+先前工作台式布局的浏览器记录不能当作本轮导航改版完成证据。
 
 ## 素材与外部输入
 
@@ -74,7 +74,7 @@
 - Mirage 和 Dust II 官方游戏雷达图已从公开的游戏资源镜像取得、压缩为 WebP 并内嵌。
 - 雷达资源镜像说明其内容自动提取自 Valve 官方游戏 depot；资产权利归 Valve Corporation。
 - 无正式 Mirage / Dust II 瞄点媒体或结构化目录。
-- 用户在对话中确认已获得内容授权，但授权证明和媒体文件不在当前工作区。
+- Cache / Inferno / Nuke / Ancient / Anubis 仅有离线目录卡示意缩略图，不是游戏内雷达或实战素材。
 
 ### 缺少
 
@@ -87,27 +87,31 @@
 
 ### 不得伪造的内容
 
-- 不得把当前 SVG 示意画面称为游戏截图。
+- 不得把当前 SVG 示意画面或目录卡称为游戏截图。
 - 不得把 demo 条目改为“已验证”。
 - 不得凭距离自动猜测出生点专属瞄点。
 - 不得把零散瞄点临时拼成正式开局路线。
-- 不得声称 Safari、Edge、真实手机或 file:// 已通过。
+- 不得声称 Safari、Edge 或真实手机已通过。
+- 不得把导航通过、浏览器通过或演示数据写成实战瞄点验证。
 
 ## 已知问题与风险
 
 1. 当前交付是完整交互原型，不是可依赖的实战道具库。
 2. 当前区域多边形、出生锚点和投掷物标点仍是交互演示，需要针对官方雷达逐项校准后才能成为正式内容。
-3. 单文件嵌入 24–30 条三帧高清媒体会明显增加 HTML 体积；正式嵌入前应先压缩为 WebP，并报告最终文件大小。
-4. file:// 下各浏览器的本机存储策略可能不同，需要至少一个目标浏览器人工验证。
-5. 地图、出生池或投掷行为变化后，正式内容必须转为 needs-review，不能继续进入默认推荐。
+3. 详情三帧现在明确显示“素材未提供”，不再生成假游戏截图。
+4. 单文件嵌入 24–30 条三帧高清媒体会明显增加 HTML 体积；正式嵌入前应先压缩为 WebP，并报告最终文件大小。
+5. file:// 下各浏览器的本机存储策略可能不同。本轮只证明 Chromium 能加载页面；Safari/Edge 仍需人工。
+6. 地图、出生池或投掷行为变化后，正式内容必须转为 needs-review，不能继续进入默认推荐。
+7. 应用只监听 `popstate`，不监听 `hashchange`。同页改 `location.hash` 不会重新启动；刷新或新文档加载才会解析深链。
+8. Mirage 区域多边形有重叠：规范示例坐标 `512,386` 命中 `window` 而不是 `mid`。中路验收点使用 `575,485`（附近 hash 四舍五入为 `575/484`）。
 
 ## 接手步骤
 
 1. 首先读取本交接文档，禁止只依赖聊天记录。
 2. 运行第一条命令：git status --short --branch
-3. 运行基线：node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs && node scripts/check-web.mjs
+3. 运行基线：node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs cs2-lineups/tests/*.test.mjs && node scripts/check-web.mjs
 4. 打开的第一个文件：cs2-lineups/index.html
-5. 优先处理任务：CONTENT-001
-6. 找到 const MAP_DATA，保留数据契约与纯函数，不重写已经通过浏览器验证的交互核心。
+5. 优先处理任务：CONTENT-001（BLOCKED_EXTERNAL）。不要把 demo 改成已验证。
+6. 导航函数以 `CS2LineupsCore` / `CS2LineupsApp` 为准；事件处理器不得直接改 hash 字段。
 7. 每替换一批内容就运行内联脚本语法、禁止 API、现有测试、浏览器主流程和控制台检查。
 8. 结束前更新本交接文档的时间、HEAD、工作区状态、验证结果和所有未完成任务。

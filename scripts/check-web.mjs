@@ -72,6 +72,48 @@ const lineupsManifest = JSON.parse(readFileSync(path.join(workspace, "cs2-lineup
 if (lineupsManifest.id !== "cs2-lineups" || lineupsManifest.kind !== "Reference" || lineupsManifest.entryPoint !== "index.html") {
   throw new Error("The lineups module manifest does not target its canonical product entry point.");
 }
+if (lineupsManifest.version !== "0.2.0") {
+  throw new Error("The lineups module manifest must be version 0.2.0.");
+}
+if (!Array.isArray(lineupsManifest.permissions) || lineupsManifest.permissions.some((item) => item.level !== "None")) {
+  throw new Error("The lineups module must keep permissions at None.");
+}
+
+const lineupsHtml = readFileSync(path.join(workspace, "cs2-lineups/index.html"), "utf8");
+for (const token of [
+  'class="nav-header"',
+  'id="backButton"',
+  'id="screenTitle"',
+  'id="screenActions"',
+  'id="screenHost"',
+  'class="demo-boundary"',
+  "#/maps",
+  "#/radar/mirage/T/nearby",
+  "parseRoute",
+  "serializeRoute",
+  "normalizeRoute",
+  "parentRoute",
+  "function navigate",
+  "function goBack",
+  "function chooseMap",
+  "function renderRoute",
+  "cs2-lineups-map.v2",
+  'id: "cache"',
+  'id: "anubis"',
+  'status: "coming-soon"',
+  "opening-objective",
+  "opening-plan",
+  "opening-step"
+]) {
+  if (!lineupsHtml.includes(token)) {
+    throw new Error(`Lineups navigation rewrite is missing: ${token}`);
+  }
+}
+for (const token of ['id="detailDialog"', 'id="mapSelect"', 'id="filterRow"', 'id="mainWorkspace"', "<dialog", 'class="side-panel"', 'class="frame-tabs"', 'id="searchInput"']) {
+  if (lineupsHtml.includes(token)) {
+    throw new Error(`Lineups must remove old workbench structure: ${token}`);
+  }
+}
 
 const appProject = readFileSync(path.join(workspace, "opt-lab/src/OptLab.App/OptLab.App.csproj"), "utf8");
 if (appProject.includes("cs2-sensitivity-lab.html") || appProject.includes("cs2-lineups-map.html")) {

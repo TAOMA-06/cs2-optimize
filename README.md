@@ -16,7 +16,7 @@
 
 ```bash
 node scripts/serve-preview.mjs
-node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs
+node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs cs2-lineups/tests/*.test.mjs
 node scripts/check-web.mjs
 ```
 
