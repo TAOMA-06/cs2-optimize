@@ -65,6 +65,7 @@
       left: 12px;
       top: -60px;
       z-index: 1000;
+      min-height: 44px;
       padding: 10px 14px;
       border-radius: 8px;
       background: var(--paper);
@@ -2016,6 +2017,8 @@
         showingFar = false;
         locating = false;
         window.clearTimeout(locatingTimer);
+        window.clearTimeout(toastTimer);
+        elements.toast.classList.remove("is-visible");
         route = Core.normalizeRoute(nextRoute);
         renderHeader(route);
         elements.screenHost.replaceChildren();

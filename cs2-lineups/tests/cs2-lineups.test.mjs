@@ -31,14 +31,18 @@ const Core = context.CS2LineupsCore;
 const MAP_DIRECTORY = context.MAP_DIRECTORY;
 const MAP_CATALOG = context.MAP_CATALOG;
 
+function plain(value) {
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
 test("empty hash initializes as map selection", () => {
-  assert.deepEqual(Core.normalizeRoute(Core.parseRoute("")), { version: 1, screen: "maps" });
-  assert.deepEqual(Core.normalizeRoute(Core.parseRoute("#")), { version: 1, screen: "maps" });
+  assert.deepEqual(plain(Core.normalizeRoute(Core.parseRoute(""))), { version: 1, screen: "maps" });
+  assert.deepEqual(plain(Core.normalizeRoute(Core.parseRoute("#"))), { version: 1, screen: "maps" });
   assert.equal(Core.serializeRoute(Core.normalizeRoute(Core.parseRoute("#/maps"))), "#/maps");
 });
 
 test("seven Active Duty maps have correct availability", () => {
-  assert.deepEqual(MAP_DIRECTORY.map((entry) => entry.id), ["cache", "mirage", "dust2", "inferno", "nuke", "ancient", "anubis"]);
+  assert.deepEqual(plain(MAP_DIRECTORY.map((entry) => entry.id)), ["cache", "mirage", "dust2", "inferno", "nuke", "ancient", "anubis"]);
   assert.equal(MAP_DIRECTORY.find((entry) => entry.id === "mirage").status, "available");
   assert.equal(MAP_DIRECTORY.find((entry) => entry.id === "dust2").status, "available");
   assert.equal(MAP_DIRECTORY.find((entry) => entry.id === "mirage").lineupCount, MAP_CATALOG.mirage.lineups.length);
@@ -48,7 +52,7 @@ test("seven Active Duty maps have correct availability", () => {
     assert.equal(entry.status, "coming-soon");
     assert.equal(entry.lineupCount, 0);
     assert.equal(Core.isAvailableMap(id), false);
-    assert.deepEqual(Core.normalizeRoute({ version: 1, screen: "side", mapId: id }), { version: 1, screen: "maps" });
+    assert.deepEqual(plain(Core.normalizeRoute({ version: 1, screen: "side", mapId: id })), { version: 1, screen: "maps" });
   }
 });
 
@@ -107,7 +111,7 @@ test("invalid hashes, coordinates, lineups and retired content fall back safely"
 
 test("Mirage mid click returns grenade-grouped nearby results without mixing far lineups", () => {
   const mapData = MAP_CATALOG.mirage;
-  const point = { x: 512, y: 386, layerId: "main" };
+  const point = { x: 575, y: 485, layerId: "main" };
   const zone = Core.findZoneForPoint(point, mapData.zones);
   assert.equal(zone.id, "mid");
   const tResult = Core.queryNearbyLineups({ mapData, side: "T", point });
