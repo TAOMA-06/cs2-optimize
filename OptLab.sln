@@ -2,11 +2,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Core", "src\OptLab.Core\OptLab.Core.csproj", "{84EFDC39-984F-47BC-A90F-B950D8402053}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Core", "opt-lab\src\OptLab.Core\OptLab.Core.csproj", "{84EFDC39-984F-47BC-A90F-B950D8402053}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Broker", "src\OptLab.Broker\OptLab.Broker.csproj", "{85E35385-641A-4B40-81AE-9A8D8243D1FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.Broker", "opt-lab\src\OptLab.Broker\OptLab.Broker.csproj", "{85E35385-641A-4B40-81AE-9A8D8243D1FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.App", "src\OptLab.App\OptLab.App.csproj", "{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptLab.App", "opt-lab\src\OptLab.App\OptLab.App.csproj", "{3D1DD1BC-D397-4A0E-B252-C2505ACDA663}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

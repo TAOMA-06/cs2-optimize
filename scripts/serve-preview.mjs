@@ -5,8 +5,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const webDirectory = path.join(workspace, "web");
+const shellDirectory = path.join(workspace, "opt-lab", "web");
+const moduleRoots = {
+  "cs2-sensitivity": path.join(workspace, "cs2-sensitivity"),
+  "cs2-lineups": path.join(workspace, "cs2-lineups")
+};
 const port = Number(process.env.OPT_LAB_PORT ?? 4173);
+const blockedModuleParts = new Set(["tests", "docs", "readme.md"]);
 
 const contentTypes = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -17,16 +22,34 @@ const contentTypes = new Map([
   [".svg", "image/svg+xml"]
 ]);
 
+function isBlockedModuleRelative(relativePath) {
+  return relativePath.split(/[\\/]/).some((part) => blockedModuleParts.has(part.toLowerCase()));
+}
+
+function resolveUnderRoot(root, relativePath) {
+  const asset = path.resolve(root, relativePath);
+  return asset.startsWith(`${root}${path.sep}`) ? asset : null;
+}
+
 function resolveAsset(urlPathname) {
   const pathname = decodeURIComponent(urlPathname);
   if (pathname === "/" || pathname === "/index.html") {
-    return path.join(webDirectory, "index.html");
+    return path.join(shellDirectory, "index.html");
   }
   if (pathname.includes("..") || pathname.startsWith("//")) {
     return null;
   }
-  const asset = path.resolve(webDirectory, pathname.replace(/^\/+/, ""));
-  return asset.startsWith(`${webDirectory}${path.sep}`) ? asset : null;
+
+  const moduleMatch = pathname.match(/^\/modules\/(cs2-sensitivity|cs2-lineups)(?:\/(.*))?$/);
+  if (moduleMatch) {
+    const relativePath = moduleMatch[2] && moduleMatch[2].length ? moduleMatch[2] : "index.html";
+    if (isBlockedModuleRelative(relativePath)) {
+      return null;
+    }
+    return resolveUnderRoot(moduleRoots[moduleMatch[1]], relativePath);
+  }
+
+  return resolveUnderRoot(shellDirectory, pathname.replace(/^\/+/, ""));
 }
 
 const server = http.createServer(async (request, response) => {

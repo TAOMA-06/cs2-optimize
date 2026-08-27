@@ -1,6 +1,11 @@
 # 模块与 Broker 契约
 
-正式内置模块统一位于 `web/modules/<module-id>/`。CS2 灵敏度模块的规范入口是 `web/modules/cs2-sensitivity/index.html`；根目录同名文件仅用于旧地址兼容，不得作为宿主、测试或打包来源。
+独立工具位于仓库同级产品目录。运行时由载体映射为 `/modules/<module-id>/`。
+
+- CS2 灵敏度：源码 `cs2-sensitivity/index.html`，运行时 `/modules/cs2-sensitivity/index.html`
+- CS2 投掷物瞄点：源码 `cs2-lineups/index.html`，运行时 `/modules/cs2-lineups/index.html`
+
+根目录同名文件仅用于旧地址兼容，不得作为宿主、测试或打包来源。
 
 ## 模块边界
 
@@ -22,7 +27,7 @@
 
 普通浏览器没有可信宿主握手时，所有原生能力必须按关闭处理。浏览器预览可以运行离线模块、保存网页本地进度和复制操作路径，但不得显示为 Windows 已连接。
 
-`module.result` 的 CS2 载荷必须包含 `moduleId=cs2-sensitivity`、`sensitivity`、`command` 与完成时间。宿主再次检查 `0.100–8.000` 范围和 `sensitivity ` 命令前缀，才写入本机历史。
+`module.result` 目前只接受 CS2 校准载荷：必须包含 `moduleId=cs2-sensitivity`、`sensitivity`、`command` 与完成时间。宿主再次检查 `0.100–8.000` 范围和 `sensitivity ` 命令前缀，才写入本机历史。投掷物模块（`kind=Reference`）不发送 `module.result`。
 
 `system.open-settings` 只能提交宿主编译内置的 `pageId`；当前白名单仅包含高级显示、Game Mode、图形、电源、启动应用和 Windows Update。网页不能发送任意 URI。
 

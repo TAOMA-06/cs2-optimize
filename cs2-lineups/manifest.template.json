@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "cs2-lineups",
+  "name": "CS2 LINEUPS",
+  "version": "0.1.0",
+  "kind": "Reference",
+  "entryPoint": "index.html",
+  "minimumHostVersion": "0.1.0",
+  "permissions": [
+    {
+      "id": "local-lineup-notes",
+      "level": "None",
+      "rationale": "模块仅在本机保存用户主动写下的收藏与备注，不申请系统权限。"
+    }
+  ],
+  "workflows": [],
+  "contentHash": "__PACKAGE_HASH__",
+  "signature": {
+    "algorithm": "RSA-PSS-SHA256",
+    "keyId": "__PUBLISHER_KEY_ID__",
+    "value": "__DETACHED_SIGNATURE__"
+  }
+}

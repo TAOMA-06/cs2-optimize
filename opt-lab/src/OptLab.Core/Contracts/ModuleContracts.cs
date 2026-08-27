@@ -6,7 +6,8 @@ public enum ModuleKind
 {
     Calibration,
     Optimizer,
-    Diagnostics
+    Diagnostics,
+    Reference
 }
 
 public enum PermissionLevel

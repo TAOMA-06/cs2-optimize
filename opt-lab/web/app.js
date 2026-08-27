@@ -23,11 +23,38 @@ const VIEW_META = {
   overview: { kicker: "WORKSTATION / OVERVIEW", title: "本机状态" },
   optimizer: { kicker: "MATCH / READINESS PLAN", title: "开赛准备" },
   modules: { kicker: "MODULE LIBRARY / OFFICIAL", title: "优化方案" },
-  module: { kicker: "CALIBRATION / LOCAL MODULE", title: "CS2 灵敏度实验室" },
+  module: { kicker: "LOCAL MODULE / IFRAME", title: "离线模块" },
   diagnostics: { kicker: "DESKTOP HOST / READ-ONLY", title: "本机诊断" },
   recovery: { kicker: "TRANSACTION / RECOVERY", title: "恢复中心" },
   history: { kicker: "LOCAL / ACTIVITY LOG", title: "运行记录" },
   settings: { kicker: "LOCAL / CONTROL PLANE", title: "设置" }
+};
+
+const MODULE_CATALOG = {
+  "cs2-sensitivity": {
+    id: "cs2-sensitivity",
+    eyebrow: "MODULE / CS2-SENSITIVITY",
+    title: "CS2 SENS / LAB",
+    frameTitle: "CS2 SENS / LAB 校准模块",
+    loadingStatus: "正在加载离线校准模块…",
+    failureMessage: "离线校准模块加载失败。原始网页仍可独立打开，请重试或返回方案库。",
+    timeoutMessage: "模块加载时间超过预期。可以重试；这不会清除灵敏度实验室自己的本机进度。",
+    toastFailure: "校准模块未能正常装载，可在模块页重试。",
+    entry: "./modules/cs2-sensitivity/index.html",
+    observesCalibration: true
+  },
+  "cs2-lineups": {
+    id: "cs2-lineups",
+    eyebrow: "MODULE / CS2-LINEUPS",
+    title: "CS2 投掷物瞄点",
+    frameTitle: "CS2 投掷物瞄点模块",
+    loadingStatus: "正在加载投掷物瞄点模块…",
+    failureMessage: "投掷物瞄点模块加载失败。原始网页仍可独立打开，请重试或返回方案库。",
+    timeoutMessage: "模块加载时间超过预期。可以重试；这不会清除瞄点工具自己的本机进度。",
+    toastFailure: "瞄点模块未能正常装载，可在模块页重试。",
+    entry: "./modules/cs2-lineups/index.html",
+    observesCalibration: false
+  }
 };
 
 const state = loadState();
@@ -65,6 +92,8 @@ const elements = {
   historyList: document.getElementById("historyList"),
   recoveryList: document.getElementById("recoveryList"),
   recoveryStatus: document.getElementById("recoveryStatus"),
+  moduleEyebrow: document.getElementById("moduleEyebrow"),
+  moduleHeading: document.getElementById("moduleHeading"),
   moduleFrame: document.getElementById("moduleFrame"),
   moduleFrameLoading: document.getElementById("moduleFrameLoading"),
   moduleFrameStatus: document.getElementById("moduleFrameStatus"),
@@ -89,7 +118,7 @@ const elements = {
 };
 
 let toastTimeout;
-let moduleFrameInitialized = false;
+let loadedModuleId = null;
 let observedResultSignature = null;
 let moduleResultPoller;
 let moduleLoadTimeout;
@@ -104,8 +133,8 @@ wireSettings();
 wireModuleFrame();
 wireHostBridge();
 render();
-if (state.activeView === "module" && state.activeModuleId === "cs2-sensitivity") {
-  openModule("cs2-sensitivity");
+if (state.activeView === "module" && MODULE_CATALOG[state.activeModuleId]) {
+  openModule(state.activeModuleId);
 } else {
   selectView(state.activeView in VIEW_META ? state.activeView : "overview", { persist: false });
 }
@@ -236,38 +265,59 @@ function wireModuleFrame() {
     elements.moduleFrameLoading.classList.remove("is-error");
     elements.moduleFrameLoading.classList.add("is-hidden");
     elements.retryModuleButton.hidden = true;
-    attachCalibrationObserver();
+    const module = MODULE_CATALOG[state.activeModuleId];
+    if (module?.observesCalibration) {
+      attachCalibrationObserver();
+      return;
+    }
+    window.clearInterval(moduleResultPoller);
   });
 
   elements.moduleFrame.addEventListener("error", () => {
-    showModuleFrameFailure("离线校准模块加载失败。原始网页仍可独立打开，请重试或返回方案库。");
+    const module = MODULE_CATALOG[state.activeModuleId];
+    showModuleFrameFailure(module?.failureMessage ?? "模块加载失败。原始网页仍可独立打开，请重试或返回方案库。");
   });
 
   elements.retryModuleButton.addEventListener("click", () => loadModuleFrame({ force: true }));
 }
 
+function applyModuleChrome(module) {
+  elements.moduleEyebrow.textContent = module.eyebrow;
+  elements.moduleHeading.textContent = module.title;
+  elements.moduleFrame.title = module.frameTitle;
+}
+
 function loadModuleFrame({ force = false } = {}) {
+  const module = MODULE_CATALOG[state.activeModuleId];
+  if (!module) {
+    return;
+  }
+
   window.clearTimeout(moduleLoadTimeout);
+  window.clearInterval(moduleResultPoller);
+  observedResultSignature = null;
   elements.moduleFrame.classList.remove("is-loaded");
   elements.moduleFrameLoading.classList.remove("is-hidden", "is-error");
-  elements.moduleFrameStatus.textContent = "正在加载离线校准模块…";
+  elements.moduleFrameStatus.textContent = module.loadingStatus;
   elements.retryModuleButton.hidden = true;
+  applyModuleChrome(module);
   const retrySuffix = force ? `?reload=${Date.now()}` : "";
-  elements.moduleFrame.src = `./modules/cs2-sensitivity/index.html${retrySuffix}`;
-  moduleFrameInitialized = true;
+  elements.moduleFrame.src = `${module.entry}${retrySuffix}`;
+  loadedModuleId = module.id;
   moduleLoadTimeout = window.setTimeout(() => {
-    showModuleFrameFailure("模块加载时间超过预期。可以重试；这不会清除灵敏度实验室自己的本机进度。");
+    showModuleFrameFailure(module.timeoutMessage);
   }, 7000);
 }
 
 function showModuleFrameFailure(message) {
+  const module = MODULE_CATALOG[state.activeModuleId];
   window.clearTimeout(moduleLoadTimeout);
   elements.moduleFrame.classList.remove("is-loaded");
   elements.moduleFrameLoading.classList.remove("is-hidden");
   elements.moduleFrameLoading.classList.add("is-error");
   elements.moduleFrameStatus.textContent = message;
   elements.retryModuleButton.hidden = false;
-  showToast("校准模块未能正常装载，可在模块页重试。");
+  showToast(module?.toastFailure ?? "模块未能正常装载，可在模块页重试。");
 }
 
 function wireHostBridge() {
@@ -344,13 +394,16 @@ function selectView(view, { persist: shouldPersist = true } = {}) {
 }
 
 function openModule(moduleId) {
-  if (moduleId !== "cs2-sensitivity") {
+  const module = MODULE_CATALOG[moduleId];
+  if (!module) {
     showToast("该模块尚未发布可执行规则。");
     return;
   }
 
+  const shouldReload = loadedModuleId !== moduleId;
   state.activeModuleId = moduleId;
-  if (!moduleFrameInitialized) {
+  applyModuleChrome(module);
+  if (shouldReload) {
     loadModuleFrame();
   }
   selectView("module");
@@ -836,7 +889,7 @@ function announceHostReady() {
   postToHost("shell.ready", {
     protocolVersion: 1,
     mode: window.chrome?.webview ? "webview2" : "preview",
-    moduleCount: 3
+    moduleCount: 4
   });
 }
 

@@ -1,0 +1,2531 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f1415">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>CS2 道具地图 — 随身瞄点笔记</title>
+  <style>
+    :root {
+      --ink: #0f1415;
+      --ink-2: #141b1d;
+      --panel: #192123;
+      --panel-2: #202a2c;
+      --panel-3: #263234;
+      --line: #354345;
+      --line-soft: rgba(202, 214, 205, 0.13);
+      --paper: #e9e1cd;
+      --paper-dim: #b9b49f;
+      --muted: #899597;
+      --signal: #e97945;
+      --signal-soft: rgba(233, 121, 69, 0.16);
+      --aqua: #75bfc0;
+      --aqua-soft: rgba(117, 191, 192, 0.15);
+      --moss: #91a078;
+      --danger: #d75f59;
+      --smoke: #9eb0b1;
+      --flash: #e4c76b;
+      --fire: #e97945;
+      --he: #91a078;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      --display: "Arial Narrow", "Avenir Next Condensed", "Segoe UI", sans-serif;
+      --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--ink); scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 78% 12%, rgba(117, 191, 192, 0.07), transparent 25rem),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        var(--ink);
+      background-size: auto, 22px 22px, auto;
+      color: var(--paper);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid var(--aqua);
+      outline-offset: 3px;
+    }
+    .skip-link {
+      position: fixed;
+      left: 12px;
+      top: -60px;
+      z-index: 1000;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--paper);
+      color: var(--ink);
+      transition: top 150ms ease;
+    }
+    .skip-link:focus { top: 12px; }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px clamp(16px, 3vw, 36px);
+      border-bottom: 1px solid var(--line-soft);
+      background: rgba(15, 20, 21, 0.92);
+      backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--aqua);
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+    .brand-mark::before, .brand-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--aqua);
+    }
+    .brand-mark::before { width: 1px; height: 42px; left: 16px; top: -5px; }
+    .brand-mark::after { width: 42px; height: 1px; left: -5px; top: 16px; }
+    .brand-mark i {
+      position: absolute;
+      inset: 9px;
+      border: 2px solid var(--signal);
+      border-radius: 50%;
+      background: var(--ink);
+    }
+    .brand-copy strong {
+      display: block;
+      font-family: var(--display);
+      font-size: 17px;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .brand-copy span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font: 10px/1 var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .status-pill, .utility-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--paper-dim);
+      font-size: 12px;
+    }
+    .status-pill { font-family: var(--mono); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 4px var(--signal-soft); }
+    .utility-button { cursor: pointer; }
+    .utility-button:hover { border-color: var(--aqua); color: var(--paper); }
+    .demo-banner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 16px;
+      border-bottom: 1px solid rgba(233, 121, 69, 0.3);
+      background: rgba(233, 121, 69, 0.09);
+      color: #f0b18f;
+      font-size: 12px;
+      text-align: center;
+    }
+    .workspace {
+      width: 100%;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: clamp(14px, 2.4vw, 30px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.66fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .map-column, .side-panel {
+      min-width: 0;
+      border: 1px solid var(--line-soft);
+      border-radius: 18px;
+      background: rgba(20, 27, 29, 0.84);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .control-deck {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--panel);
+    }
+    .mode-switch, .side-switch, .filter-row {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .map-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--ink-2);
+    }
+    .map-picker span {
+      color: var(--muted);
+      font: 10px var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .map-select {
+      min-width: 130px;
+      border: 0;
+      background: transparent;
+      color: var(--paper);
+      cursor: pointer;
+      outline: 0;
+      font-size: 12px;
+    }
+    .mode-button, .side-button, .filter-button, .objective-button {
+      min-height: 38px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 120ms ease, background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    .mode-button:hover, .side-button:hover, .filter-button:hover, .objective-button:hover { color: var(--paper); background: var(--panel-2); }
+    .mode-button.is-active, .side-button.is-active {
+      color: var(--paper);
+      border-color: var(--line);
+      background: var(--panel-3);
+    }
+    .mode-button.is-active { box-shadow: inset 0 -2px 0 var(--signal); }
+    .side-button.is-active { border-color: var(--aqua); color: var(--aqua); }
+    .filter-row { justify-content: flex-end; }
+    .filter-button {
+      position: relative;
+      min-width: 40px;
+      min-height: 34px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+    .filter-button.is-active { background: var(--paper); color: var(--ink); }
+    .filter-button[data-filter="smoke"]::before,
+    .filter-button[data-filter="flash"]::before,
+    .filter-button[data-filter="molotov"]::before,
+    .filter-button[data-filter="he"]::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      display: inline-block;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .map-stage {
+      position: relative;
+      min-height: min(70vh, 860px);
+      background:
+        linear-gradient(rgba(117, 191, 192, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(117, 191, 192, 0.035) 1px, transparent 1px),
+        #111718;
+      background-size: 40px 40px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .map-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.48);
+    }
+    #radar {
+      display: block;
+      width: 100%;
+      height: min(70vh, 860px);
+      min-height: 560px;
+      cursor: crosshair;
+      touch-action: manipulation;
+    }
+    #radarImage {
+      pointer-events: none;
+      opacity: 0.92;
+    }
+    .zone-shape {
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 3;
+      transition: fill 150ms ease, stroke 150ms ease;
+    }
+    .zone-shape.is-current { fill: rgba(233, 121, 69, 0.16); stroke: var(--signal); }
+    .zone-shape.is-neighbor { fill: rgba(117, 191, 192, 0.09); stroke: rgba(117, 191, 192, 0.48); }
+    .zone-label {
+      font-family: var(--mono);
+      font-size: 15px;
+      fill: #879496;
+      text-anchor: middle;
+      pointer-events: none;
+      letter-spacing: 0.04em;
+      display: none;
+    }
+    .compass-line { stroke: rgba(117, 191, 192, 0.18); stroke-width: 2; stroke-dasharray: 8 10; }
+    .station-marker, .spawn-marker { cursor: pointer; }
+    .station-marker .marker-halo { fill: rgba(117, 191, 192, 0.16); stroke: rgba(117, 191, 192, 0.56); stroke-width: 2; }
+    .station-marker .marker-core { fill: var(--aqua); }
+    .station-marker.is-far .marker-halo { fill: rgba(137, 149, 151, 0.1); stroke: rgba(137, 149, 151, 0.5); stroke-dasharray: 4 4; }
+    .station-marker text, .spawn-marker text {
+      fill: var(--ink);
+      font: 700 13px var(--mono);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .station-marker:hover .marker-halo, .station-marker:focus .marker-halo { stroke: var(--paper); stroke-width: 4; }
+    .spawn-marker .marker-halo { fill: rgba(233, 121, 69, 0.17); stroke: var(--signal); stroke-width: 2; }
+    .spawn-marker .marker-core { fill: var(--signal); }
+    .spawn-marker.is-selected .marker-halo { stroke: var(--paper); stroke-width: 5; }
+    .route-line { fill: none; stroke: var(--signal); stroke-width: 6; stroke-dasharray: 12 10; opacity: 0.85; marker-end: url(#arrowHead); }
+    .target-marker { fill: var(--signal); stroke: var(--paper); stroke-width: 3; }
+    .current-ring { fill: none; stroke: var(--signal); stroke-width: 4; transform-origin: center; animation: locatePulse 1.8s ease-out infinite; }
+    .current-dot { fill: var(--signal); stroke: var(--paper); stroke-width: 3; }
+    @keyframes locatePulse { from { opacity: 0.9; transform: scale(0.55); } to { opacity: 0; transform: scale(1.35); } }
+    .map-overlay-head {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      z-index: 4;
+      max-width: min(430px, calc(100% - 32px));
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(15, 20, 21, 0.82);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+    }
+    .map-overlay-head strong { display: block; font-size: 13px; }
+    .map-overlay-head span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .map-legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 4;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: calc(100% - 32px);
+    }
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(15, 20, 21, 0.84);
+      color: var(--paper-dim);
+      font-size: 11px;
+    }
+    .legend-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--aqua); }
+    .legend-chip.current i { background: var(--signal); }
+    .legend-chip.far i { background: var(--muted); }
+    .side-panel {
+      position: sticky;
+      top: 82px;
+      max-height: calc(100vh - 102px);
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-head {
+      padding: 18px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--panel);
+    }
+    .eyebrow {
+      color: var(--aqua);
+      font: 11px/1.2 var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .panel-head h1 {
+      margin: 8px 0 5px;
+      font-family: var(--display);
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1;
+      font-weight: 680;
+      letter-spacing: -0.02em;
+    }
+    .panel-head p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .search-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 14px; }
+    .search-input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--ink-2);
+      color: var(--paper);
+      padding: 9px 12px;
+    }
+    .search-input::placeholder { color: #687476; }
+    .favorite-toggle {
+      min-width: 44px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--ink-2);
+      color: var(--paper-dim);
+      cursor: pointer;
+    }
+    .favorite-toggle.is-active { color: var(--flash); border-color: var(--flash); background: rgba(228, 199, 107, 0.08); }
+    .panel-body { min-height: 0; padding: 16px; overflow-y: auto; }
+    .location-readout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 11px 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .location-readout strong { display: block; font-size: 13px; }
+    .location-readout span { display: block; margin-top: 2px; color: var(--muted); font: 11px var(--mono); }
+    .result-count {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--aqua-soft);
+      color: var(--aqua);
+      font: 11px var(--mono);
+    }
+    .empty-state {
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      padding: 34px 20px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-state .locator {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+    }
+    .empty-state .locator::before, .empty-state .locator::after {
+      content: "";
+      position: absolute;
+      background: var(--line);
+    }
+    .empty-state .locator::before { width: 1px; height: 86px; top: -10px; left: 33px; }
+    .empty-state .locator::after { width: 86px; height: 1px; top: 33px; left: -10px; }
+    .empty-state strong { display: block; color: var(--paper); font-size: 15px; }
+    .empty-state p { margin: 7px 0 0; max-width: 260px; font-size: 12px; line-height: 1.55; }
+    .station-group {
+      margin-bottom: 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.025);
+      scroll-margin-top: 12px;
+    }
+    .station-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .station-head strong { font-size: 13px; }
+    .station-head span { color: var(--muted); font: 10px var(--mono); }
+    .station-tag { display: inline-flex; align-items: center; gap: 6px; }
+    .station-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--aqua); }
+    .station-group.is-far .station-tag::before { background: var(--muted); }
+    .lineup-list { padding: 6px; }
+    .lineup-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 8px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+    .lineup-row:hover { background: var(--panel-2); }
+    .nade-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font: 700 10px var(--mono);
+    }
+    .nade-icon.smoke { color: var(--smoke); }
+    .nade-icon.flash { color: var(--flash); }
+    .nade-icon.molotov { color: var(--fire); }
+    .nade-icon.he { color: var(--he); }
+    .lineup-main { min-width: 0; }
+    .lineup-main strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+    .lineup-main span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
+    .row-arrow { color: var(--muted); }
+    .opening-config { display: grid; gap: 16px; }
+    .config-section {
+      padding: 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.022);
+    }
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 11px;
+    }
+    .section-title strong { font-size: 13px; }
+    .section-title span { color: var(--muted); font: 10px var(--mono); }
+    .spawn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .spawn-card {
+      min-width: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--ink-2);
+      overflow: hidden;
+      text-align: left;
+      cursor: pointer;
+    }
+    .spawn-card:hover, .spawn-card.is-active { border-color: var(--signal); }
+    .spawn-card.is-active { box-shadow: inset 0 0 0 1px var(--signal); }
+    .spawn-view {
+      position: relative;
+      height: 72px;
+      background:
+        linear-gradient(165deg, transparent 48%, rgba(233, 225, 205, 0.1) 49%, rgba(233, 225, 205, 0.1) 52%, transparent 53%),
+        linear-gradient(15deg, #283334, #141a1b 65%);
+      overflow: hidden;
+    }
+    .spawn-view::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -22px;
+      width: 90px;
+      height: 70px;
+      border: 1px solid rgba(117, 191, 192, 0.25);
+      transform: translateX(-50%) perspective(80px) rotateX(55deg);
+    }
+    .spawn-cross {
+      position: absolute;
+      left: var(--spawn-x, 50%);
+      top: var(--spawn-y, 45%);
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+    }
+    .spawn-cross::before, .spawn-cross::after { content: ""; position: absolute; background: var(--signal); }
+    .spawn-cross::before { width: 14px; height: 1px; left: 0; top: 6px; }
+    .spawn-cross::after { width: 1px; height: 14px; left: 6px; top: 0; }
+    .spawn-copy { padding: 9px 10px; }
+    .spawn-copy strong { display: block; font: 12px var(--mono); }
+    .spawn-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .objective-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .objective-button {
+      min-width: 0;
+      padding: 9px 5px;
+      border-color: var(--line);
+      background: var(--ink-2);
+      font-size: 11px;
+    }
+    .objective-button.is-active { border-color: var(--aqua); color: var(--aqua); background: var(--aqua-soft); }
+    .plan-card {
+      border: 1px solid rgba(233, 121, 69, 0.35);
+      border-radius: 13px;
+      background: linear-gradient(145deg, rgba(233, 121, 69, 0.1), rgba(255,255,255,0.02));
+      overflow: hidden;
+    }
+    .plan-head { padding: 15px; border-bottom: 1px solid var(--line-soft); }
+    .plan-head .route-code { color: var(--signal); font: 10px var(--mono); letter-spacing: 0.1em; }
+    .plan-head h2 { margin: 6px 0 4px; font-family: var(--display); font-size: 23px; line-height: 1.1; }
+    .plan-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .loadout { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .loadout span { padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--ink-2); font: 10px var(--mono); }
+    .plan-steps { padding: 8px 15px 14px; }
+    .plan-step {
+      position: relative;
+      padding: 10px 0 10px 30px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .plan-step:last-child { border-bottom: 0; }
+    .plan-step::before {
+      content: attr(data-step);
+      position: absolute;
+      left: 0;
+      top: 11px;
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--paper-dim);
+      font: 9px var(--mono);
+    }
+    .plan-step strong { display: block; font-size: 12px; }
+    .plan-step span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .primary-button, .secondary-button {
+      min-height: 42px;
+      border-radius: 9px;
+      padding: 9px 14px;
+      cursor: pointer;
+    }
+    .primary-button { border: 1px solid var(--signal); background: var(--signal); color: #17110d; font-weight: 700; }
+    .primary-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .secondary-button { border: 1px solid var(--line); background: var(--panel-2); color: var(--paper); }
+    .plan-actions { display: flex; gap: 8px; padding: 0 15px 15px; }
+    .plan-actions button { flex: 1; }
+    .stepper {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--ink-2);
+    }
+    .stepper-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font: 10px var(--mono); }
+    .stepper h3 { margin: 13px 0 6px; font-family: var(--display); font-size: 24px; }
+    .stepper p { margin: 0 0 14px; color: var(--paper-dim); font-size: 12px; line-height: 1.55; }
+    .progress-track { height: 4px; margin: 10px 0 16px; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .progress-track i { display: block; height: 100%; width: 0; background: var(--signal); transition: width 180ms ease; }
+    .stepper-actions { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+    .panel-hidden { display: none !important; }
+    dialog {
+      width: min(920px, calc(100vw - 24px));
+      max-height: min(860px, calc(100vh - 24px));
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--paper);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.62);
+      overflow: hidden;
+    }
+    dialog::backdrop { background: rgba(4, 7, 8, 0.78); backdrop-filter: blur(8px); }
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .dialog-head .route-code { color: var(--aqua); font: 10px var(--mono); letter-spacing: 0.08em; }
+    .dialog-head h2 { margin: 6px 0 0; font-family: var(--display); font-size: clamp(24px, 4vw, 36px); line-height: 1; }
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--ink-2);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .dialog-body { max-height: calc(100vh - 130px); overflow-y: auto; padding: 20px; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+    .meta-chip { padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--ink-2); color: var(--paper-dim); font: 10px var(--mono); }
+    .meta-chip.demo { border-color: rgba(233, 121, 69, 0.5); color: #f0b18f; }
+    .frame-tabs { display: flex; gap: 5px; margin-bottom: 9px; }
+    .frame-tab {
+      min-height: 36px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--ink-2);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .frame-tab.is-active { border-color: var(--aqua); color: var(--aqua); background: var(--aqua-soft); }
+    .frame-art {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #101617;
+      overflow: hidden;
+    }
+    .frame-art svg { display: block; width: 100%; height: 100%; }
+    .frame-watermark {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      padding: 5px 7px;
+      border: 1px solid rgba(233, 121, 69, 0.42);
+      border-radius: 5px;
+      background: rgba(15, 20, 21, 0.8);
+      color: #ef9f78;
+      font: 9px var(--mono);
+      letter-spacing: 0.08em;
+    }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .detail-block { padding: 13px; border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(255,255,255,0.02); }
+    .detail-block strong { display: block; margin-bottom: 6px; font-size: 12px; }
+    .detail-block p { margin: 0; color: var(--paper-dim); font-size: 12px; line-height: 1.55; }
+    .note-label { display: block; margin: 15px 0 6px; color: var(--paper-dim); font-size: 12px; }
+    .note-box {
+      width: 100%;
+      min-height: 78px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--ink-2);
+      color: var(--paper);
+      padding: 10px 11px;
+    }
+    .detail-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .detail-actions button { flex: 1; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 100;
+      max-width: calc(100vw - 32px);
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      transform: translate(-50%, 24px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+    .page-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px clamp(16px, 3vw, 36px) 28px;
+      color: #657173;
+      font: 10px/1.5 var(--mono);
+    }
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: 1fr; }
+      .side-panel { position: relative; top: auto; max-height: none; }
+      .panel-body { max-height: none; }
+      .map-stage, #radar { min-height: 520px; height: min(64vh, 700px); }
+    }
+    @media (max-width: 720px) {
+      .topbar { padding: 11px 14px; }
+      .status-pill { display: none; }
+      .utility-button { min-width: 40px; padding: 7px 9px; }
+      .utility-button .button-label { display: none; }
+      .workspace { padding: 0; gap: 0; }
+      .map-column, .side-panel { border-left: 0; border-right: 0; border-radius: 0; box-shadow: none; }
+      .control-deck { grid-template-columns: 1fr auto; padding: 10px; }
+      .mode-switch { grid-column: 1 / -1; }
+      .mode-button { flex: 1; }
+      .map-picker { min-width: 0; }
+      .map-select { min-width: 0; width: 100%; }
+      .filter-row { grid-column: 1 / -1; justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+      .filter-button { flex: 0 0 auto; }
+      .map-stage, #radar { min-height: 430px; height: 54vh; max-height: 590px; }
+      .map-overlay-head { top: 10px; left: 10px; max-width: calc(100% - 20px); }
+      .map-legend { left: 10px; bottom: 10px; max-width: calc(100% - 20px); }
+      .legend-chip { min-height: 26px; padding: 4px 7px; }
+      .side-panel { min-height: 45vh; border-top: 1px solid var(--line); }
+      .panel-head { padding: 15px; }
+      .panel-head h1 { font-size: 27px; }
+      .panel-body { padding: 12px; }
+      .spawn-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-grid { grid-template-columns: 1fr; }
+      .dialog-body { padding: 14px; }
+      .page-foot { flex-direction: column; padding: 16px; }
+    }
+    @media (max-width: 420px) {
+      .brand-copy span { display: none; }
+      .mode-button, .side-button { padding-left: 9px; padding-right: 9px; }
+      .spawn-grid { grid-template-columns: 1fr 1fr; }
+      .spawn-view { height: 62px; }
+      .objective-grid { grid-template-columns: 1fr; }
+      .objective-button { text-align: left; padding-left: 10px; }
+      dialog { width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; border: 0; }
+      .dialog-body { max-height: calc(100vh - 78px); }
+      .frame-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .frame-tab { padding: 6px 5px; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) and (min-width: 721px) {
+      .workspace {
+        grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.78fr);
+        gap: 10px;
+        padding: 10px;
+      }
+      .map-column, .side-panel {
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+      }
+      .map-stage, #radar {
+        height: 250px;
+        min-height: 250px;
+        max-height: 250px;
+      }
+      .side-panel {
+        position: relative;
+        top: auto;
+        min-height: 320px;
+        max-height: 320px;
+      }
+      .panel-head { padding: 12px; }
+      .panel-head h1 { margin-top: 5px; font-size: 24px; }
+      .panel-head p { display: none; }
+      .search-row { margin-top: 8px; }
+      .panel-body { padding: 10px; }
+      .map-overlay-head { top: 10px; left: 10px; }
+      .map-legend { left: 10px; bottom: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainWorkspace">跳到地图工作区</a>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <span class="brand-copy">
+          <strong>CS2 道具地图</strong>
+          <span>Portable lineup notebook</span>
+        </span>
+      </div>
+      <div class="top-actions">
+        <span class="status-pill"><i class="status-dot"></i>LOCAL / ZERO GAME ACCESS</span>
+        <button class="utility-button" id="newRoundButton" type="button" title="清除本回合出生点与路线进度">
+          <span aria-hidden="true">↻</span><span class="button-label">新回合</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="demo-banner" role="status">
+      <span aria-hidden="true">△</span>
+      雷达底图来自 CS2 官方游戏资源；投掷物标点仍为交互演示数据，未经实战复投，不能作为可靠投掷依据。
+    </div>
+
+    <main class="workspace" id="mainWorkspace">
+      <section class="map-column" aria-label="地图与筛选">
+        <div class="control-deck">
+          <div class="mode-switch" aria-label="功能模式">
+            <button class="mode-button is-active" type="button" data-mode="nearby">附近瞄点</button>
+            <button class="mode-button" type="button" data-mode="opening">开局路线</button>
+          </div>
+          <label class="map-picker">
+            <span>地图</span>
+            <select class="map-select" id="mapSelect" aria-label="选择官方地图">
+              <option value="mirage">Mirage</option>
+              <option value="dust2">Dust II</option>
+            </select>
+          </label>
+          <div class="side-switch" aria-label="阵营">
+            <button class="side-button is-active" type="button" data-side="T">T</button>
+            <button class="side-button" type="button" data-side="CT">CT</button>
+          </div>
+          <div class="filter-row" id="filterRow" aria-label="道具筛选">
+            <button class="filter-button is-active" type="button" data-filter="all">全部</button>
+            <button class="filter-button" type="button" data-filter="smoke">烟</button>
+            <button class="filter-button" type="button" data-filter="flash">闪</button>
+            <button class="filter-button" type="button" data-filter="molotov">火</button>
+            <button class="filter-button" type="button" data-filter="he">雷</button>
+          </div>
+        </div>
+
+        <div class="map-stage">
+          <div class="map-overlay-head">
+            <strong id="mapInstruction">点击地图，标记你现在的大致位置</strong>
+            <span id="mapSubInstruction">只使用你的手动点击；不读取游戏、屏幕、日志或配置。</span>
+          </div>
+          <svg id="radar" viewBox="0 0 1000 1000" role="img" aria-label="Mirage 战术示意雷达">
+            <defs>
+              <filter id="markerGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="7" result="blur"></feGaussianBlur>
+                <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+              </filter>
+              <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M0 0 L10 5 L0 10 z" fill="#e97945"></path>
+              </marker>
+              <pattern id="microGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(117,191,192,0.07)" stroke-width="2"></path>
+              </pattern>
+            </defs>
+            <rect width="1000" height="1000" fill="url(#microGrid)"></rect>
+            <image id="radarImage" x="0" y="0" width="1000" height="1000" preserveAspectRatio="xMidYMid meet"></image>
+            <line x1="500" y1="35" x2="500" y2="965" class="compass-line"></line>
+            <line x1="35" y1="500" x2="965" y2="500" class="compass-line"></line>
+            <text x="500" y="28" class="zone-label" style="fill:#75bfc0">N</text>
+            <g id="zoneLayer"></g>
+            <g id="routeLayer"></g>
+            <g id="dynamicLayer"></g>
+          </svg>
+          <div class="map-legend" aria-label="地图图例">
+            <span class="legend-chip current"><i></i>我的位置 / 出生点</span>
+            <span class="legend-chip"><i></i>附近起投站</span>
+            <span class="legend-chip far"><i></i>较远可用</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel" aria-label="查询结果与开局方案">
+        <div class="panel-head">
+          <div class="eyebrow" id="panelEyebrow">NEARBY / MANUAL POSITION</div>
+          <h1 id="panelTitle">从这里能投什么</h1>
+          <p id="panelDescription">点地图后，只列出当前区域与相邻通路的起投站。</p>
+          <div class="search-row" id="searchRow">
+            <input class="search-input" id="searchInput" type="search" maxlength="40" placeholder="搜索起点、目标或道具用途" autocomplete="off">
+            <button class="favorite-toggle" id="favoriteOnlyButton" type="button" aria-pressed="false" title="只看收藏">☆</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <section id="nearbyPanel">
+            <div class="location-readout">
+              <div>
+                <strong id="locationName">尚未选择位置</strong>
+                <span id="locationCode">CLICK RADAR TO LOCATE</span>
+              </div>
+              <span class="result-count" id="resultCount" aria-live="polite">0 个起投站</span>
+            </div>
+            <div id="nearbyResults">
+              <div class="empty-state">
+                <div>
+                  <div class="locator" aria-hidden="true"></div>
+                  <strong>先在地图上点一下</strong>
+                  <p>系统会从当前区域和相邻通路中找到可用起投站，不会读取游戏位置。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-hidden" id="openingPanel">
+            <div class="opening-config">
+              <div class="config-section">
+                <div class="section-title">
+                  <strong>1. 选择本回合出生点</strong>
+                  <span>以位置图为准</span>
+                </div>
+                <div class="spawn-grid" id="spawnGrid"></div>
+              </div>
+
+              <div class="config-section">
+                <div class="section-title">
+                  <strong>2. 选择你的开局目标</strong>
+                  <span>手动决定，不猜战术</span>
+                </div>
+                <div class="objective-grid" id="objectiveGrid"></div>
+              </div>
+
+              <div id="openingResult">
+                <div class="empty-state">
+                  <div>
+                    <div class="locator" aria-hidden="true"></div>
+                    <strong>先选择出生点与目标</strong>
+                    <p>只有人工编排且明确适配该出生点的个人路线才会出现。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="page-foot">
+      <span>单文件离线原型 · 数据只存本机 · 无游戏访问</span>
+      <span>Official radar bases / offline prototype-2026-08-26</span>
+    </footer>
+  </div>
+
+  <dialog id="detailDialog" aria-labelledby="detailTitle">
+    <div class="dialog-head">
+      <div>
+        <div class="route-code" id="detailCode">LINEUP</div>
+        <h2 id="detailTitle">瞄点详情</h2>
+      </div>
+      <button class="icon-button" id="closeDialogButton" type="button" aria-label="关闭详情">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="detail-meta" id="detailMeta"></div>
+      <div class="frame-tabs" role="tablist" aria-label="瞄点画面">
+        <button class="frame-tab" type="button" data-frame="stance" role="tab">站位</button>
+        <button class="frame-tab is-active" type="button" data-frame="aim" role="tab">瞄点</button>
+        <button class="frame-tab" type="button" data-frame="result" role="tab">落点</button>
+      </div>
+      <div class="frame-art" id="frameArt"></div>
+      <div class="detail-grid">
+        <div class="detail-block">
+          <strong>投掷方式</strong>
+          <p id="detailTechnique">—</p>
+        </div>
+        <div class="detail-block">
+          <strong>战术用途</strong>
+          <p id="detailPurpose">—</p>
+        </div>
+      </div>
+      <label class="note-label" for="noteBox">我的备注（只保存在本机）</label>
+      <textarea class="note-box" id="noteBox" maxlength="500" placeholder="例如：准星再靠左半格；只适合满甲长枪局。"></textarea>
+      <div class="detail-actions">
+        <button class="secondary-button" id="favoriteButton" type="button">加入收藏</button>
+        <button class="primary-button" id="saveNoteButton" type="button">保存备注</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY = "cs2-lineups-map.v1";
+    const DEMO_MODE = true;
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const NADE_LABELS = { smoke: "烟", flash: "闪", molotov: "火", he: "雷" };
+    const RADAR_IMAGES = Object.freeze({
+      mirage: "data:image/webp;base64,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",
+      dust2: "data:image/webp;base64,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"
+    });
+
+    const MIRAGE_DATA = {
+      schemaVersion: 1,
+      mapId: "mirage",
+      displayName: "荒漠迷城 Mirage",
+      mapRevision: "official-radar-2026-08-26",
+      radarDataUri: RADAR_IMAGES.mirage,
+      zones: [
+        { id: "b-site", label: "B 区", layerId: "main", polygon: [[100,170],[330,170],[330,355],[100,355]], neighborZoneIds: ["b-apps","market","short"] },
+        { id: "b-apps", label: "B 二楼", layerId: "main", polygon: [[330,120],[710,120],[710,275],[330,275]], neighborZoneIds: ["b-site","short","t-spawn"] },
+        { id: "market", label: "超市", layerId: "main", polygon: [[175,355],[350,355],[350,515],[175,515]], neighborZoneIds: ["b-site","short","ct-spawn"] },
+        { id: "short", label: "B 小", layerId: "main", polygon: [[340,280],[480,280],[480,445],[340,445]], neighborZoneIds: ["b-site","market","window","mid"] },
+        { id: "window", label: "VIP / 窗口", layerId: "main", polygon: [[430,275],[560,275],[560,390],[430,390]], neighborZoneIds: ["short","mid","connector"] },
+        { id: "mid", label: "中路", layerId: "main", polygon: [[455,385],[690,385],[690,585],[455,585]], neighborZoneIds: ["short","window","connector","top-mid","underpass"] },
+        { id: "top-mid", label: "匪口 / 中远", layerId: "main", polygon: [[690,300],[830,300],[830,500],[690,500]], neighborZoneIds: ["mid","underpass","t-spawn"] },
+        { id: "underpass", label: "下水道", layerId: "main", polygon: [[335,450],[465,450],[465,615],[335,615]], neighborZoneIds: ["mid","top-mid","connector"] },
+        { id: "connector", label: "拱门", layerId: "main", polygon: [[405,570],[560,570],[560,700],[405,700]], neighborZoneIds: ["mid","window","a-site","ct-spawn"] },
+        { id: "ct-spawn", label: "警家", layerId: "main", polygon: [[175,620],[400,620],[400,820],[175,820]], neighborZoneIds: ["a-site","connector","market"] },
+        { id: "a-site", label: "A 区", layerId: "main", polygon: [[425,695],[645,695],[645,855],[425,855]], neighborZoneIds: ["connector","ct-spawn","a-ramp","palace"] },
+        { id: "palace", label: "A 二楼", layerId: "main", polygon: [[610,500],[825,500],[825,645],[610,645]], neighborZoneIds: ["a-site","a-ramp","t-spawn"] },
+        { id: "a-ramp", label: "A1 / 斜坡", layerId: "main", polygon: [[650,650],[855,650],[855,850],[650,850]], neighborZoneIds: ["a-site","palace","t-spawn"] },
+        { id: "t-spawn", label: "匪家", layerId: "main", polygon: [[795,280],[970,280],[970,480],[795,480]], neighborZoneIds: ["a-ramp","palace","top-mid","b-apps"] }
+      ],
+      spawnAnchors: [
+        { id: "mirage-t-01", side: "T", point: { x: 835, y: 350, layerId: "main" }, displayCode: "T-01", landmarkLabel: "左前出生", viewX: "42%", viewY: "38%" },
+        { id: "mirage-t-02", side: "T", point: { x: 855, y: 380, layerId: "main" }, displayCode: "T-02", landmarkLabel: "左中出生", viewX: "48%", viewY: "44%" },
+        { id: "mirage-t-03", side: "T", point: { x: 880, y: 395, layerId: "main" }, displayCode: "T-03", landmarkLabel: "中央出生", viewX: "52%", viewY: "41%" },
+        { id: "mirage-t-04", side: "T", point: { x: 905, y: 380, layerId: "main" }, displayCode: "T-04", landmarkLabel: "右中出生", viewX: "56%", viewY: "47%" },
+        { id: "mirage-t-05", side: "T", point: { x: 925, y: 350, layerId: "main" }, displayCode: "T-05", landmarkLabel: "右前出生", viewX: "61%", viewY: "39%" },
+        { id: "mirage-ct-01", side: "CT", point: { x: 240, y: 690, layerId: "main" }, displayCode: "CT-01", landmarkLabel: "A 侧出生", viewX: "40%", viewY: "42%" },
+        { id: "mirage-ct-02", side: "CT", point: { x: 265, y: 720, layerId: "main" }, displayCode: "CT-02", landmarkLabel: "A 中出生", viewX: "47%", viewY: "38%" },
+        { id: "mirage-ct-03", side: "CT", point: { x: 290, y: 735, layerId: "main" }, displayCode: "CT-03", landmarkLabel: "中央出生", viewX: "52%", viewY: "45%" },
+        { id: "mirage-ct-04", side: "CT", point: { x: 315, y: 720, layerId: "main" }, displayCode: "CT-04", landmarkLabel: "B 中出生", viewX: "57%", viewY: "41%" },
+        { id: "mirage-ct-05", side: "CT", point: { x: 340, y: 690, layerId: "main" }, displayCode: "CT-05", landmarkLabel: "B 侧出生", viewX: "62%", viewY: "37%" }
+      ],
+      startStations: [
+        { id: "st-t-spawn-left", point: { x: 835, y: 350, layerId: "main" }, zoneId: "t-spawn", label: "匪家左侧", aliases: ["t spawn left","匪家左"] },
+        { id: "st-t-spawn-right", point: { x: 925, y: 350, layerId: "main" }, zoneId: "t-spawn", label: "匪家右侧", aliases: ["t spawn right","匪家右"] },
+        { id: "st-a-ramp-back", point: { x: 735, y: 735, layerId: "main" }, zoneId: "a-ramp", label: "A1 后点", aliases: ["a ramp","a1"] },
+        { id: "st-palace-entry", point: { x: 690, y: 575, layerId: "main" }, zoneId: "palace", label: "A 二楼出口", aliases: ["palace","二楼"] },
+        { id: "st-top-mid-box", point: { x: 760, y: 430, layerId: "main" }, zoneId: "top-mid", label: "中远箱位", aliases: ["top mid","中远"] },
+        { id: "st-mid-left", point: { x: 575, y: 485, layerId: "main" }, zoneId: "mid", label: "中路左侧", aliases: ["mid left","中路"] },
+        { id: "st-b-apps-door", point: { x: 520, y: 235, layerId: "main" }, zoneId: "b-apps", label: "B 二楼门口", aliases: ["b apps","b二楼"] },
+        { id: "st-ct-cross", point: { x: 290, y: 705, layerId: "main" }, zoneId: "ct-spawn", label: "警家交叉位", aliases: ["ct spawn","警家"] },
+        { id: "st-a-default", point: { x: 545, y: 765, layerId: "main" }, zoneId: "a-site", label: "A 包点内", aliases: ["a site","a包"] },
+        { id: "st-window", point: { x: 500, y: 330, layerId: "main" }, zoneId: "window", label: "VIP 窗口", aliases: ["window","vip"] },
+        { id: "st-short-bench", point: { x: 405, y: 390, layerId: "main" }, zoneId: "short", label: "B 小长椅侧", aliases: ["short","b小"] },
+        { id: "st-b-default", point: { x: 220, y: 275, layerId: "main" }, zoneId: "b-site", label: "B 包点内", aliases: ["b site","b包"] },
+        { id: "st-market-door", point: { x: 285, y: 405, layerId: "main" }, zoneId: "market", label: "超市门口", aliases: ["market","超市"] },
+        { id: "st-connector", point: { x: 485, y: 625, layerId: "main" }, zoneId: "connector", label: "拱门内侧", aliases: ["connector","拱门"] }
+      ],
+      lineups: [
+        {
+          id: "demo-t-window-smoke", side: "T", grenadeType: "smoke", startStationId: "st-t-spawn-left",
+          targetPoint: { x: 500, y: 330, layerId: "main" }, targetLabel: "VIP 窗口",
+          technique: "演示：W + 跳投；正式动作与准星位置待授权素材确认。",
+          purpose: "演示用途：开局遮挡中路窗口视线。",
+          stanceHint: "靠近匪家左侧标记，确认身体朝向中路。", aimHint: "示意准星落在建筑轮廓交点，非真实游戏截图。", resultHint: "目标为 VIP 窗口区域。",
+          eligibleSpawnAnchorIds: ["mirage-t-01","mirage-t-02"], editorialPriority: 100, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-connector-smoke", side: "T", grenadeType: "smoke", startStationId: "st-top-mid-box",
+          targetPoint: { x: 485, y: 625, layerId: "main" }, targetLabel: "拱门",
+          technique: "演示：站定左键投掷；正式瞄点待替换。",
+          purpose: "演示用途：切断拱门方向视线，辅助中路控制。",
+          stanceHint: "站在中远箱位附近的固定起投站。", aimHint: "示意准星对齐墙体折线，非真实游戏截图。", resultHint: "目标为拱门出入口。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 88, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-short-flash", side: "T", grenadeType: "flash", startStationId: "st-mid-left",
+          targetPoint: { x: 405, y: 390, layerId: "main" }, targetLabel: "B 小",
+          technique: "演示：抬高左键投掷；正式时机待确认。",
+          purpose: "演示用途：辅助队友争夺 B 小。",
+          stanceHint: "在中路左侧保持掩体后站位。", aimHint: "示意准星指向屋檐上方，非真实游戏截图。", resultHint: "目标为 B 小转角上空。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 72, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-ct-smoke", side: "T", grenadeType: "smoke", startStationId: "st-a-ramp-back",
+          targetPoint: { x: 290, y: 705, layerId: "main" }, targetLabel: "警家",
+          technique: "演示：站定跳投；正式站位与瞄点待替换。",
+          purpose: "演示用途：A 区进攻时遮挡警家视线。",
+          stanceHint: "贴近 A1 后点的固定墙角。", aimHint: "示意准星对齐天空线与建筑边缘，非真实截图。", resultHint: "目标为警家交叉区域。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 95, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-stairs-fire", side: "T", grenadeType: "molotov", startStationId: "st-a-ramp-back",
+          targetPoint: { x: 500, y: 700, layerId: "main" }, targetLabel: "A 楼梯",
+          technique: "演示：助跑左键投掷；真实动作待授权内容确认。",
+          purpose: "演示用途：清理 A 楼梯防守位置。",
+          stanceHint: "从 A1 后点起投站出手。", aimHint: "示意准星指向楼体棱线，非真实游戏截图。", resultHint: "目标为 A 楼梯附近区域。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 70, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-jungle-smoke", side: "T", grenadeType: "smoke", startStationId: "st-palace-entry",
+          targetPoint: { x: 420, y: 650, layerId: "main" }, targetLabel: "丛林 / 拱门侧",
+          technique: "演示：站定左键投掷；正式瞄点待替换。",
+          purpose: "演示用途：隔断 A 区回防通路。",
+          stanceHint: "在 A 二楼出口前的起投站。", aimHint: "示意准星对齐窗框边缘，非真实游戏截图。", resultHint: "目标为丛林与拱门连接区域。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 80, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-market-smoke", side: "T", grenadeType: "smoke", startStationId: "st-b-apps-door",
+          targetPoint: { x: 285, y: 405, layerId: "main" }, targetLabel: "超市窗口",
+          technique: "演示：站定左键投掷；正式素材待加入。",
+          purpose: "演示用途：B 区进攻时遮挡超市方向。",
+          stanceHint: "站在 B 二楼门口固定位置。", aimHint: "示意准星落在门框上方参考点，非真实截图。", resultHint: "目标为超市窗口与门口区域。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 92, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-t-bench-he", side: "T", grenadeType: "he", startStationId: "st-b-apps-door",
+          targetPoint: { x: 180, y: 250, layerId: "main" }, targetLabel: "B 长椅",
+          technique: "演示：助跑左键投掷；正式时机待确认。",
+          purpose: "演示用途：对 B 长椅常见防守位造成伤害。",
+          stanceHint: "B 二楼出口附近起投。", aimHint: "示意准星对齐外墙上缘，非真实截图。", resultHint: "目标为 B 长椅附近。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 54, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-ramp-smoke", side: "CT", grenadeType: "smoke", startStationId: "st-ct-cross",
+          targetPoint: { x: 735, y: 735, layerId: "main" }, targetLabel: "A1",
+          technique: "演示：站定左键投掷；正式落点待确认。",
+          purpose: "演示用途：开局延缓 A1 进攻节奏。",
+          stanceHint: "警家交叉位起投。", aimHint: "示意准星对齐 A 区墙体上缘，非真实截图。", resultHint: "目标为 A1 出口。",
+          eligibleSpawnAnchorIds: ["mirage-ct-01","mirage-ct-02"], editorialPriority: 96, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-ramp-fire", side: "CT", grenadeType: "molotov", startStationId: "st-a-default",
+          targetPoint: { x: 735, y: 735, layerId: "main" }, targetLabel: "A1 出口",
+          technique: "演示：站定弹墙投掷；正式瞄点待替换。",
+          purpose: "演示用途：阻止 A1 快速推进。",
+          stanceHint: "A 包点内固定位置。", aimHint: "示意准星对齐墙角参考线，非真实截图。", resultHint: "目标为 A1 出口地面。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 84, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-mid-he", side: "CT", grenadeType: "he", startStationId: "st-window",
+          targetPoint: { x: 575, y: 485, layerId: "main" }, targetLabel: "中路",
+          technique: "演示：助跑左键投掷；正式时机待确认。",
+          purpose: "演示用途：开局压制中路推进。",
+          stanceHint: "VIP 窗口内侧起投。", aimHint: "示意准星指向中路天空线，非真实截图。", resultHint: "目标为中路靠近中远区域。",
+          eligibleSpawnAnchorIds: ["mirage-ct-03"], editorialPriority: 76, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-mid-smoke", side: "CT", grenadeType: "smoke", startStationId: "st-window",
+          targetPoint: { x: 760, y: 430, layerId: "main" }, targetLabel: "中远",
+          technique: "演示：站定左键投掷；真实投法待确认。",
+          purpose: "演示用途：隔断中远视线，改变中路对枪节奏。",
+          stanceHint: "VIP 窗口后侧起投。", aimHint: "示意准星对齐顶部结构线，非真实截图。", resultHint: "目标为中远入口。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 67, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-apps-fire", side: "CT", grenadeType: "molotov", startStationId: "st-b-default",
+          targetPoint: { x: 520, y: 235, layerId: "main" }, targetLabel: "B 二楼",
+          technique: "演示：站定左键投掷；正式弹点待替换。",
+          purpose: "演示用途：延缓 B 二楼快攻。",
+          stanceHint: "B 包点内侧起投。", aimHint: "示意准星对齐门洞上沿，非真实截图。", resultHint: "目标为 B 二楼出口。",
+          eligibleSpawnAnchorIds: ["mirage-ct-04","mirage-ct-05"], editorialPriority: 98, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-apps-flash", side: "CT", grenadeType: "flash", startStationId: "st-market-door",
+          targetPoint: { x: 520, y: 235, layerId: "main" }, targetLabel: "B 二楼出口",
+          technique: "演示：弹墙闪；正式时机与队友协同待确认。",
+          purpose: "演示用途：辅助 B 区防守者反清二楼。",
+          stanceHint: "超市门口掩体后起投。", aimHint: "示意准星对齐墙面固定高度，非真实截图。", resultHint: "目标为 B 二楼出口上空。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 73, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-ct-short-flash", side: "CT", grenadeType: "flash", startStationId: "st-short-bench",
+          targetPoint: { x: 575, y: 485, layerId: "main" }, targetLabel: "中路",
+          technique: "演示：高抛闪；正式瞄点与背闪方向待确认。",
+          purpose: "演示用途：辅助中路队友重新争夺控制。",
+          stanceHint: "B 小长椅侧固定站位。", aimHint: "示意准星指向墙体上方，非真实截图。", resultHint: "目标为中路交战区域上空。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 61, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        }
+      ],
+      openingPlans: [
+        {
+          id: "demo-plan-t-a", side: "T", objective: "t-a", title: "A 区三段准备", summary: "示意：先隔断警家，再清楼梯，最后进入 A1。",
+          eligibleSpawnAnchorIds: ["mirage-t-01","mirage-t-02","mirage-t-03","mirage-t-04","mirage-t-05"],
+          requiredLoadout: ["烟雾弹 ×1","燃烧瓶 ×1","闪光弹 ×1"],
+          difficulty: "中等", endLocationLabel: "A1 出口",
+          variantNotes: { "mirage-t-01": "该身位更靠近 A 侧，先沿左侧路线进入 A1。", "mirage-t-05": "该身位靠右，先避让队友再转向 A1。" },
+          steps: [
+            { type: "move", title: "进入 A1 后点", instruction: "沿左侧通路移动到 A1 后点起投站。" },
+            { type: "throw", lineupId: "demo-t-ct-smoke", title: "隔断警家", instruction: "查看示意瞄点后由玩家自行投掷。" },
+            { type: "throw", lineupId: "demo-t-stairs-fire", title: "清理楼梯", instruction: "确认队友已经准备推进后再投掷。" }
+          ],
+          status: "demo"
+        },
+        {
+          id: "demo-plan-t-mid", side: "T", objective: "t-mid", title: "中路控制路线", summary: "示意：窗口烟、拱门烟与 B 小辅助闪。",
+          eligibleSpawnAnchorIds: ["mirage-t-01","mirage-t-02","mirage-t-03","mirage-t-04","mirage-t-05"],
+          requiredLoadout: ["烟雾弹 ×1","闪光弹 ×1"],
+          difficulty: "较难", endLocationLabel: "中路左侧",
+          variantNotes: { "mirage-t-01": "先完成出生位窗口烟，再向中远移动。", "mirage-t-05": "右侧身位需要先让开中间路线。" },
+          steps: [
+            { type: "throw", lineupId: "demo-t-window-smoke", title: "遮挡 VIP", instruction: "示意出生烟；正式数据尚未加入。" },
+            { type: "move", title: "推进到中远", instruction: "沿中路方向移动到中远箱位。" },
+            { type: "throw", lineupId: "demo-t-connector-smoke", title: "隔断拱门", instruction: "站定后查看瞄点再投掷。" },
+            { type: "throw", lineupId: "demo-t-short-flash", title: "辅助争夺 B 小", instruction: "确认队友朝向后再投闪，避免白到队友。" }
+          ],
+          status: "demo"
+        },
+        {
+          id: "demo-plan-t-b", side: "T", objective: "t-b", title: "B 二楼推进准备", summary: "示意：移动到二楼，遮挡超市并处理长椅。",
+          eligibleSpawnAnchorIds: ["mirage-t-01","mirage-t-02","mirage-t-03","mirage-t-04","mirage-t-05"],
+          requiredLoadout: ["烟雾弹 ×1","手雷 ×1"],
+          difficulty: "简单", endLocationLabel: "B 二楼出口",
+          variantNotes: { "mirage-t-05": "右侧出生更接近 B 路线。", "mirage-t-01": "左侧出生到 B 二楼的移动距离更长。" },
+          steps: [
+            { type: "move", title: "进入 B 二楼", instruction: "沿右侧路线移动到 B 二楼门口起投站。" },
+            { type: "throw", lineupId: "demo-t-market-smoke", title: "遮挡超市", instruction: "先封锁主要回防视线。" },
+            { type: "throw", lineupId: "demo-t-bench-he", title: "压制长椅", instruction: "在队友进入前处理常见防守位。" }
+          ],
+          status: "demo"
+        },
+        {
+          id: "demo-plan-ct-a", side: "CT", objective: "ct-a", title: "A 区延缓路线", summary: "示意：先烟封 A1，再用火延缓推进。",
+          eligibleSpawnAnchorIds: ["mirage-ct-01","mirage-ct-02","mirage-ct-03","mirage-ct-04","mirage-ct-05"],
+          requiredLoadout: ["烟雾弹 ×1","燃烧弹 ×1"],
+          difficulty: "简单", endLocationLabel: "A 包点",
+          variantNotes: { "mirage-ct-01": "A 侧出生可更快到达警家交叉位。", "mirage-ct-05": "B 侧出生不适合抢第一时间 A 区道具。" },
+          steps: [
+            { type: "throw", lineupId: "demo-ct-ramp-smoke", title: "封锁 A1", instruction: "在警家交叉位完成示意烟。" },
+            { type: "move", title: "进入 A 包点", instruction: "移动到包点内侧，保留安全退路。" },
+            { type: "throw", lineupId: "demo-ct-ramp-fire", title: "延缓 A1", instruction: "根据队友信息决定是否补火。" }
+          ],
+          status: "demo"
+        },
+        {
+          id: "demo-plan-ct-mid", side: "CT", objective: "ct-mid", title: "中路争夺路线", summary: "示意：从窗口压制中路，再改变视线。",
+          eligibleSpawnAnchorIds: ["mirage-ct-01","mirage-ct-02","mirage-ct-03","mirage-ct-04","mirage-ct-05"],
+          requiredLoadout: ["手雷 ×1","烟雾弹 ×1"],
+          difficulty: "中等", endLocationLabel: "VIP 窗口",
+          variantNotes: { "mirage-ct-03": "中央出生更适合第一时间进入 VIP。", "mirage-ct-01": "A 侧出生需要更长移动时间。" },
+          steps: [
+            { type: "move", title: "进入 VIP", instruction: "移动到窗口起投站，避免阻挡队友。" },
+            { type: "throw", lineupId: "demo-ct-mid-he", title: "压制中路", instruction: "示意雷；正式时机待实战确认。" },
+            { type: "throw", lineupId: "demo-ct-mid-smoke", title: "隔断中远", instruction: "根据队友需求决定是否补烟。" }
+          ],
+          status: "demo"
+        },
+        {
+          id: "demo-plan-ct-b", side: "CT", objective: "ct-b", title: "B 区防快路线", summary: "示意：先火封二楼，再用闪光辅助反清。",
+          eligibleSpawnAnchorIds: ["mirage-ct-01","mirage-ct-02","mirage-ct-03","mirage-ct-04","mirage-ct-05"],
+          requiredLoadout: ["燃烧弹 ×1","闪光弹 ×1"],
+          difficulty: "简单", endLocationLabel: "B 包点 / 超市门",
+          variantNotes: { "mirage-ct-05": "B 侧出生最接近第一时间防守位置。", "mirage-ct-01": "A 侧出生不适合承担首颗 B 区道具。" },
+          steps: [
+            { type: "move", title: "进入 B 包点", instruction: "从警家向 B 区移动到包点内侧。" },
+            { type: "throw", lineupId: "demo-ct-apps-fire", title: "延缓 B 二楼", instruction: "先封锁出口，等待队友到位。" },
+            { type: "move", title: "退到超市门", instruction: "保留掩体，准备辅助闪。" },
+            { type: "throw", lineupId: "demo-ct-apps-flash", title: "辅助反清", instruction: "确认队友背闪后再投掷。" }
+          ],
+          status: "demo"
+        }
+      ]
+    };
+
+    const DUST2_DATA = {
+      schemaVersion: 1,
+      mapId: "dust2",
+      displayName: "炙热沙城 II Dust II",
+      mapRevision: "official-radar-2026-08-26",
+      radarDataUri: RADAR_IMAGES.dust2,
+      zones: [
+        { id: "b-site", label: "B 区", layerId: "main", polygon: [[70,40],[285,40],[285,210],[70,210]], neighborZoneIds: ["upper-tunnels","b-doors","ct-spawn"] },
+        { id: "upper-tunnels", label: "B 洞", layerId: "main", polygon: [[70,205],[300,205],[300,390],[70,390]], neighborZoneIds: ["b-site","lower-tunnels","t-spawn"] },
+        { id: "lower-tunnels", label: "下层通道", layerId: "main", polygon: [[285,360],[455,360],[455,600],[285,600]], neighborZoneIds: ["upper-tunnels","mid","b-doors","t-spawn"] },
+        { id: "b-doors", label: "B 门", layerId: "main", polygon: [[260,585],[475,585],[475,820],[260,820]], neighborZoneIds: ["b-site","lower-tunnels","mid","t-spawn"] },
+        { id: "mid", label: "中路", layerId: "main", polygon: [[445,300],[630,300],[630,680],[445,680]], neighborZoneIds: ["lower-tunnels","b-doors","short","ct-spawn","t-spawn"] },
+        { id: "short", label: "A 小", layerId: "main", polygon: [[300,175],[515,175],[515,355],[300,355]], neighborZoneIds: ["mid","a-site","ct-spawn"] },
+        { id: "ct-spawn", label: "警家", layerId: "main", polygon: [[530,115],[705,115],[705,300],[530,300]], neighborZoneIds: ["b-site","mid","short","a-site"] },
+        { id: "a-site", label: "A 区", layerId: "main", polygon: [[700,55],[930,55],[930,255],[700,255]], neighborZoneIds: ["short","ct-spawn","a-ramp","long-a"] },
+        { id: "a-ramp", label: "A 斜坡", layerId: "main", polygon: [[640,250],[875,250],[875,450],[640,450]], neighborZoneIds: ["a-site","long-a","outside-long","ct-spawn"] },
+        { id: "long-a", label: "A 大", layerId: "main", polygon: [[800,400],[980,400],[980,720],[800,720]], neighborZoneIds: ["a-site","a-ramp","outside-long"] },
+        { id: "outside-long", label: "A 门外", layerId: "main", polygon: [[590,620],[850,620],[850,850],[590,850]], neighborZoneIds: ["long-a","a-ramp","t-spawn","mid"] },
+        { id: "t-spawn", label: "匪家", layerId: "main", polygon: [[270,810],[535,810],[535,990],[270,990]], neighborZoneIds: ["upper-tunnels","lower-tunnels","b-doors","mid","outside-long"] }
+      ],
+      spawnAnchors: [
+        { id: "dust2-t-01", side: "T", point: { x: 340, y: 905, layerId: "main" }, displayCode: "T-01", landmarkLabel: "B 侧出生", viewX: "42%", viewY: "38%" },
+        { id: "dust2-t-02", side: "T", point: { x: 365, y: 930, layerId: "main" }, displayCode: "T-02", landmarkLabel: "左中出生", viewX: "47%", viewY: "44%" },
+        { id: "dust2-t-03", side: "T", point: { x: 395, y: 940, layerId: "main" }, displayCode: "T-03", landmarkLabel: "中央出生", viewX: "52%", viewY: "41%" },
+        { id: "dust2-t-04", side: "T", point: { x: 425, y: 930, layerId: "main" }, displayCode: "T-04", landmarkLabel: "右中出生", viewX: "57%", viewY: "47%" },
+        { id: "dust2-t-05", side: "T", point: { x: 450, y: 905, layerId: "main" }, displayCode: "T-05", landmarkLabel: "A 大侧出生", viewX: "62%", viewY: "39%" },
+        { id: "dust2-ct-01", side: "CT", point: { x: 565, y: 205, layerId: "main" }, displayCode: "CT-01", landmarkLabel: "B 侧出生", viewX: "40%", viewY: "42%" },
+        { id: "dust2-ct-02", side: "CT", point: { x: 590, y: 225, layerId: "main" }, displayCode: "CT-02", landmarkLabel: "左中出生", viewX: "47%", viewY: "38%" },
+        { id: "dust2-ct-03", side: "CT", point: { x: 615, y: 235, layerId: "main" }, displayCode: "CT-03", landmarkLabel: "中央出生", viewX: "52%", viewY: "45%" },
+        { id: "dust2-ct-04", side: "CT", point: { x: 640, y: 225, layerId: "main" }, displayCode: "CT-04", landmarkLabel: "右中出生", viewX: "57%", viewY: "41%" },
+        { id: "dust2-ct-05", side: "CT", point: { x: 665, y: 205, layerId: "main" }, displayCode: "CT-05", landmarkLabel: "A 侧出生", viewX: "62%", viewY: "37%" }
+      ],
+      startStations: [
+        { id: "d2-st-t-spawn", point: { x: 395, y: 900, layerId: "main" }, zoneId: "t-spawn", label: "匪家中央", aliases: ["t spawn","匪家"] },
+        { id: "d2-st-long-doors", point: { x: 690, y: 700, layerId: "main" }, zoneId: "outside-long", label: "A 门外", aliases: ["long doors","a门"] },
+        { id: "d2-st-long-corner", point: { x: 875, y: 520, layerId: "main" }, zoneId: "long-a", label: "A 大拐角", aliases: ["long corner","a大"] },
+        { id: "d2-st-short", point: { x: 430, y: 245, layerId: "main" }, zoneId: "short", label: "A 小平台", aliases: ["short","a小"] },
+        { id: "d2-st-a-site", point: { x: 805, y: 155, layerId: "main" }, zoneId: "a-site", label: "A 包点内", aliases: ["a site","a包"] },
+        { id: "d2-st-mid", point: { x: 520, y: 525, layerId: "main" }, zoneId: "mid", label: "中路匪口侧", aliases: ["mid","中路"] },
+        { id: "d2-st-lower", point: { x: 365, y: 490, layerId: "main" }, zoneId: "lower-tunnels", label: "下层通道", aliases: ["lower tunnels","下层"] },
+        { id: "d2-st-upper", point: { x: 190, y: 300, layerId: "main" }, zoneId: "upper-tunnels", label: "B 洞内", aliases: ["upper tunnels","b洞"] },
+        { id: "d2-st-b-site", point: { x: 200, y: 135, layerId: "main" }, zoneId: "b-site", label: "B 包点内", aliases: ["b site","b包"] },
+        { id: "d2-st-ct", point: { x: 615, y: 215, layerId: "main" }, zoneId: "ct-spawn", label: "警家中央", aliases: ["ct spawn","警家"] }
+      ],
+      lineups: [
+        {
+          id: "demo-d2-t-xbox-smoke", side: "T", grenadeType: "smoke", startStationId: "d2-st-t-spawn",
+          targetPoint: { x: 470, y: 365, layerId: "main" }, targetLabel: "X 箱",
+          technique: "演示：出生位跳投；正式准星与动作待授权素材确认。",
+          purpose: "演示用途：帮助队友从中路进入 A 小。",
+          stanceHint: "在匪家中央示意起投站确认朝向。", aimHint: "示意准星对齐建筑边缘，非真实游戏截图。", resultHint: "目标为中路 X 箱附近。",
+          eligibleSpawnAnchorIds: ["dust2-t-01","dust2-t-02","dust2-t-03","dust2-t-04","dust2-t-05"], editorialPriority: 100, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-t-ct-smoke", side: "T", grenadeType: "smoke", startStationId: "d2-st-mid",
+          targetPoint: { x: 615, y: 215, layerId: "main" }, targetLabel: "警家",
+          technique: "演示：站定左键投掷；正式瞄点待替换。",
+          purpose: "演示用途：中路推进时隔断警家。",
+          stanceHint: "在中路匪口侧固定位置。", aimHint: "示意准星对齐墙体上缘，非真实截图。", resultHint: "目标为警家中路出口。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 88, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-t-cross-smoke", side: "T", grenadeType: "smoke", startStationId: "d2-st-long-doors",
+          targetPoint: { x: 710, y: 330, layerId: "main" }, targetLabel: "A 过点",
+          technique: "演示：助跑投掷；正式落点待确认。",
+          purpose: "演示用途：遮挡 A 大过点视线。",
+          stanceHint: "站在 A 门外示意起投站。", aimHint: "示意准星指向墙线交点，非真实截图。", resultHint: "目标为 A 斜坡交叉区域。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 95, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-t-a-flash", side: "T", grenadeType: "flash", startStationId: "d2-st-long-corner",
+          targetPoint: { x: 805, y: 155, layerId: "main" }, targetLabel: "A 包点",
+          technique: "演示：高抛闪；正式时机待确认。",
+          purpose: "演示用途：辅助 A 大队友进入包点。",
+          stanceHint: "A 大拐角掩体后起投。", aimHint: "示意准星指向屋顶上方，非真实截图。", resultHint: "目标为 A 包点上空。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 72, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-t-b-doors-smoke", side: "T", grenadeType: "smoke", startStationId: "d2-st-upper",
+          targetPoint: { x: 300, y: 610, layerId: "main" }, targetLabel: "B 门",
+          technique: "演示：站定左键投掷；正式瞄点待替换。",
+          purpose: "演示用途：B 区推进时隔断门口回防。",
+          stanceHint: "在 B 洞内固定站位。", aimHint: "示意准星对齐洞口上缘，非真实截图。", resultHint: "目标为 B 门附近。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 91, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-t-short-fire", side: "T", grenadeType: "molotov", startStationId: "d2-st-short",
+          targetPoint: { x: 760, y: 180, layerId: "main" }, targetLabel: "A 包点内",
+          technique: "演示：弹墙火；正式弹点待确认。",
+          purpose: "演示用途：从 A 小清理包点常见防守位。",
+          stanceHint: "A 小平台起投。", aimHint: "示意准星对齐墙角，非真实截图。", resultHint: "目标为 A 包点内侧。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 70, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-ct-mid-smoke", side: "CT", grenadeType: "smoke", startStationId: "d2-st-ct",
+          targetPoint: { x: 500, y: 520, layerId: "main" }, targetLabel: "中门",
+          technique: "演示：站定左键投掷；正式动作待确认。",
+          purpose: "演示用途：改变中路视线并延缓推进。",
+          stanceHint: "警家中央示意位置起投。", aimHint: "示意准星对齐门框上方，非真实截图。", resultHint: "目标为中门区域。",
+          eligibleSpawnAnchorIds: ["dust2-ct-01","dust2-ct-02","dust2-ct-03"], editorialPriority: 94, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-ct-long-fire", side: "CT", grenadeType: "molotov", startStationId: "d2-st-a-site",
+          targetPoint: { x: 875, y: 520, layerId: "main" }, targetLabel: "A 大拐角",
+          technique: "演示：助跑火；正式落点待确认。",
+          purpose: "演示用途：延缓 A 大推进。",
+          stanceHint: "A 包点内示意位置起投。", aimHint: "示意准星对齐长廊边缘，非真实截图。", resultHint: "目标为 A 大拐角。",
+          eligibleSpawnAnchorIds: ["dust2-ct-04","dust2-ct-05"], editorialPriority: 96, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-ct-tunnel-fire", side: "CT", grenadeType: "molotov", startStationId: "d2-st-b-site",
+          targetPoint: { x: 190, y: 300, layerId: "main" }, targetLabel: "B 洞出口",
+          technique: "演示：站定火；正式瞄点待替换。",
+          purpose: "演示用途：阻止 B 洞快速推进。",
+          stanceHint: "B 包点内侧起投。", aimHint: "示意准星对齐洞口上沿，非真实截图。", resultHint: "目标为 B 洞出口。",
+          eligibleSpawnAnchorIds: ["dust2-ct-01"], editorialPriority: 98, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-ct-tunnel-flash", side: "CT", grenadeType: "flash", startStationId: "d2-st-b-site",
+          targetPoint: { x: 190, y: 285, layerId: "main" }, targetLabel: "B 洞",
+          technique: "演示：反清闪；正式背闪方向待确认。",
+          purpose: "演示用途：辅助队友重新争夺 B 洞。",
+          stanceHint: "B 包点掩体后起投。", aimHint: "示意准星指向洞口上方，非真实截图。", resultHint: "目标为 B 洞入口上空。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 74, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        },
+        {
+          id: "demo-d2-ct-short-he", side: "CT", grenadeType: "he", startStationId: "d2-st-ct",
+          targetPoint: { x: 430, y: 245, layerId: "main" }, targetLabel: "A 小",
+          technique: "演示：助跑手雷；正式时机待确认。",
+          purpose: "演示用途：开局压制 A 小推进。",
+          stanceHint: "警家靠 A 侧示意位置起投。", aimHint: "示意准星对齐墙体上方，非真实截图。", resultHint: "目标为 A 小平台。",
+          eligibleSpawnAnchorIds: [], editorialPriority: 68, authorStatus: "交互演示 · 未经实战验证", status: "demo"
+        }
+      ],
+      openingPlans: [
+        {
+          id: "demo-d2-plan-t-a", side: "T", objective: "t-a", title: "A 大推进准备", summary: "示意：先处理过点，再用闪光辅助进入 A 区。",
+          eligibleSpawnAnchorIds: ["dust2-t-01","dust2-t-02","dust2-t-03","dust2-t-04","dust2-t-05"],
+          requiredLoadout: ["烟雾弹 ×1","闪光弹 ×1"], difficulty: "中等", endLocationLabel: "A 大拐角",
+          variantNotes: { "dust2-t-05": "A 大侧出生移动更短。", "dust2-t-01": "B 侧出生到 A 门距离更长。" },
+          steps: [
+            { type: "move", title: "进入 A 门外", instruction: "从匪家向 A 门移动。" },
+            { type: "throw", lineupId: "demo-d2-t-cross-smoke", title: "遮挡 A 过点", instruction: "查看示意瞄点后由玩家自行投掷。" },
+            { type: "move", title: "推进到 A 大拐角", instruction: "沿长廊前进并保留掩体。" },
+            { type: "throw", lineupId: "demo-d2-t-a-flash", title: "辅助进入 A 区", instruction: "确认队友准备后再投闪。" }
+          ], status: "demo"
+        },
+        {
+          id: "demo-d2-plan-t-mid", side: "T", objective: "t-mid", title: "中路控制准备", summary: "示意：出生烟辅助 A 小，再隔断警家。",
+          eligibleSpawnAnchorIds: ["dust2-t-01","dust2-t-02","dust2-t-03","dust2-t-04","dust2-t-05"],
+          requiredLoadout: ["烟雾弹 ×1"], difficulty: "中等", endLocationLabel: "中路匪口侧",
+          variantNotes: { "dust2-t-03": "中央出生适合直接观察中路。", "dust2-t-01": "先避让进入 B 洞的队友。" },
+          steps: [
+            { type: "throw", lineupId: "demo-d2-t-xbox-smoke", title: "遮挡 X 箱区域", instruction: "演示出生烟；正式数据尚未加入。" },
+            { type: "move", title: "进入中路", instruction: "移动到中路匪口侧起投站。" },
+            { type: "throw", lineupId: "demo-d2-t-ct-smoke", title: "隔断警家", instruction: "根据队友路线决定是否投掷。" }
+          ], status: "demo"
+        },
+        {
+          id: "demo-d2-plan-t-b", side: "T", objective: "t-b", title: "B 洞推进准备", summary: "示意：进入 B 洞后隔断 B 门。",
+          eligibleSpawnAnchorIds: ["dust2-t-01","dust2-t-02","dust2-t-03","dust2-t-04","dust2-t-05"],
+          requiredLoadout: ["烟雾弹 ×1"], difficulty: "简单", endLocationLabel: "B 洞出口",
+          variantNotes: { "dust2-t-01": "B 侧出生最接近洞口路线。", "dust2-t-05": "A 大侧出生移动距离更长。" },
+          steps: [
+            { type: "move", title: "进入 B 洞", instruction: "沿左侧路线移动到 B 洞内。" },
+            { type: "throw", lineupId: "demo-d2-t-b-doors-smoke", title: "遮挡 B 门", instruction: "确认队友准备推进后再投掷。" }
+          ], status: "demo"
+        },
+        {
+          id: "demo-d2-plan-ct-a", side: "CT", objective: "ct-a", title: "A 区延缓路线", summary: "示意：快速到 A 区并用火延缓 A 大。",
+          eligibleSpawnAnchorIds: ["dust2-ct-01","dust2-ct-02","dust2-ct-03","dust2-ct-04","dust2-ct-05"],
+          requiredLoadout: ["燃烧弹 ×1"], difficulty: "简单", endLocationLabel: "A 包点",
+          variantNotes: { "dust2-ct-05": "A 侧出生最适合第一时间道具。", "dust2-ct-01": "B 侧出生不适合承担首颗 A 大道具。" },
+          steps: [
+            { type: "move", title: "进入 A 包点", instruction: "从警家向 A 区移动。" },
+            { type: "throw", lineupId: "demo-d2-ct-long-fire", title: "延缓 A 大", instruction: "查看示意瞄点后由玩家自行投掷。" }
+          ], status: "demo"
+        },
+        {
+          id: "demo-d2-plan-ct-mid", side: "CT", objective: "ct-mid", title: "中路延缓路线", summary: "示意：先改变中门视线，再压制 A 小。",
+          eligibleSpawnAnchorIds: ["dust2-ct-01","dust2-ct-02","dust2-ct-03","dust2-ct-04","dust2-ct-05"],
+          requiredLoadout: ["烟雾弹 ×1","手雷 ×1"], difficulty: "中等", endLocationLabel: "警家中央",
+          variantNotes: { "dust2-ct-03": "中央出生更接近中路。", "dust2-ct-05": "A 侧出生可优先处理 A 小。" },
+          steps: [
+            { type: "throw", lineupId: "demo-d2-ct-mid-smoke", title: "改变中门视线", instruction: "根据队友站位决定是否补烟。" },
+            { type: "throw", lineupId: "demo-d2-ct-short-he", title: "压制 A 小", instruction: "确认信息后再投掷手雷。" }
+          ], status: "demo"
+        },
+        {
+          id: "demo-d2-plan-ct-b", side: "CT", objective: "ct-b", title: "B 区防快路线", summary: "示意：先火封 B 洞，再准备反清闪。",
+          eligibleSpawnAnchorIds: ["dust2-ct-01","dust2-ct-02","dust2-ct-03","dust2-ct-04","dust2-ct-05"],
+          requiredLoadout: ["燃烧弹 ×1","闪光弹 ×1"], difficulty: "简单", endLocationLabel: "B 包点",
+          variantNotes: { "dust2-ct-01": "B 侧出生最接近防快位置。", "dust2-ct-05": "A 侧出生到 B 区距离更长。" },
+          steps: [
+            { type: "move", title: "进入 B 包点", instruction: "从警家沿 B 门方向移动。" },
+            { type: "throw", lineupId: "demo-d2-ct-tunnel-fire", title: "延缓 B 洞", instruction: "先封锁出口并等待队友。" },
+            { type: "throw", lineupId: "demo-d2-ct-tunnel-flash", title: "辅助反清", instruction: "确认队友背闪后再投掷。" }
+          ], status: "demo"
+        }
+      ]
+    };
+
+    const MAP_CATALOG = Object.freeze({ mirage: MIRAGE_DATA, dust2: DUST2_DATA });
+    let MAP_DATA = MIRAGE_DATA;
+
+    const DEFAULT_STATE = {
+      schemaVersion: 1,
+      mapId: "mirage",
+      mode: "nearby",
+      side: "T",
+      grenadeFilter: "all",
+      favoritesOnly: false,
+      favorites: [],
+      notes: {},
+      recent: [],
+      currentPoint: null,
+      selectedSpawnId: null,
+      selectedObjective: null,
+      activePlanId: null,
+      planStepIndex: 0
+    };
+
+    const elements = {
+      radar: document.getElementById("radar"),
+      radarImage: document.getElementById("radarImage"),
+      mapSelect: document.getElementById("mapSelect"),
+      zoneLayer: document.getElementById("zoneLayer"),
+      routeLayer: document.getElementById("routeLayer"),
+      dynamicLayer: document.getElementById("dynamicLayer"),
+      filterRow: document.getElementById("filterRow"),
+      mapInstruction: document.getElementById("mapInstruction"),
+      mapSubInstruction: document.getElementById("mapSubInstruction"),
+      panelEyebrow: document.getElementById("panelEyebrow"),
+      panelTitle: document.getElementById("panelTitle"),
+      panelDescription: document.getElementById("panelDescription"),
+      searchRow: document.getElementById("searchRow"),
+      searchInput: document.getElementById("searchInput"),
+      favoriteOnlyButton: document.getElementById("favoriteOnlyButton"),
+      nearbyPanel: document.getElementById("nearbyPanel"),
+      openingPanel: document.getElementById("openingPanel"),
+      locationName: document.getElementById("locationName"),
+      locationCode: document.getElementById("locationCode"),
+      resultCount: document.getElementById("resultCount"),
+      nearbyResults: document.getElementById("nearbyResults"),
+      spawnGrid: document.getElementById("spawnGrid"),
+      objectiveGrid: document.getElementById("objectiveGrid"),
+      openingResult: document.getElementById("openingResult"),
+      newRoundButton: document.getElementById("newRoundButton"),
+      detailDialog: document.getElementById("detailDialog"),
+      detailCode: document.getElementById("detailCode"),
+      detailTitle: document.getElementById("detailTitle"),
+      detailMeta: document.getElementById("detailMeta"),
+      frameArt: document.getElementById("frameArt"),
+      detailTechnique: document.getElementById("detailTechnique"),
+      detailPurpose: document.getElementById("detailPurpose"),
+      noteBox: document.getElementById("noteBox"),
+      favoriteButton: document.getElementById("favoriteButton"),
+      saveNoteButton: document.getElementById("saveNoteButton"),
+      closeDialogButton: document.getElementById("closeDialogButton"),
+      toast: document.getElementById("toast")
+    };
+
+    let state = loadUserState();
+    MAP_DATA = MAP_CATALOG[state.mapId] || MIRAGE_DATA;
+    let activeLineupId = null;
+    let activeFrame = "aim";
+    let toastTimer = null;
+    let lastNearbyGroups = [];
+
+    const dataValidationErrors = Object.values(MAP_CATALOG).flatMap(function(mapData) {
+      return validateMapData(mapData).errors.map(function(error) { return mapData.mapId + "：" + error; });
+    });
+    if (dataValidationErrors.length) {
+      document.body.innerHTML = "<main style='padding:32px;color:#e9e1cd;font-family:system-ui'><h1>内容数据无法载入</h1><p>" + escapeText(dataValidationErrors.join("；")) + "</p></main>";
+      throw new Error(dataValidationErrors.join("; "));
+    }
+
+    initialize();
+
+    function initialize() {
+      renderZones();
+      wireControls();
+      applyStateToControls();
+      render();
+    }
+
+    function wireControls() {
+      document.querySelectorAll("[data-mode]").forEach(function(button) {
+        button.addEventListener("click", function() {
+          state.mode = button.dataset.mode;
+          saveUserState(state);
+          render();
+        });
+      });
+
+      elements.mapSelect.addEventListener("change", function() {
+        const nextMap = MAP_CATALOG[elements.mapSelect.value];
+        if (!nextMap) return;
+        state.mapId = nextMap.mapId;
+        MAP_DATA = nextMap;
+        state.currentPoint = null;
+        state.selectedSpawnId = null;
+        state.selectedObjective = null;
+        state.activePlanId = null;
+        state.planStepIndex = 0;
+        elements.searchInput.value = "";
+        renderZones();
+        saveUserState(state);
+        render();
+        showToast("已切换到 " + MAP_DATA.displayName + "，请直接点击雷达位置。");
+      });
+
+      document.querySelectorAll("[data-side]").forEach(function(button) {
+        button.addEventListener("click", function() {
+          state.side = button.dataset.side;
+          state.selectedSpawnId = null;
+          state.selectedObjective = null;
+          state.activePlanId = null;
+          state.planStepIndex = 0;
+          saveUserState(state);
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-filter]").forEach(function(button) {
+        button.addEventListener("click", function() {
+          state.grenadeFilter = button.dataset.filter;
+          saveUserState(state);
+          render();
+        });
+      });
+
+      elements.radar.addEventListener("click", function(event) {
+        if (state.mode !== "nearby") {
+          showToast("开局模式请点出生圆点，应用不会自动识别身位。");
+          return;
+        }
+        const point = clientPointToRadar(event.clientX, event.clientY);
+        state.currentPoint = { x: Math.round(point.x), y: Math.round(point.y), layerId: "main" };
+        saveUserState(state);
+        render();
+      });
+
+      elements.searchInput.addEventListener("input", renderNearby);
+      elements.favoriteOnlyButton.addEventListener("click", function() {
+        state.favoritesOnly = !state.favoritesOnly;
+        saveUserState(state);
+        renderNearby();
+      });
+
+      elements.newRoundButton.addEventListener("click", function() {
+        state.selectedSpawnId = null;
+        state.selectedObjective = null;
+        state.activePlanId = null;
+        state.planStepIndex = 0;
+        saveUserState(state);
+        render();
+        showToast("已开始新回合：出生点和路线进度已清除。");
+      });
+
+      elements.closeDialogButton.addEventListener("click", function() { elements.detailDialog.close(); });
+      elements.detailDialog.addEventListener("click", function(event) {
+        if (event.target === elements.detailDialog) elements.detailDialog.close();
+      });
+      document.querySelectorAll("[data-frame]").forEach(function(button) {
+        button.addEventListener("click", function() {
+          activeFrame = button.dataset.frame;
+          renderDetailFrame();
+        });
+      });
+      elements.favoriteButton.addEventListener("click", toggleActiveFavorite);
+      elements.saveNoteButton.addEventListener("click", saveActiveNote);
+    }
+
+    function render() {
+      MAP_DATA = MAP_CATALOG[state.mapId] || MIRAGE_DATA;
+      elements.radarImage.setAttribute("href", MAP_DATA.radarDataUri);
+      elements.radar.setAttribute("aria-label", MAP_DATA.displayName + " 官方游戏雷达");
+      applyStateToControls();
+      const nearby = state.mode === "nearby";
+      elements.nearbyPanel.classList.toggle("panel-hidden", !nearby);
+      elements.openingPanel.classList.toggle("panel-hidden", nearby);
+      elements.searchRow.classList.toggle("panel-hidden", !nearby);
+      elements.filterRow.classList.toggle("panel-hidden", !nearby);
+      elements.panelEyebrow.textContent = nearby ? "NEARBY / MANUAL POSITION" : "OPENING / MANUAL SPAWN";
+      elements.panelTitle.textContent = nearby ? "从这里能投什么" : "本回合个人开局";
+      elements.panelDescription.textContent = nearby
+        ? "点地图后，只列出当前区域与相邻通路的起投站。"
+        : "先认出生点，再选择 A / 中路 / B；所有步骤都由玩家手动推进。";
+      elements.mapInstruction.textContent = nearby ? "直接点击 " + MAP_DATA.displayName + " 雷达，标记当前位置" : "点击出生圆点，确认本回合物理身位";
+      elements.mapSubInstruction.textContent = nearby
+        ? "只使用你的手动点击；不读取游戏、屏幕、日志或配置。"
+        : "编号只属于本原型；第一视角示意和雷达位置共同确认。";
+      elements.radar.style.cursor = nearby ? "crosshair" : "default";
+      elements.routeLayer.replaceChildren();
+      if (nearby) {
+        renderNearby();
+      } else {
+        renderOpening();
+      }
+    }
+
+    function applyStateToControls() {
+      elements.mapSelect.value = state.mapId;
+      document.querySelectorAll("[data-mode]").forEach(function(button) {
+        button.classList.toggle("is-active", button.dataset.mode === state.mode);
+      });
+      document.querySelectorAll("[data-side]").forEach(function(button) {
+        button.classList.toggle("is-active", button.dataset.side === state.side);
+      });
+      document.querySelectorAll("[data-filter]").forEach(function(button) {
+        button.classList.toggle("is-active", button.dataset.filter === state.grenadeFilter);
+      });
+      elements.favoriteOnlyButton.classList.toggle("is-active", state.favoritesOnly);
+      elements.favoriteOnlyButton.setAttribute("aria-pressed", String(state.favoritesOnly));
+      elements.favoriteOnlyButton.textContent = state.favoritesOnly ? "★" : "☆";
+    }
+
+    function renderZones() {
+      elements.zoneLayer.replaceChildren();
+      MAP_DATA.zones.forEach(function(zone) {
+        const group = makeSvg("g");
+        const polygon = makeSvg("polygon");
+        polygon.setAttribute("points", zone.polygon.map(function(point) { return point.join(","); }).join(" "));
+        polygon.setAttribute("class", "zone-shape");
+        polygon.dataset.zoneId = zone.id;
+        const center = polygonCenter(zone.polygon);
+        const label = makeSvg("text");
+        label.setAttribute("x", String(center.x));
+        label.setAttribute("y", String(center.y));
+        label.setAttribute("class", "zone-label");
+        label.textContent = zone.label;
+        group.append(polygon, label);
+        elements.zoneLayer.append(group);
+      });
+    }
+
+    function renderNearby() {
+      elements.dynamicLayer.replaceChildren();
+      clearZoneHighlights();
+
+      const query = String(elements.searchInput.value || "").trim().toLowerCase();
+      if (!state.currentPoint && !query && !state.favoritesOnly) {
+        elements.locationName.textContent = "尚未选择位置";
+        elements.locationCode.textContent = "CLICK RADAR TO LOCATE";
+        elements.resultCount.textContent = "0 个起投站";
+        elements.nearbyResults.innerHTML = emptyMarkup("先在地图上点一下", "系统会从当前区域和相邻通路中找到可用起投站，不会读取游戏位置。");
+        return;
+      }
+
+      const response = queryNearbyLineups({
+        point: state.currentPoint,
+        side: state.side,
+        grenadeFilter: state.grenadeFilter,
+        searchQuery: query,
+        favoritesOnly: state.favoritesOnly,
+        favoriteIds: state.favorites
+      });
+      lastNearbyGroups = response.groups;
+
+      if (response.zone) {
+        highlightZones(response.zone);
+        elements.locationName.textContent = response.zone.label;
+        elements.locationCode.textContent = "MANUAL POINT · " + Math.round(state.currentPoint.x) + " / " + Math.round(state.currentPoint.y);
+        drawCurrentPoint(state.currentPoint);
+      } else if (query || state.favoritesOnly) {
+        elements.locationName.textContent = query ? "全图搜索" : "我的收藏";
+        elements.locationCode.textContent = "NO POSITION FILTER";
+      } else {
+        elements.locationName.textContent = "地图边界外";
+        elements.locationCode.textContent = "SELECT A VALID AREA";
+      }
+
+      response.groups.forEach(drawStationMarker);
+      elements.resultCount.textContent = response.groups.length + " 个起投站";
+
+      if (!response.groups.length) {
+        elements.nearbyResults.innerHTML = emptyMarkup("没有匹配内容", "调整地图位置、道具类型或搜索词。演示目录不会用不可靠近似结果冒充匹配。");
+        return;
+      }
+
+      elements.nearbyResults.replaceChildren();
+      response.groups.forEach(function(group) {
+        const section = document.createElement("section");
+        section.className = "station-group" + (group.proximity === "far" ? " is-far" : "");
+        section.id = "station-" + group.station.id;
+
+        const head = document.createElement("div");
+        head.className = "station-head";
+        const tag = document.createElement("div");
+        tag.className = "station-tag";
+        const title = document.createElement("strong");
+        title.textContent = group.station.label;
+        tag.append(title);
+        const meta = document.createElement("span");
+        meta.textContent = group.proximity === "far" ? "较远可用 · " + group.lineups.length + " 条" : group.zoneLabel + " · " + group.lineups.length + " 条";
+        head.append(tag, meta);
+
+        const list = document.createElement("div");
+        list.className = "lineup-list";
+        group.lineups.forEach(function(lineup) {
+          list.append(createLineupRow(lineup));
+        });
+        section.append(head, list);
+        elements.nearbyResults.append(section);
+      });
+    }
+
+    function renderOpening() {
+      elements.dynamicLayer.replaceChildren();
+      clearZoneHighlights();
+      renderSpawnGrid();
+      renderObjectiveGrid();
+
+      MAP_DATA.spawnAnchors.filter(function(spawn) { return spawn.side === state.side; }).forEach(drawSpawnMarker);
+      const selectedSpawn = getSpawnById(state.selectedSpawnId);
+      if (selectedSpawn) {
+        const zone = findZoneForPoint(selectedSpawn.point, MAP_DATA.zones);
+        if (zone) highlightZones(zone);
+      }
+
+      if (!state.selectedSpawnId || !state.selectedObjective) {
+        elements.openingResult.innerHTML = emptyMarkup(
+          state.selectedSpawnId ? "再选择一个开局目标" : "先选择本回合出生点",
+          "应用不会读取出生位置；请同时参考雷达圆点与第一视角示意。"
+        );
+        return;
+      }
+
+      const plan = resolveOpeningPlan({
+        side: state.side,
+        spawnAnchorId: state.selectedSpawnId,
+        objective: state.selectedObjective
+      });
+
+      if (!plan) {
+        elements.openingResult.innerHTML = emptyMarkup("当前身位暂无该目标方案", "返回附近瞄点查看单颗道具；应用不会临时拼接未经编排的战术。");
+        return;
+      }
+
+      state.activePlanId = plan.id;
+      if (state.planStepIndex > plan.steps.length) state.planStepIndex = 0;
+      saveUserState(state);
+      drawPlanRoute(plan);
+      if (state.planStepIndex > 0) {
+        renderPlanStepper(plan);
+      } else {
+        renderPlanPreview(plan);
+      }
+    }
+
+    function renderSpawnGrid() {
+      elements.spawnGrid.replaceChildren();
+      MAP_DATA.spawnAnchors.filter(function(spawn) { return spawn.side === state.side; }).forEach(function(spawn) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "spawn-card" + (spawn.id === state.selectedSpawnId ? " is-active" : "");
+        button.setAttribute("aria-pressed", String(spawn.id === state.selectedSpawnId));
+        const view = document.createElement("div");
+        view.className = "spawn-view";
+        const cross = document.createElement("i");
+        cross.className = "spawn-cross";
+        cross.style.setProperty("--spawn-x", spawn.viewX);
+        cross.style.setProperty("--spawn-y", spawn.viewY);
+        view.append(cross);
+        const copy = document.createElement("div");
+        copy.className = "spawn-copy";
+        const code = document.createElement("strong");
+        code.textContent = spawn.displayCode;
+        const label = document.createElement("span");
+        label.textContent = spawn.landmarkLabel;
+        copy.append(code, label);
+        button.append(view, copy);
+        button.addEventListener("click", function() { selectSpawn(spawn.id); });
+        elements.spawnGrid.append(button);
+      });
+    }
+
+    function renderObjectiveGrid() {
+      const objectives = state.side === "T"
+        ? [{ id: "t-a", label: "A 进攻" }, { id: "t-mid", label: "中路控制" }, { id: "t-b", label: "B 进攻" }]
+        : [{ id: "ct-a", label: "A 防守" }, { id: "ct-mid", label: "中路争夺" }, { id: "ct-b", label: "B 防守" }];
+      elements.objectiveGrid.replaceChildren();
+      objectives.forEach(function(objective) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "objective-button" + (objective.id === state.selectedObjective ? " is-active" : "");
+        button.textContent = objective.label;
+        button.disabled = !state.selectedSpawnId;
+        button.addEventListener("click", function() {
+          state.selectedObjective = objective.id;
+          state.planStepIndex = 0;
+          state.activePlanId = null;
+          saveUserState(state);
+          renderOpening();
+        });
+        elements.objectiveGrid.append(button);
+      });
+    }
+
+    function renderPlanPreview(plan) {
+      const selectedSpawn = getSpawnById(state.selectedSpawnId);
+      const wrap = document.createElement("article");
+      wrap.className = "plan-card";
+      const head = document.createElement("div");
+      head.className = "plan-head";
+      const code = document.createElement("div");
+      code.className = "route-code";
+      code.textContent = plan.id.toUpperCase() + " · DEMO";
+      const title = document.createElement("h2");
+      title.textContent = plan.title;
+      const summary = document.createElement("p");
+      summary.textContent = plan.summary + " " + (plan.variantNotes[selectedSpawn.id] || "");
+      const loadout = document.createElement("div");
+      loadout.className = "loadout";
+      plan.requiredLoadout.forEach(function(item) {
+        const chip = document.createElement("span");
+        chip.textContent = item;
+        loadout.append(chip);
+      });
+      head.append(code, title, summary, loadout);
+
+      const steps = document.createElement("div");
+      steps.className = "plan-steps";
+      plan.steps.forEach(function(step, index) {
+        const row = document.createElement("div");
+        row.className = "plan-step";
+        row.dataset.step = String(index + 1);
+        const strong = document.createElement("strong");
+        strong.textContent = step.title;
+        const detail = document.createElement("span");
+        detail.textContent = step.instruction;
+        row.append(strong, detail);
+        steps.append(row);
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "plan-actions";
+      const start = document.createElement("button");
+      start.type = "button";
+      start.className = "primary-button";
+      start.textContent = "开始手动路线";
+      start.addEventListener("click", function() {
+        state.planStepIndex = 1;
+        saveUserState(state);
+        renderOpening();
+      });
+      actions.append(start);
+      wrap.append(head, steps, actions);
+      elements.openingResult.replaceChildren(wrap);
+    }
+
+    function renderPlanStepper(plan) {
+      const index = Math.min(Math.max(state.planStepIndex - 1, 0), plan.steps.length);
+      if (index >= plan.steps.length) {
+        const done = document.createElement("div");
+        done.className = "stepper";
+        done.innerHTML = "<div class='stepper-meta'><span>ROUTE COMPLETE</span><span>" + escapeText(plan.endLocationLabel) + "</span></div><h3>路线步骤已查看完</h3><p>这只代表你手动推进了笔记步骤，应用不知道游戏内是否实际完成。下一回合请重新选择出生点。</p>";
+        const reset = document.createElement("button");
+        reset.type = "button";
+        reset.className = "primary-button";
+        reset.textContent = "结束并准备新回合";
+        reset.addEventListener("click", function() { elements.newRoundButton.click(); });
+        done.append(reset);
+        elements.openingResult.replaceChildren(done);
+        return;
+      }
+
+      const step = plan.steps[index];
+      const wrap = document.createElement("div");
+      wrap.className = "stepper";
+      const meta = document.createElement("div");
+      meta.className = "stepper-meta";
+      meta.innerHTML = "<span>STEP " + (index + 1) + " / " + plan.steps.length + "</span><span>" + escapeText(plan.difficulty) + "</span>";
+      const track = document.createElement("div");
+      track.className = "progress-track";
+      const fill = document.createElement("i");
+      fill.style.width = Math.round(((index + 1) / plan.steps.length) * 100) + "%";
+      track.append(fill);
+      const title = document.createElement("h3");
+      title.textContent = step.title;
+      const copy = document.createElement("p");
+      copy.textContent = step.instruction;
+      const actions = document.createElement("div");
+      actions.className = "stepper-actions";
+
+      if (step.type === "throw") {
+        const view = document.createElement("button");
+        view.type = "button";
+        view.className = "secondary-button";
+        view.textContent = "查看瞄点";
+        view.addEventListener("click", function() { openLineup(step.lineupId); });
+        actions.append(view);
+      } else {
+        const marker = document.createElement("span");
+        marker.className = "meta-chip";
+        marker.textContent = "移动步骤";
+        actions.append(marker);
+      }
+
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "primary-button";
+      next.textContent = index === plan.steps.length - 1 ? "已完成，结束路线" : "已完成，下一步";
+      next.addEventListener("click", function() {
+        state.planStepIndex += 1;
+        saveUserState(state);
+        renderOpening();
+      });
+      actions.append(next);
+      wrap.append(meta, track, title, copy, actions);
+      elements.openingResult.replaceChildren(wrap);
+    }
+
+    function queryNearbyLineups(context) {
+      let candidates = MAP_DATA.lineups.filter(function(lineup) {
+        const permittedStatus = lineup.status === "active" || (DEMO_MODE && lineup.status === "demo");
+        const matchesSide = lineup.side === context.side;
+        const matchesGrenade = context.grenadeFilter === "all" || lineup.grenadeType === context.grenadeFilter;
+        const favoriteMatch = !context.favoritesOnly || context.favoriteIds.includes(lineup.id);
+        const station = getStationById(lineup.startStationId);
+        const haystack = [lineup.targetLabel, lineup.purpose, station.label].concat(station.aliases).join(" ").toLowerCase();
+        const searchMatch = !context.searchQuery || haystack.includes(context.searchQuery);
+        return permittedStatus && matchesSide && matchesGrenade && favoriteMatch && searchMatch;
+      });
+
+      let zone = context.point ? findZoneForPoint(context.point, MAP_DATA.zones) : null;
+      let allowedZoneIds = zone ? [zone.id].concat(zone.neighborZoneIds) : [];
+      let grouped = groupLineupsByStation(candidates);
+      let selectedGroups = [];
+
+      if (context.point && zone && !context.searchQuery && !context.favoritesOnly) {
+        selectedGroups = grouped.filter(function(group) {
+          return allowedZoneIds.includes(group.station.zoneId);
+        }).map(function(group) {
+          return {
+            station: group.station,
+            lineups: group.lineups,
+            proximity: group.station.zoneId === zone.id ? "current" : "neighbor",
+            zoneLabel: getZoneById(group.station.zoneId).label,
+            distance: distanceSquared(context.point, group.station.point)
+          };
+        }).sort(groupSort).slice(0, 6);
+
+        if (!selectedGroups.length) {
+          selectedGroups = grouped.map(function(group) {
+            return {
+              station: group.station,
+              lineups: group.lineups,
+              proximity: "far",
+              zoneLabel: getZoneById(group.station.zoneId).label,
+              distance: distanceSquared(context.point, group.station.point)
+            };
+          }).sort(groupSort).slice(0, 3);
+        }
+      } else {
+        selectedGroups = grouped.map(function(group) {
+          return {
+            station: group.station,
+            lineups: group.lineups,
+            proximity: "search",
+            zoneLabel: getZoneById(group.station.zoneId).label,
+            distance: context.point ? distanceSquared(context.point, group.station.point) : 0
+          };
+        }).sort(function(a, b) {
+          const favoriteA = a.lineups.some(function(lineup) { return context.favoriteIds.includes(lineup.id); }) ? 1 : 0;
+          const favoriteB = b.lineups.some(function(lineup) { return context.favoriteIds.includes(lineup.id); }) ? 1 : 0;
+          return favoriteB - favoriteA || groupSort(a, b);
+        }).slice(0, 12);
+      }
+
+      return { zone: zone, groups: selectedGroups };
+    }
+
+    function groupLineupsByStation(lineups) {
+      const groups = new Map();
+      lineups.forEach(function(lineup) {
+        if (!groups.has(lineup.startStationId)) {
+          groups.set(lineup.startStationId, { station: getStationById(lineup.startStationId), lineups: [] });
+        }
+        groups.get(lineup.startStationId).lineups.push(lineup);
+      });
+      groups.forEach(function(group) {
+        group.lineups.sort(function(a, b) {
+          return b.editorialPriority - a.editorialPriority || a.id.localeCompare(b.id);
+        });
+      });
+      return Array.from(groups.values());
+    }
+
+    function groupSort(a, b) {
+      const bucket = { current: 0, neighbor: 1, search: 2, far: 3 };
+      const priorityA = Math.max.apply(null, a.lineups.map(function(item) { return item.editorialPriority; }));
+      const priorityB = Math.max.apply(null, b.lineups.map(function(item) { return item.editorialPriority; }));
+      return bucket[a.proximity] - bucket[b.proximity] || a.distance - b.distance || priorityB - priorityA || a.station.id.localeCompare(b.station.id);
+    }
+
+    function getSpawnLineups(context) {
+      return MAP_DATA.lineups.filter(function(lineup) {
+        return lineup.side === context.side &&
+          (lineup.status === "active" || (DEMO_MODE && lineup.status === "demo")) &&
+          lineup.eligibleSpawnAnchorIds.includes(context.spawnAnchorId);
+      });
+    }
+
+    function resolveOpeningPlan(context) {
+      return MAP_DATA.openingPlans.find(function(plan) {
+        return plan.side === context.side &&
+          plan.objective === context.objective &&
+          plan.eligibleSpawnAnchorIds.includes(context.spawnAnchorId) &&
+          (plan.status === "active" || (DEMO_MODE && plan.status === "demo"));
+      }) || null;
+    }
+
+    function validateMapData(mapData) {
+      const errors = [];
+      const allIds = new Set();
+      ["zones","spawnAnchors","startStations","lineups","openingPlans"].forEach(function(key) {
+        if (!Array.isArray(mapData[key])) errors.push(key + " 必须为数组");
+        (mapData[key] || []).forEach(function(item) {
+          if (!item.id || allIds.has(item.id)) errors.push("重复或缺失 ID：" + String(item.id));
+          allIds.add(item.id);
+        });
+      });
+      (mapData.zones || []).forEach(function(zone) {
+        if (!Array.isArray(zone.polygon) || zone.polygon.length < 3) errors.push("区域多边形无效：" + zone.id);
+        zone.neighborZoneIds.forEach(function(id) {
+          if (!mapData.zones.some(function(candidate) { return candidate.id === id; })) errors.push("未知邻接区域：" + id);
+        });
+      });
+      (mapData.spawnAnchors || []).forEach(function(spawn) {
+        if (!validPoint(spawn.point)) errors.push("出生坐标无效：" + spawn.id);
+      });
+      (mapData.startStations || []).forEach(function(station) {
+        if (!validPoint(station.point) || !mapData.zones.some(function(zone) { return zone.id === station.zoneId; })) errors.push("起投站无效：" + station.id);
+      });
+      (mapData.lineups || []).forEach(function(lineup) {
+        if (!mapData.startStations.some(function(station) { return station.id === lineup.startStationId; })) errors.push("瞄点引用未知起投站：" + lineup.id);
+        if (!validPoint(lineup.targetPoint)) errors.push("落点坐标无效：" + lineup.id);
+        if (!["smoke","flash","molotov","he"].includes(lineup.grenadeType)) errors.push("道具类型无效：" + lineup.id);
+      });
+      (mapData.openingPlans || []).forEach(function(plan) {
+        if (plan.requiredLoadout.length > 4) errors.push("购买清单超过单人携带上限：" + plan.id);
+        plan.steps.forEach(function(step) {
+          if (step.type === "throw" && !mapData.lineups.some(function(lineup) { return lineup.id === step.lineupId; })) errors.push("路线引用未知瞄点：" + plan.id);
+        });
+      });
+      return { ok: errors.length === 0, errors: errors };
+    }
+
+    function validPoint(point) {
+      return point && Number.isFinite(point.x) && Number.isFinite(point.y) && point.x >= 0 && point.x <= 1000 && point.y >= 0 && point.y <= 1000;
+    }
+
+    function findZoneForPoint(point, zones) {
+      if (!point) return null;
+      return zones.find(function(zone) {
+        return zone.layerId === point.layerId && pointInPolygon(point, zone.polygon);
+      }) || null;
+    }
+
+    function pointInPolygon(point, polygon) {
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i][0], yi = polygon[i][1];
+        const xj = polygon[j][0], yj = polygon[j][1];
+        const intersects = ((yi > point.y) !== (yj > point.y)) &&
+          (point.x < (xj - xi) * (point.y - yi) / ((yj - yi) || Number.EPSILON) + xi);
+        if (intersects) inside = !inside;
+      }
+      return inside;
+    }
+
+    function polygonCenter(polygon) {
+      const total = polygon.reduce(function(acc, point) {
+        acc.x += point[0];
+        acc.y += point[1];
+        return acc;
+      }, { x: 0, y: 0 });
+      return { x: total.x / polygon.length, y: total.y / polygon.length };
+    }
+
+    function distanceSquared(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return dx * dx + dy * dy;
+    }
+
+    function clientPointToRadar(clientX, clientY) {
+      const point = elements.radar.createSVGPoint();
+      point.x = clientX;
+      point.y = clientY;
+      const matrix = elements.radar.getScreenCTM();
+      return matrix ? point.matrixTransform(matrix.inverse()) : { x: 500, y: 500 };
+    }
+
+    function clearZoneHighlights() {
+      elements.zoneLayer.querySelectorAll(".zone-shape").forEach(function(shape) {
+        shape.classList.remove("is-current", "is-neighbor");
+      });
+    }
+
+    function highlightZones(zone) {
+      const current = elements.zoneLayer.querySelector('[data-zone-id="' + zone.id + '"]');
+      if (current) current.classList.add("is-current");
+      zone.neighborZoneIds.forEach(function(id) {
+        const neighbor = elements.zoneLayer.querySelector('[data-zone-id="' + id + '"]');
+        if (neighbor) neighbor.classList.add("is-neighbor");
+      });
+    }
+
+    function drawCurrentPoint(point) {
+      const group = makeSvg("g");
+      group.setAttribute("filter", "url(#markerGlow)");
+      const ring = makeSvg("circle");
+      ring.setAttribute("cx", point.x);
+      ring.setAttribute("cy", point.y);
+      ring.setAttribute("r", "44");
+      ring.setAttribute("class", "current-ring");
+      const dot = makeSvg("circle");
+      dot.setAttribute("cx", point.x);
+      dot.setAttribute("cy", point.y);
+      dot.setAttribute("r", "11");
+      dot.setAttribute("class", "current-dot");
+      group.append(ring, dot);
+      elements.dynamicLayer.append(group);
+    }
+
+    function drawStationMarker(group, index) {
+      const marker = makeSvg("g");
+      marker.setAttribute("class", "station-marker" + (group.proximity === "far" ? " is-far" : ""));
+      marker.setAttribute("role", "button");
+      marker.setAttribute("tabindex", "0");
+      marker.setAttribute("aria-label", group.station.label + "，" + group.lineups.length + " 条瞄点");
+      const halo = makeSvg("circle");
+      halo.setAttribute("cx", group.station.point.x);
+      halo.setAttribute("cy", group.station.point.y);
+      halo.setAttribute("r", "25");
+      halo.setAttribute("class", "marker-halo");
+      const core = makeSvg("circle");
+      core.setAttribute("cx", group.station.point.x);
+      core.setAttribute("cy", group.station.point.y);
+      core.setAttribute("r", "14");
+      core.setAttribute("class", "marker-core");
+      const text = makeSvg("text");
+      text.setAttribute("x", group.station.point.x);
+      text.setAttribute("y", group.station.point.y + 4);
+      text.textContent = String(index + 1);
+      marker.append(halo, core, text);
+      const activate = function(event) {
+        event.stopPropagation();
+        if (group.lineups.length === 1) {
+          openLineup(group.lineups[0].id);
+        } else {
+          const target = document.getElementById("station-" + group.station.id);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          showToast(group.station.label + " 有 " + group.lineups.length + " 条可选路线。");
+        }
+      };
+      marker.addEventListener("click", activate);
+      marker.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === " ") activate(event);
+      });
+      elements.dynamicLayer.append(marker);
+    }
+
+    function drawSpawnMarker(spawn, index) {
+      const marker = makeSvg("g");
+      marker.setAttribute("class", "spawn-marker" + (spawn.id === state.selectedSpawnId ? " is-selected" : ""));
+      marker.setAttribute("role", "button");
+      marker.setAttribute("tabindex", "0");
+      marker.setAttribute("aria-label", spawn.displayCode + " " + spawn.landmarkLabel);
+      const halo = makeSvg("circle");
+      halo.setAttribute("cx", spawn.point.x);
+      halo.setAttribute("cy", spawn.point.y);
+      halo.setAttribute("r", "28");
+      halo.setAttribute("class", "marker-halo");
+      const core = makeSvg("circle");
+      core.setAttribute("cx", spawn.point.x);
+      core.setAttribute("cy", spawn.point.y);
+      core.setAttribute("r", "17");
+      core.setAttribute("class", "marker-core");
+      const text = makeSvg("text");
+      text.setAttribute("x", spawn.point.x);
+      text.setAttribute("y", spawn.point.y + 4);
+      text.textContent = String(index + 1);
+      marker.append(halo, core, text);
+      const activate = function(event) {
+        event.stopPropagation();
+        selectSpawn(spawn.id);
+      };
+      marker.addEventListener("click", activate);
+      marker.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === " ") activate(event);
+      });
+      elements.dynamicLayer.append(marker);
+    }
+
+    function drawPlanRoute(plan) {
+      elements.routeLayer.replaceChildren();
+      const points = [];
+      const selectedSpawn = getSpawnById(state.selectedSpawnId);
+      if (selectedSpawn) points.push(selectedSpawn.point);
+      plan.steps.forEach(function(step) {
+        if (step.type === "throw") {
+          const lineup = getLineupById(step.lineupId);
+          const station = lineup ? getStationById(lineup.startStationId) : null;
+          if (station && !points.some(function(point) { return point.x === station.point.x && point.y === station.point.y; })) points.push(station.point);
+        }
+      });
+      if (points.length < 2) return;
+      const polyline = makeSvg("polyline");
+      polyline.setAttribute("points", points.map(function(point) { return point.x + "," + point.y; }).join(" "));
+      polyline.setAttribute("class", "route-line");
+      elements.routeLayer.append(polyline);
+    }
+
+    function selectSpawn(spawnId) {
+      state.selectedSpawnId = spawnId;
+      state.selectedObjective = null;
+      state.activePlanId = null;
+      state.planStepIndex = 0;
+      saveUserState(state);
+      renderOpening();
+      const spawn = getSpawnById(spawnId);
+      const exactLineups = getSpawnLineups({ side: state.side, spawnAnchorId: spawnId });
+      showToast(spawn.displayCode + " 已选择；演示目录含 " + exactLineups.length + " 条出生适配记录。");
+    }
+
+    function createLineupRow(lineup) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "lineup-row";
+      const icon = document.createElement("span");
+      icon.className = "nade-icon " + lineup.grenadeType;
+      icon.textContent = NADE_LABELS[lineup.grenadeType];
+      const main = document.createElement("span");
+      main.className = "lineup-main";
+      const title = document.createElement("strong");
+      title.textContent = lineup.targetLabel;
+      const copy = document.createElement("span");
+      copy.textContent = lineup.purpose;
+      main.append(title, copy);
+      const arrow = document.createElement("span");
+      arrow.className = "row-arrow";
+      arrow.textContent = state.favorites.includes(lineup.id) ? "★" : "→";
+      button.append(icon, main, arrow);
+      button.addEventListener("click", function() { openLineup(lineup.id); });
+      return button;
+    }
+
+    function openLineup(lineupId) {
+      const lineup = getLineupById(lineupId);
+      if (!lineup) return;
+      activeLineupId = lineupId;
+      activeFrame = "aim";
+      state.recent = [lineupId].concat(state.recent.filter(function(id) { return id !== lineupId; })).slice(0, 20);
+      saveUserState(state);
+      elements.detailCode.textContent = lineup.id.toUpperCase();
+      elements.detailTitle.textContent = getStationById(lineup.startStationId).label + " → " + lineup.targetLabel;
+      elements.detailTechnique.textContent = lineup.technique;
+      elements.detailPurpose.textContent = lineup.purpose;
+      elements.noteBox.value = state.notes[lineupId] || "";
+      renderDetailMeta(lineup);
+      renderDetailFrame();
+      updateFavoriteButton();
+      if (typeof elements.detailDialog.showModal === "function") {
+        elements.detailDialog.showModal();
+      } else {
+        elements.detailDialog.setAttribute("open", "");
+      }
+    }
+
+    function renderDetailMeta(lineup) {
+      elements.detailMeta.replaceChildren();
+      [
+        { text: lineup.side, className: "" },
+        { text: NADE_LABELS[lineup.grenadeType], className: "" },
+        { text: MAP_DATA.displayName, className: "" },
+        { text: lineup.authorStatus, className: " demo" }
+      ].forEach(function(item) {
+        const chip = document.createElement("span");
+        chip.className = "meta-chip" + item.className;
+        chip.textContent = item.text;
+        elements.detailMeta.append(chip);
+      });
+    }
+
+    function renderDetailFrame() {
+      const lineup = getLineupById(activeLineupId);
+      if (!lineup) return;
+      document.querySelectorAll("[data-frame]").forEach(function(button) {
+        button.classList.toggle("is-active", button.dataset.frame === activeFrame);
+        button.setAttribute("aria-selected", String(button.dataset.frame === activeFrame));
+      });
+
+      const labels = {
+        stance: { title: "站位示意", hint: lineup.stanceHint, accent: "#75bfc0" },
+        aim: { title: "瞄点示意", hint: lineup.aimHint, accent: "#e97945" },
+        result: { title: "落点示意", hint: lineup.resultHint, accent: "#91a078" }
+      };
+      const frame = labels[activeFrame];
+      const crossX = activeFrame === "stance" ? 260 : activeFrame === "aim" ? 610 : 720;
+      const crossY = activeFrame === "stance" ? 370 : activeFrame === "aim" ? 245 : 330;
+      elements.frameArt.innerHTML =
+        "<svg viewBox='0 0 960 540' aria-label='" + escapeText(frame.title) + "'>" +
+        "<defs><linearGradient id='frameSky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#273638'/><stop offset='1' stop-color='#101617'/></linearGradient></defs>" +
+        "<rect width='960' height='540' fill='url(#frameSky)'/>" +
+        "<path d='M0 390 L150 280 L310 325 L420 205 L600 300 L760 190 L960 270 L960 540 L0 540 Z' fill='#202a2c' stroke='#445456' stroke-width='3'/>" +
+        "<path d='M0 470 L300 405 L540 450 L960 370' fill='none' stroke='#607174' stroke-width='5' opacity='.55'/>" +
+        "<g opacity='.35' stroke='#75bfc0' stroke-width='2'><line x1='480' y1='0' x2='480' y2='540'/><line x1='0' y1='270' x2='960' y2='270'/></g>" +
+        "<circle cx='" + crossX + "' cy='" + crossY + "' r='24' fill='none' stroke='" + frame.accent + "' stroke-width='3'/>" +
+        "<line x1='" + (crossX - 38) + "' y1='" + crossY + "' x2='" + (crossX + 38) + "' y2='" + crossY + "' stroke='" + frame.accent + "' stroke-width='3'/>" +
+        "<line x1='" + crossX + "' y1='" + (crossY - 38) + "' x2='" + crossX + "' y2='" + (crossY + 38) + "' stroke='" + frame.accent + "' stroke-width='3'/>" +
+        "<rect x='38' y='38' width='430' height='100' rx='10' fill='rgba(15,20,21,.82)' stroke='#354345'/>" +
+        "<text x='60' y='75' fill='#e9e1cd' font-family='system-ui' font-size='24' font-weight='700'>" + escapeText(frame.title) + "</text>" +
+        "<foreignObject x='60' y='88' width='380' height='42'><div xmlns='http://www.w3.org/1999/xhtml' style='color:#aeb7b1;font:15px/1.4 system-ui'>" + escapeText(frame.hint) + "</div></foreignObject>" +
+        "</svg><span class='frame-watermark'>SCHEMATIC / NOT GAME CAPTURE</span>";
+    }
+
+    function toggleActiveFavorite() {
+      if (!activeLineupId) return;
+      if (state.favorites.includes(activeLineupId)) {
+        state.favorites = state.favorites.filter(function(id) { return id !== activeLineupId; });
+        showToast("已取消收藏。");
+      } else {
+        state.favorites = [activeLineupId].concat(state.favorites).slice(0, 100);
+        showToast("已加入本机收藏。");
+      }
+      saveUserState(state);
+      updateFavoriteButton();
+      if (state.mode === "nearby") renderNearby();
+    }
+
+    function updateFavoriteButton() {
+      const favorite = activeLineupId && state.favorites.includes(activeLineupId);
+      elements.favoriteButton.textContent = favorite ? "取消收藏" : "加入收藏";
+    }
+
+    function saveActiveNote() {
+      if (!activeLineupId) return;
+      const note = elements.noteBox.value.trim().slice(0, 500);
+      if (note) state.notes[activeLineupId] = note;
+      else delete state.notes[activeLineupId];
+      saveUserState(state);
+      showToast(note ? "备注已保存在本机。" : "空备注已清除。");
+    }
+
+    function loadUserState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!parsed || parsed.schemaVersion !== 1) return structuredCloneSafe(DEFAULT_STATE);
+        const mapId = typeof parsed.mapId === "string" && MAP_CATALOG[parsed.mapId] ? parsed.mapId : "mirage";
+        const activeMap = MAP_CATALOG[mapId];
+        return {
+          schemaVersion: 1,
+          mapId: mapId,
+          mode: ["nearby","opening"].includes(parsed.mode) ? parsed.mode : "nearby",
+          side: ["T","CT"].includes(parsed.side) ? parsed.side : "T",
+          grenadeFilter: ["all","smoke","flash","molotov","he"].includes(parsed.grenadeFilter) ? parsed.grenadeFilter : "all",
+          favoritesOnly: parsed.favoritesOnly === true,
+          favorites: Array.isArray(parsed.favorites) ? parsed.favorites.filter(validLineupId).slice(0, 100) : [],
+          notes: normalizeNotes(parsed.notes),
+          recent: Array.isArray(parsed.recent) ? parsed.recent.filter(validLineupId).slice(0, 20) : [],
+          currentPoint: validPoint(parsed.currentPoint) ? parsed.currentPoint : null,
+          selectedSpawnId: activeMap.spawnAnchors.some(function(spawn) { return spawn.id === parsed.selectedSpawnId; }) ? parsed.selectedSpawnId : null,
+          selectedObjective: typeof parsed.selectedObjective === "string" ? parsed.selectedObjective : null,
+          activePlanId: typeof parsed.activePlanId === "string" ? parsed.activePlanId : null,
+          planStepIndex: Number.isInteger(parsed.planStepIndex) && parsed.planStepIndex >= 0 ? parsed.planStepIndex : 0
+        };
+      } catch {
+        return structuredCloneSafe(DEFAULT_STATE);
+      }
+    }
+
+    function saveUserState(nextState) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+      } catch {
+        showToast("浏览器未允许本机存储；收藏和进度只保留到本次关闭。");
+      }
+    }
+
+    function normalizeNotes(candidate) {
+      if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return {};
+      const output = {};
+      Object.entries(candidate).slice(0, 100).forEach(function(entry) {
+        const id = entry[0], note = entry[1];
+        if (validLineupId(id) && typeof note === "string") output[id] = note.slice(0, 500);
+      });
+      return output;
+    }
+
+    function structuredCloneSafe(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function validLineupId(id) {
+      return typeof id === "string" && Object.values(MAP_CATALOG).some(function(mapData) {
+        return mapData.lineups.some(function(lineup) { return lineup.id === id; });
+      });
+    }
+
+    function getZoneById(id) { return MAP_DATA.zones.find(function(zone) { return zone.id === id; }) || null; }
+    function getStationById(id) { return MAP_DATA.startStations.find(function(station) { return station.id === id; }) || null; }
+    function getSpawnById(id) { return MAP_DATA.spawnAnchors.find(function(spawn) { return spawn.id === id; }) || null; }
+    function getLineupById(id) { return MAP_DATA.lineups.find(function(lineup) { return lineup.id === id; }) || null; }
+
+    function makeSvg(name) { return document.createElementNS(SVG_NS, name); }
+
+    function emptyMarkup(title, copy) {
+      return "<div class='empty-state'><div><div class='locator' aria-hidden='true'></div><strong>" + escapeText(title) + "</strong><p>" + escapeText(copy) + "</p></div></div>";
+    }
+
+    function escapeText(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.classList.add("is-visible");
+      toastTimer = window.setTimeout(function() {
+        elements.toast.classList.remove("is-visible");
+      }, 2200);
+    }
+  </script>
+</body>
+</html>

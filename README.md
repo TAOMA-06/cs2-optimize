@@ -1,61 +1,41 @@
-# OPT / LAB
+# OPT / LAB 仓库
 
-本仓库的主产品是 **OPT / LAB Windows 游戏优化工作台**，而不是单独的灵敏度网页。应用面向 Windows 11 x64、兼容 Windows 10 x64；内置的 CS2 灵敏度实验室只是其中一个无管理员权限的校准子模块。开赛准备模块把 Windows、显卡、Steam、完美世界竞技平台与 5E 的可信步骤整理成适配方案。Windows 10 已结束常规支持，不能作为首选发布环境。
+本仓库按三个同级产品目录组织：
 
-直接打开仓库根目录的 `index.html` 会进入 OPT / LAB 应用；网页工作台的正式入口是 `web/index.html`。
+| 目录 | 产品 | 职责 |
+|---|---|---|
+| [`opt-lab/`](opt-lab/README.md) | OPT / LAB 载体 | Windows 游戏优化工作台外壳、WinUI 宿主、Broker 与开赛准备 |
+| [`cs2-sensitivity/`](cs2-sensitivity/README.md) | CS2 灵敏度实验室 | 独立离线校准工具，也可由载体 iframe 加载 |
+| [`cs2-lineups/`](cs2-lineups/README.md) | CS2 投掷物瞄点 | 独立离线雷达目录，也可由载体 iframe 加载 |
 
-## 当前交付状态
+根目录 `index.html` 只负责进入载体。`cs2-sensitivity-lab.html`、`cs2-sensitivity-friend.html`、`cs2-lineups-map.html` 是旧地址兼容跳转，不是实现源文件。
 
-- 可直接预览的复合产品外壳：总览流程中心、三分钟开赛准备、模块库、CS2 实验室、本机诊断、恢复中心、运行记录和设置。
-- 开赛准备会按 Windows 版本、显卡品牌和游戏平台生成快速/完整方案，保存用户确认进度，并提供官方来源和验证步骤。
-- Windows 宿主只允许打开编译内置的系统设置页和官方资料；网页不能构造任意 URI，也不会自行修改设置。
-- 外壳通过版本化握手区分 Windows 桌面宿主、浏览器预览和宿主失联；只有收到原生成功回执后才显示本机动作已完成。
-- 总览把环境确认、快速检查、灵敏度基线和恢复状态串成一条可继续的开赛流程；环境变化会使先前确认自动失效。
-- 本机诊断页只展示宿主主动提供的系统、架构、版本和能力边界，不扫描进程、平台账号或游戏文件。
-- 灵敏度实验室的正式模块入口是 `web/modules/cs2-sensitivity/index.html`；仍可独立离线打开，但产品、测试和 Windows 打包都把它视为应用子功能。
-- 根目录旧灵敏度文件只保留为兼容跳转，既有书签不会直接失效，也不再承担仓库主入口职责。
-- Windows WinUI/WebView2 宿主、模块协议、事务日志和 Broker 源码骨架已建立。
-- **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。** 自动化底座会拒绝未知动作，不能把架构代码误认为系统优化已生效。
-- 当前 Broker 使用当前用户限定的本地命名管道，只发布只读机器摘要；管理员启动器、服务安装、代码签名和真实写入动作属于 Windows 发布门禁，尚未实现。
+工具源码不放进 `opt-lab/web/`。预览服务器和 Windows 打包在运行时把产品映射到 `/modules/<id>/`。
 
 ## 本地预览与检查
 
 ```bash
 node scripts/serve-preview.mjs
-node --test tests/*.test.mjs
+node --test opt-lab/tests/*.test.mjs cs2-sensitivity/tests/*.test.mjs
 node scripts/check-web.mjs
 ```
 
-预览服务器会输出本机 URL。它只读取工作区文件，不上传任何数据。
+预览地址：
 
-## Windows 构建前提
+- 载体：http://127.0.0.1:4173/
+- 灵敏度：http://127.0.0.1:4173/modules/cs2-sensitivity/
+- 投掷物瞄点：http://127.0.0.1:4173/modules/cs2-lineups/
 
-在 Windows 上安装 .NET 10 SDK、Visual Studio 的 .NET Desktop Development 与 Windows App SDK/WinUI 工作负载，再执行：
+## Windows 构建
 
 ```powershell
 dotnet build OptLab.sln -c Release -p:Platform=x64
 ```
 
-当前 macOS 工作机未安装 .NET，也不能运行 WinUI/WebView2；本次在这里验证的是网页外壳、模块桥接和跨平台核心逻辑。Windows 打包、代码签名、Broker 服务安装及真实 UAC 流程必须在 Windows 设备上验收。
+当前 macOS 工作机未安装 .NET，也不能运行 WinUI/WebView2。Windows 打包、代码签名、Broker 服务安装及真实 UAC 流程必须在 Windows 设备上验收。
 
-## 安全模型
+## 产品边界
 
-- 普通 UI 永远不以管理员身份运行。
-- 网页模块只能经结构化消息与宿主通信，不能请求任意命令、脚本或可执行文件。
-- Broker 只接受宿主编译进来的白名单动作；首版白名单只有诊断动作。
-- 每个未来写入动作必须先记录原值、再应用、再验证；失败时逆序恢复，并在恢复中心留痕。
-- 更新模块使用固定公钥验证的 detached RSA-PSS 签名；未签名模块不加载。
-
-## 项目结构
-
-- `index.html`：仓库级应用入口，跳转到正式 OPT / LAB 工作台。
-- `web/`：可离线预览的 OPT / LAB 产品外壳和内置模块目录。
-- `web/modules/cs2-sensitivity/index.html`：已完成的 CS2 灵敏度子模块；仍可单独离线使用。
-- `web/modules/cs2-sensitivity/legacy-share.html`：为既有分享场景保留的旧版轻量页面。
-- `web/optimization-catalog.mjs`：截至 2026-08-15 的本地优化规则、适用条件与官方来源目录。
-- `src/OptLab.App/`：Windows WinUI 3/WebView2 非管理员桌面宿主。
-- `src/OptLab.Core/`：模块、签名与可恢复事务的共享契约。
-- `src/OptLab.Broker/`：Windows 受限自动化 Broker；目前只暴露只读诊断动作。
-- `cs2-sensitivity-lab.html`、`cs2-sensitivity-friend.html`：旧地址兼容跳转，不是产品源文件。
-- `docs/cs2-optimization-research-2026-08-15.md`：研究证据、采纳规则和明确拒绝项。
-- `docs/repository-architecture.md`：主应用、内置模块和旧地址兼容层的长期边界。
+- 载体只引用工具，不复制工具业务实现。
+- 浏览器模块没有系统权限；灵敏度完成结果经 `module.result` 交给宿主校验。投掷物模块不发送校准结果。
+- **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。**

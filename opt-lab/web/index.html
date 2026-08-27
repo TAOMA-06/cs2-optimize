@@ -29,7 +29,7 @@
         <button class="nav-item" data-view="modules" type="button" aria-label="优化方案">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.5 7.8 12 12.6l8.5-4.8L12 3Zm-8.5 9.3L12 17l8.5-4.7M3.5 16.7 12 21l8.5-4.3"/></svg>
           <span>优化方案</span>
-          <b class="nav-count">03</b>
+          <b class="nav-count">04</b>
         </button>
         <button class="nav-item" data-view="diagnostics" type="button" aria-label="本机诊断">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16M6 15V8m4 7V5m4 10v-4m4 4V7M4 4h16v16H4z"/></svg>
@@ -117,6 +117,7 @@
             <div class="panel-actions">
               <button class="button button-primary" data-view="optimizer" type="button">开始开赛检查 <span aria-hidden="true">→</span></button>
               <button class="text-button" data-open-module="cs2-sensitivity" type="button">灵敏度实验室</button>
+              <button class="text-button" data-open-module="cs2-lineups" type="button">投掷物瞄点</button>
             </div>
           </article>
 
@@ -152,6 +153,12 @@
               <div class="snapshot-title"><strong>CS2 SENS / LAB</strong><span>个人灵敏度校准 · 离线网页模块</span></div>
               <div class="snapshot-permission">NO ADMIN</div>
               <button class="row-action" data-open-module="cs2-sensitivity" type="button">打开 <span aria-hidden="true">↗</span></button>
+            </article>
+            <article class="snapshot-row">
+              <div class="snapshot-state is-ready">READY</div>
+              <div class="snapshot-title"><strong>CS2 LINEUPS</strong><span>投掷物瞄点 · 离线雷达目录</span></div>
+              <div class="snapshot-permission">NO ADMIN</div>
+              <button class="row-action" data-open-module="cs2-lineups" type="button">打开 <span aria-hidden="true">↗</span></button>
             </article>
           </div>
         </section>
@@ -219,6 +226,14 @@
             <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">开始校准 <span aria-hidden="true">→</span></button>
           </article>
 
+          <article class="module-card module-card-contract">
+            <div class="module-card-top"><span class="module-tag">REFERENCE</span><span class="module-state"><i></i> READY</span></div>
+            <div class="module-ident"><span class="module-mark mark-bars" aria-hidden="true"></span><div><h3>CS2 投掷物瞄点</h3><p>雷达点击查询站位、瞄点与落点</p></div></div>
+            <p class="module-description">按当前地图位置聚合附近起投站，展示烟/闪/火/雷三帧详情与开局路线。只读目录，进度保存在本机浏览器。</p>
+            <dl class="module-facts"><div><dt>权限</dt><dd>无管理员权限</dd></div><div><dt>数据</dt><dd>仅本机收藏/备注</dd></div><div><dt>恢复</dt><dd>不修改系统</dd></div></dl>
+            <button class="button button-primary" data-open-module="cs2-lineups" type="button">打开瞄点图 <span aria-hidden="true">→</span></button>
+          </article>
+
           <article class="module-card module-card-diagnostic">
             <div class="module-card-top"><span class="module-tag">HOST DIAGNOSTICS</span><span class="module-state" id="diagnosticModuleState"><i></i> CHECKING</span></div>
             <div class="module-ident"><span class="module-mark mark-pulse" aria-hidden="true"></span><div><h3>本机环境摘要</h3><p>桌面宿主、架构与能力边界</p></div></div>
@@ -238,7 +253,7 @@
       <section class="view module-view" data-view-panel="module" aria-labelledby="moduleHeading">
         <div class="module-host-head">
           <button class="back-button" data-view="modules" type="button"><span aria-hidden="true">←</span> 返回方案库</button>
-          <div class="module-host-title"><span class="eyebrow">MODULE / CS2-SENSITIVITY</span><h2 id="moduleHeading">CS2 SENS / LAB</h2></div>
+          <div class="module-host-title"><span class="eyebrow" id="moduleEyebrow">MODULE / CS2-SENSITIVITY</span><h2 id="moduleHeading">CS2 SENS / LAB</h2></div>
           <div class="module-host-state"><span><i></i> LOCAL MODULE</span><small>NO SYSTEM CHANGES</small></div>
         </div>
         <div class="module-frame-wrap">
@@ -289,7 +304,7 @@
         </div>
         <div class="recovery-status" id="recoveryStatus">
           <span class="recovery-seal" aria-hidden="true">✓</span>
-          <div><strong>当前没有需要恢复的系统变更。</strong><p>CS2 灵敏度模块只生成命令，不会出现在恢复清单中。</p></div>
+          <div><strong>当前没有需要恢复的系统变更。</strong><p>灵敏度和投掷物模块都不修改系统，不会出现在恢复清单中。</p></div>
         </div>
         <div class="recovery-list" id="recoveryList"></div>
       </section>
