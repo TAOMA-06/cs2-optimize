@@ -4,35 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0f1415">
+  <meta name="theme-color" content="#0e1012">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; connect-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>CS2 道具地图 — 随身瞄点笔记</title>
   <style>
     :root {
-      --ink: #0f1415;
-      --ink-2: #141b1d;
-      --panel: #192123;
-      --panel-2: #202a2c;
-      --panel-3: #263234;
-      --line: #354345;
-      --line-soft: rgba(202, 214, 205, 0.13);
-      --paper: #e9e1cd;
-      --paper-dim: #b9b49f;
-      --muted: #899597;
-      --signal: #e97945;
-      --signal-soft: rgba(233, 121, 69, 0.16);
+      --ink: #0e1012;
+      --ink-2: #16191d;
+      --panel: #1c2026;
+      --panel-2: #232830;
+      --panel-3: #2a3038;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-soft: rgba(255, 255, 255, 0.08);
+      --paper: #f2f0ea;
+      --paper-dim: #9aa3ad;
+      --muted: #6b7380;
+      --signal: #e8a04a;
+      --signal-soft: rgba(232, 160, 74, 0.16);
       --aqua: #75bfc0;
       --aqua-soft: rgba(117, 191, 192, 0.15);
-      --moss: #91a078;
-      --danger: #d75f59;
+      --moss: #7dce9a;
+      --danger: #e06b66;
       --smoke: #9eb0b1;
       --flash: #e4c76b;
-      --fire: #e97945;
-      --he: #91a078;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-      --display: "Arial Narrow", "Avenir Next Condensed", "Segoe UI", sans-serif;
-      --sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --fire: #e8a04a;
+      --he: #7dce9a;
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.32);
+      --display: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --sans: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
       --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --radius: 8px;
+      --radius-card: 12px;
     }
 
     * { box-sizing: border-box; }
@@ -41,11 +43,7 @@
       margin: 0;
       min-width: 320px;
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 78% 12%, rgba(117, 191, 192, 0.07), transparent 25rem),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-        var(--ink);
-      background-size: auto, 22px 22px, auto;
+      background: var(--ink);
       color: var(--paper);
       font-family: var(--sans);
       -webkit-font-smoothing: antialiased;
@@ -54,7 +52,7 @@
     button { color: inherit; }
     button, [role="button"] { -webkit-tap-highlight-color: transparent; }
     button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="button"]:focus-visible {
-      outline: 2px solid var(--aqua);
+      outline: 2px solid var(--signal);
       outline-offset: 3px;
     }
     .skip-link {
@@ -84,47 +82,52 @@
       gap: 18px;
       padding: 14px clamp(16px, 3vw, 36px);
       border-bottom: 1px solid var(--line-soft);
-      background: rgba(15, 20, 21, 0.92);
+      background: rgba(14, 16, 18, 0.92);
       backdrop-filter: blur(18px);
     }
     .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .brand-mark {
       position: relative;
-      width: 34px;
-      height: 34px;
-      border: 1px solid var(--aqua);
-      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
       flex: 0 0 auto;
     }
-    .brand-mark::before, .brand-mark::after {
+    .brand-mark::before {
       content: "";
       position: absolute;
-      background: var(--aqua);
-    }
-    .brand-mark::before { width: 1px; height: 42px; left: 16px; top: -5px; }
-    .brand-mark::after { width: 42px; height: 1px; left: -5px; top: 16px; }
-    .brand-mark i {
-      position: absolute;
-      inset: 9px;
+      inset: 7px;
       border: 2px solid var(--signal);
       border-radius: 50%;
-      background: var(--ink);
+      background: transparent;
     }
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      background: var(--signal);
+      transform: translate(-50%, -50%);
+    }
+    .brand-mark i { display: none; }
     .brand-copy strong {
       display: block;
       font-family: var(--display);
-      font-size: 17px;
+      font-size: 16px;
       line-height: 1;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
     }
     .brand-copy span {
       display: block;
       margin-top: 5px;
       color: var(--muted);
-      font: 10px/1 var(--mono);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-size: 12px;
     }
     .top-actions { display: flex; align-items: center; gap: 8px; }
     .status-pill, .utility-button {
@@ -135,15 +138,15 @@
       min-height: 38px;
       padding: 8px 12px;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--panel);
       color: var(--paper-dim);
       font-size: 12px;
     }
-    .status-pill { font-family: var(--mono); }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 4px var(--signal-soft); }
+    .status-pill { font-size: 12px; font-weight: 650; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); }
     .utility-button { cursor: pointer; }
-    .utility-button:hover { border-color: var(--aqua); color: var(--paper); }
+    .utility-button:hover { border-color: var(--signal); color: var(--paper); }
     .demo-banner {
       display: flex;
       justify-content: center;
@@ -170,7 +173,7 @@
     .map-column, .side-panel {
       min-width: 0;
       border: 1px solid var(--line-soft);
-      border-radius: 18px;
+      border-radius: 12px;
       background: rgba(20, 27, 29, 0.84);
       box-shadow: var(--shadow);
       overflow: hidden;
@@ -232,7 +235,7 @@
       background: var(--panel-3);
     }
     .mode-button.is-active { box-shadow: inset 0 -2px 0 var(--signal); }
-    .side-button.is-active { border-color: var(--aqua); color: var(--aqua); }
+    .side-button.is-active { border-color: var(--signal); color: var(--signal); }
     .filter-row { justify-content: flex-end; }
     .filter-button {
       position: relative;
@@ -375,10 +378,9 @@
       background: var(--panel);
     }
     .eyebrow {
-      color: var(--aqua);
-      font: 11px/1.2 var(--mono);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      color: var(--signal);
+      font-size: 12px;
+      font-weight: 650;
     }
     .panel-head h1 {
       margin: 8px 0 5px;
@@ -394,7 +396,7 @@
       width: 100%;
       min-height: 42px;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--ink-2);
       color: var(--paper);
       padding: 9px 12px;
@@ -404,7 +406,7 @@
       min-width: 44px;
       min-height: 42px;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--ink-2);
       color: var(--paper-dim);
       cursor: pointer;
@@ -428,9 +430,10 @@
       flex: 0 0 auto;
       padding: 4px 8px;
       border-radius: 6px;
-      background: var(--aqua-soft);
-      color: var(--aqua);
-      font: 11px var(--mono);
+      background: var(--signal-soft);
+      color: var(--signal);
+      font-size: 12px;
+      font-weight: 650;
     }
     .empty-state {
       display: grid;
@@ -582,7 +585,7 @@
       background: var(--ink-2);
       font-size: 11px;
     }
-    .objective-button.is-active { border-color: var(--aqua); color: var(--aqua); background: var(--aqua-soft); }
+    .objective-button.is-active { border-color: var(--signal); color: var(--signal); background: var(--signal-soft); }
     .plan-card {
       border: 1px solid rgba(233, 121, 69, 0.35);
       border-radius: 13px;
@@ -620,7 +623,7 @@
     .plan-step span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.45; }
     .primary-button, .secondary-button {
       min-height: 42px;
-      border-radius: 9px;
+      border-radius: 8px;
       padding: 9px 14px;
       cursor: pointer;
     }
@@ -647,7 +650,7 @@
       max-height: min(860px, calc(100vh - 24px));
       padding: 0;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 12px;
       background: var(--panel);
       color: var(--paper);
       box-shadow: 0 40px 120px rgba(0, 0, 0, 0.62);
@@ -662,7 +665,7 @@
       padding: 18px 20px;
       border-bottom: 1px solid var(--line-soft);
     }
-    .dialog-head .route-code { color: var(--aqua); font: 10px var(--mono); letter-spacing: 0.08em; }
+    .dialog-head .route-code { color: var(--signal); font: 12px var(--sans); font-weight: 650; }
     .dialog-head h2 { margin: 6px 0 0; font-family: var(--display); font-size: clamp(24px, 4vw, 36px); line-height: 1; }
     .icon-button {
       display: grid;
@@ -670,7 +673,7 @@
       width: 40px;
       height: 40px;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--ink-2);
       cursor: pointer;
       flex: 0 0 auto;
@@ -689,7 +692,7 @@
       color: var(--muted);
       cursor: pointer;
     }
-    .frame-tab.is-active { border-color: var(--aqua); color: var(--aqua); background: var(--aqua-soft); }
+    .frame-tab.is-active { border-color: var(--signal); color: var(--signal); background: var(--signal-soft); }
     .frame-art {
       position: relative;
       aspect-ratio: 16 / 9;
@@ -721,7 +724,7 @@
       min-height: 78px;
       resize: vertical;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--ink-2);
       color: var(--paper);
       padding: 10px 11px;
@@ -736,7 +739,7 @@
       max-width: calc(100vw - 32px);
       padding: 10px 14px;
       border: 1px solid var(--line);
-      border-radius: 9px;
+      border-radius: 8px;
       background: var(--paper);
       color: var(--ink);
       box-shadow: var(--shadow);
@@ -841,12 +844,12 @@
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"><i></i></span>
         <span class="brand-copy">
-          <strong>CS2 道具地图</strong>
-          <span>Portable lineup notebook</span>
+          <strong>CS2 投掷物瞄点</strong>
+          <span>离线雷达目录</span>
         </span>
       </div>
       <div class="top-actions">
-        <span class="status-pill"><i class="status-dot"></i>LOCAL / ZERO GAME ACCESS</span>
+        <span class="status-pill"><i class="status-dot"></i>本机 · 不读取游戏</span>
         <button class="utility-button" id="newRoundButton" type="button" title="清除本回合出生点与路线进度">
           <span aria-hidden="true">↻</span><span class="button-label">新回合</span>
         </button>
@@ -897,7 +900,7 @@
                 <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
               </filter>
               <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-                <path d="M0 0 L10 5 L0 10 z" fill="#e97945"></path>
+                <path d="M0 0 L10 5 L0 10 z" fill="#e8a04a"></path>
               </marker>
               <pattern id="microGrid" width="50" height="50" patternUnits="userSpaceOnUse">
                 <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(117,191,192,0.07)" stroke-width="2"></path>
@@ -2393,7 +2396,7 @@
 
       const labels = {
         stance: { title: "站位示意", hint: lineup.stanceHint, accent: "#75bfc0" },
-        aim: { title: "瞄点示意", hint: lineup.aimHint, accent: "#e97945" },
+        aim: { title: "瞄点示意", hint: lineup.aimHint, accent: "#e8a04a" },
         result: { title: "落点示意", hint: lineup.resultHint, accent: "#91a078" }
       };
       const frame = labels[activeFrame];

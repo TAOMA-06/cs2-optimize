@@ -20,22 +20,22 @@ import {
 } from "./optimization-catalog.mjs";
 
 const VIEW_META = {
-  overview: { kicker: "WORKSTATION / OVERVIEW", title: "本机状态" },
-  optimizer: { kicker: "MATCH / READINESS PLAN", title: "开赛准备" },
-  modules: { kicker: "MODULE LIBRARY / OFFICIAL", title: "优化方案" },
-  module: { kicker: "LOCAL MODULE / IFRAME", title: "离线模块" },
-  diagnostics: { kicker: "DESKTOP HOST / READ-ONLY", title: "本机诊断" },
-  recovery: { kicker: "TRANSACTION / RECOVERY", title: "恢复中心" },
-  history: { kicker: "LOCAL / ACTIVITY LOG", title: "运行记录" },
-  settings: { kicker: "LOCAL / CONTROL PLANE", title: "设置" }
+  overview: { kicker: "本机状态", title: "总览" },
+  optimizer: { kicker: "开赛流程", title: "开赛准备" },
+  modules: { kicker: "官方模块", title: "优化方案" },
+  module: { kicker: "离线模块", title: "离线模块" },
+  diagnostics: { kicker: "只读诊断", title: "本机诊断" },
+  recovery: { kicker: "恢复台账", title: "恢复中心" },
+  history: { kicker: "本机记录", title: "运行记录" },
+  settings: { kicker: "本机偏好", title: "设置" }
 };
 
 const MODULE_CATALOG = {
   "cs2-sensitivity": {
     id: "cs2-sensitivity",
-    eyebrow: "MODULE / CS2-SENSITIVITY",
-    title: "CS2 SENS / LAB",
-    frameTitle: "CS2 SENS / LAB 校准模块",
+    eyebrow: "灵敏度实验室",
+    title: "CS2 灵敏度实验室",
+    frameTitle: "CS2 灵敏度实验室",
     loadingStatus: "正在加载离线校准模块…",
     failureMessage: "离线校准模块加载失败。原始网页仍可独立打开，请重试或返回方案库。",
     timeoutMessage: "模块加载时间超过预期。可以重试；这不会清除灵敏度实验室自己的本机进度。",
@@ -45,7 +45,7 @@ const MODULE_CATALOG = {
   },
   "cs2-lineups": {
     id: "cs2-lineups",
-    eyebrow: "MODULE / CS2-LINEUPS",
+    eyebrow: "投掷物瞄点",
     title: "CS2 投掷物瞄点",
     frameTitle: "CS2 投掷物瞄点模块",
     loadingStatus: "正在加载投掷物瞄点模块…",
@@ -478,7 +478,7 @@ function render() {
   elements.readinessMetric.textContent = `${quickProgress.percent}%`;
   elements.readinessNavCount.textContent = `${quickProgress.percent}%`;
   elements.readinessNavCount.classList.toggle("is-empty", quickProgress.completed === 0);
-  elements.recoveryMetric.textContent = overview.requiresRecovery ? "ACTION" : "CLEAR";
+  elements.recoveryMetric.textContent = overview.requiresRecovery ? "需处理" : "无";
   elements.recoveryNavCount.textContent = formatCount(overview.activeOptimizationCount);
   elements.recoveryNavCount.classList.toggle("is-empty", overview.activeOptimizationCount === 0);
 
@@ -496,22 +496,22 @@ function renderHostContext() {
   const connecting = hostContext.mode === "connecting";
   elements.machineChip.classList.toggle("is-preview", preview);
   elements.machineChip.classList.toggle("is-unavailable", hostContext.mode === "unavailable");
-  elements.machineMode.textContent = connected ? "WINDOWS DESKTOP" : connecting ? "CONNECTING" : preview ? "BROWSER PREVIEW" : "HOST UNAVAILABLE";
-  elements.machineDetail.textContent = connected ? `HOST ${hostContext.hostVersion}` : preview ? "LOCAL WEB ONLY" : "LIMITED MODE";
+  elements.machineMode.textContent = connected ? "本机已连接" : connecting ? "正在连接" : preview ? "浏览器预览" : "宿主不可用";
+  elements.machineDetail.textContent = connected ? `宿主 ${hostContext.hostVersion}` : preview ? "仅本地网页" : "受限模式";
 
-  elements.hostModeLabel.textContent = connected ? "WINDOWS DESKTOP" : connecting ? "正在确认" : preview ? "浏览器预览" : "宿主不可用";
-  elements.hostRuntimeLabel.textContent = hostContext.runtime;
-  elements.hostSettingsLabel.textContent = hostContext.capabilities.openSettings ? "CONNECTED" : "COPY PATH ONLY";
-  elements.hostMutationLabel.textContent = hostContext.capabilities.systemMutations ? "PUBLISHED" : "DISABLED";
+  elements.hostModeLabel.textContent = connected ? "本机已连接" : connecting ? "正在确认" : preview ? "浏览器预览" : "宿主不可用";
+  elements.hostRuntimeLabel.textContent = preview || hostContext.runtime === "Web preview" ? "浏览器预览" : hostContext.runtime;
+  elements.hostSettingsLabel.textContent = hostContext.capabilities.openSettings ? "已连接" : "仅复制路径";
+  elements.hostMutationLabel.textContent = hostContext.capabilities.systemMutations ? "已发布" : "关闭";
   elements.hostModeLabel.className = connected ? "is-ready" : "is-limited";
   elements.hostSettingsLabel.className = hostContext.capabilities.openSettings ? "is-ready" : "is-limited";
   elements.hostMutationLabel.className = hostContext.capabilities.systemMutations ? "is-limited" : "is-ready";
 
   elements.diagnosticModuleState.classList.toggle("is-limited", !connected);
-  elements.diagnosticModuleState.innerHTML = connected ? "<i></i> READY" : "<i></i> LIMITED";
+  elements.diagnosticModuleState.innerHTML = connected ? "<i></i> 可用" : "<i></i> 受限";
   elements.diagnosticHostBadge.classList.toggle("is-connected", connected);
   elements.diagnosticHostBadge.classList.toggle("is-limited", !connected && !connecting);
-  elements.diagnosticHostBadge.textContent = connected ? "DESKTOP CONNECTED" : connecting ? "CONNECTING" : preview ? "PREVIEW MODE" : "HOST UNAVAILABLE";
+  elements.diagnosticHostBadge.textContent = connected ? "桌面已连接" : connecting ? "正在连接" : preview ? "预览模式" : "宿主不可用";
   elements.diagnosticHostTitle.textContent = connected ? "Windows 桌面宿主已连接" : preview ? "当前为浏览器受限预览" : connecting ? "正在等待桌面宿主" : "桌面宿主没有响应";
   elements.diagnosticHostCopy.textContent = connected
     ? "系统设置和官方资料请求由原生白名单处理；未发布的能力继续保持关闭。"
@@ -519,7 +519,7 @@ function renderHostContext() {
   elements.diagnosticOs.textContent = hostContext.operatingSystem;
   elements.diagnosticArchitecture.textContent = hostContext.architecture;
   elements.diagnosticVersion.textContent = hostContext.hostVersion;
-  elements.diagnosticRuntime.textContent = hostContext.runtime;
+  elements.diagnosticRuntime.textContent = preview || hostContext.runtime === "Web preview" ? "浏览器预览" : hostContext.runtime;
 
   elements.capabilitySettings.textContent = capabilityCopy(hostContext.capabilities.openSettings, "由原生白名单打开对应页面。", "仅复制可见操作路径。");
   elements.capabilitySources.textContent = capabilityCopy(hostContext.capabilities.openSources, "由原生白名单交给默认浏览器。", "仅复制官方资料链接。");
@@ -572,7 +572,7 @@ function capabilityCopy(available, availableCopy, unavailableCopy) {
 function renderQuickProgress(progress) {
   elements.quickProgressReadout.replaceChildren();
   const label = document.createElement("span");
-  label.textContent = "QUICK PLAN";
+  label.textContent = "快速检查";
   const value = document.createElement("strong");
   const note = document.createElement("small");
   value.textContent = progress.total ? `${progress.completed} / ${progress.total} 已确认` : "尚未生成";
@@ -730,7 +730,7 @@ function openSource(sourceId) {
 }
 
 function groupLabel(group) {
-  return ({ windows: "WINDOWS", session: "SESSION", gpu: "GPU", cs2: "CS2", platform: "PLATFORM", repair: "REPAIR" })[group] ?? group.toUpperCase();
+  return ({ windows: "Windows", session: "会话", gpu: "显卡", cs2: "CS2", platform: "平台", repair: "排障" })[group] ?? group;
 }
 
 function levelLabel(level) {
@@ -757,7 +757,7 @@ function renderHistory() {
 
     const module = document.createElement("span");
     module.className = "history-module";
-    module.textContent = "CS2 / LAB";
+    module.textContent = "灵敏度实验室";
 
     const command = document.createElement("div");
     const commandValue = document.createElement("strong");
@@ -768,8 +768,8 @@ function renderHistory() {
 
     entry.append(module, command);
     entry.append(createHistoryMetric("eDPI", record.effectiveDpi ?? "—"));
-    entry.append(createHistoryMetric("CM / 360", record.centimetersPer360 ? `${record.centimetersPer360}` : "—"));
-    entry.append(createHistoryMetric("CONFIDENCE", record.confidence));
+    entry.append(createHistoryMetric("cm / 360°", record.centimetersPer360 ? `${record.centimetersPer360}` : "—"));
+    entry.append(createHistoryMetric("置信度", record.confidence));
 
     const copyButton = document.createElement("button");
     copyButton.className = "history-copy";

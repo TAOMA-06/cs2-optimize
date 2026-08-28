@@ -4,28 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0d0f0e">
-  <title>CS2 SENS / LAB — 灵敏度候选筛选器</title>
+  <meta name="theme-color" content="#0e1012">
+  <title>CS2 灵敏度实验室 — 灵敏度候选筛选器</title>
   <style>
     :root {
-      --ink: #0d0f0e;
-      --ink-2: #141715;
-      --ink-3: #1b1f1c;
-      --panel: #20241f;
-      --line: #353a34;
-      --line-strong: #535a51;
-      --paper: #eeeae0;
-      --paper-2: #c8c5bb;
-      --muted: #8e938a;
-      --orange: #df7444;
-      --orange-soft: #f09a6f;
-      --green: #a9c887;
-      --red: #e06e5f;
-      --amber: #d8b46a;
-      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
-      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      --display: Impact, Haettenschweiler, "Arial Narrow Bold", "Segoe UI Black", sans-serif;
+      --ink: #0e1012;
+      --ink-2: #16191d;
+      --ink-3: #1c2026;
+      --panel: #1c2026;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --paper: #f2f0ea;
+      --paper-2: #9aa3ad;
+      --muted: #6b7380;
+      --orange: #e8a04a;
+      --orange-soft: #f3c57a;
+      --green: #7dce9a;
+      --red: #e06b66;
+      --amber: #e0b45c;
+      --shadow: 0 20px 48px rgba(0, 0, 0, .32);
+      --sans: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --display: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
       --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --radius: 8px;
+      --radius-card: 12px;
     }
 
     * { box-sizing: border-box; }
@@ -36,12 +38,7 @@
       min-height: 100vh;
       overflow-x: hidden;
       color: var(--paper);
-      background:
-        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
-        radial-gradient(circle at 78% 0%, rgba(223,116,68,.08), transparent 32rem),
-        var(--ink);
-      background-size: 48px 48px, 48px 48px, auto, auto;
+      background: var(--ink);
       font-family: var(--sans);
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
@@ -59,21 +56,20 @@
       position: sticky;
       z-index: 50;
       top: 0;
-      border-bottom: 1px solid rgba(238,234,224,.11);
-      background: rgba(13,15,14,.9);
+      border-bottom: 1px solid var(--line);
+      background: rgba(14, 16, 18, .92);
       backdrop-filter: blur(16px);
     }
     .topbar-inner { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--paper); text-decoration: none; letter-spacing: .08em; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--paper); text-decoration: none; }
     .brand-mark {
-      position: relative; width: 31px; height: 31px; border: 1px solid var(--line-strong); background: var(--ink-3);
-      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      position: relative; width: 32px; height: 32px; border: 1px solid var(--line); background: var(--ink-3);
+      border-radius: var(--radius);
     }
-    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; background: var(--orange); }
-    .brand-mark::before { width: 15px; height: 2px; left: 7px; top: 14px; }
-    .brand-mark::after { width: 2px; height: 15px; left: 14px; top: 7px; }
-    .brand strong { font-family: var(--display); font-size: 19px; font-weight: 700; }
-    .brand span { color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .brand-mark::before { content: ""; position: absolute; inset: 7px; border: 2px solid var(--orange); border-radius: 50%; }
+    .brand-mark::after { content: ""; position: absolute; width: 6px; height: 6px; left: 50%; top: 50%; border-radius: 50%; background: var(--orange); transform: translate(-50%, -50%); }
+    .brand strong { font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: .04em; }
+    .brand span { color: var(--muted); font-size: 12px; }
     .stepper { display: flex; align-items: center; gap: 8px; }
     .step-dot { width: 30px; height: 4px; border: 0; background: var(--line); transition: width 180ms ease, background 180ms ease; }
     .step-dot.is-active { width: 54px; background: var(--orange); }
@@ -83,28 +79,24 @@
     .view.is-active { display: block; }
     @keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .eyebrow {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--orange-soft);
-      font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--orange);
+      font-size: 13px; font-weight: 650;
     }
-    .eyebrow::before { content: ""; width: 30px; height: 1px; background: currentColor; }
+    .eyebrow::before { content: ""; width: 22px; height: 2px; background: currentColor; border-radius: 999px; }
     h1, h2, h3, p { margin-top: 0; }
     h1, h2, h3 { text-wrap: balance; }
-    h1, h2 { margin-bottom: 12px; font-size: clamp(30px, 4vw, 52px); line-height: 1.05; letter-spacing: -.035em; }
+    h1, h2 { margin-bottom: 12px; font-size: clamp(28px, 3.6vw, 40px); line-height: 1.15; letter-spacing: -.025em; font-weight: 650; }
     h3 { margin-bottom: 7px; font-size: 17px; line-height: 1.3; }
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 24px; }
     .section-head p { max-width: 560px; margin-bottom: 0; color: var(--muted); font-size: 14px; }
     .notice {
       display: flex; gap: 13px; align-items: flex-start; margin-bottom: 24px; padding: 15px 16px;
-      border: 1px solid rgba(216,180,106,.34); color: #dfd1b3; background: rgba(216,180,106,.065); font-size: 13px;
-      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+      border: 1px solid rgba(224,180,92,.34); border-radius: var(--radius-card); color: #dfd1b3; background: rgba(224,180,92,.065); font-size: 13px;
     }
     .notice svg { flex: 0 0 auto; margin-top: 1px; color: var(--amber); }
     .notice strong { color: var(--paper); }
-    .form-panel, .panel { position: relative; border: 1px solid var(--line); background: rgba(20,23,21,.78); box-shadow: var(--shadow); }
-    .form-panel::before {
-      content: "CALIBRATION INPUT"; position: absolute; top: -11px; right: 22px; padding: 3px 8px;
-      color: var(--muted); background: var(--ink); font-family: var(--mono); font-size: 9px; letter-spacing: .12em;
-    }
+    .form-panel, .panel { position: relative; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--ink-2); box-shadow: var(--shadow); }
+    .form-panel::before { display: none; }
     .form-section { padding: 28px; border-bottom: 1px solid var(--line); }
     .form-section:last-of-type { border-bottom: 0; }
     .form-section-title { display: flex; align-items: center; gap: 11px; margin-bottom: 20px; }
@@ -116,72 +108,70 @@
     .field-hint { min-height: 34px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
     .input-wrap { position: relative; }
     .input-wrap input, .input-wrap select {
-      width: 100%; height: 46px; padding: 0 48px 0 13px; border: 1px solid var(--line-strong); border-radius: 2px;
+      width: 100%; height: 46px; padding: 0 48px 0 13px; border: 1px solid var(--line-strong); border-radius: var(--radius);
       color: var(--paper); background: var(--ink-2); font-family: var(--mono); font-size: 14px;
       transition: border-color 150ms ease, background 150ms ease;
     }
-    .input-wrap input:hover, .input-wrap select:hover { border-color: #70776d; }
-    .input-wrap input:focus, .input-wrap select:focus { border-color: var(--orange); background: #181b19; outline: none; }
+    .input-wrap input:hover, .input-wrap select:hover { border-color: var(--paper-dim, #8a929c); }
+    .input-wrap input:focus, .input-wrap select:focus { border-color: var(--orange); background: var(--ink-3); outline: none; }
     .input-wrap input:focus-visible, .input-wrap select:focus-visible { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
     .input-unit { position: absolute; right: 13px; top: 50%; color: var(--muted); font-family: var(--mono); font-size: 10px; transform: translateY(-50%); pointer-events: none; }
     .choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .choice { position: relative; }
     .choice input { position: absolute; opacity: 0; pointer-events: none; }
     .choice label {
-      display: block; min-height: 86px; padding: 14px; border: 1px solid var(--line); background: var(--ink-2); cursor: pointer;
+      display: block; min-height: 86px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); cursor: pointer;
       transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
     }
     .choice label:hover { border-color: var(--line-strong); transform: translateY(-2px); }
-    .choice input:checked + label { border-color: var(--orange); background: rgba(223,116,68,.085); }
+    .choice input:checked + label { border-color: var(--orange); background: rgba(232,160,74,.085); }
     .choice input:focus-visible + label { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
     .choice strong { display: block; margin-bottom: 4px; color: var(--paper); font-size: 13px; }
     .choice span { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
     .choice input:checked + label::after {
       content: ""; position: absolute; top: 9px; right: 9px; width: 6px; height: 6px; border-radius: 50%;
-      background: var(--orange); box-shadow: 0 0 0 4px rgba(223,116,68,.14);
+      background: var(--orange);
     }
-    details.advanced { margin-top: 17px; border: 1px solid var(--line); background: rgba(255,255,255,.018); }
-    details.advanced summary { padding: 12px 14px; color: var(--paper-2); cursor: pointer; font-family: var(--mono); font-size: 11px; }
+    details.advanced { margin-top: 17px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.018); }
+    details.advanced summary { padding: 12px 14px; color: var(--paper-2); cursor: pointer; font-size: 12px; }
     .advanced-body { display: grid; grid-template-columns: repeat(2, minmax(0, 250px)); gap: 14px; padding: 0 14px 14px; }
     .advanced-body .field { width: 100%; }
     .mode-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .mode-card { position: relative; }
     .mode-card input { position: absolute; opacity: 0; pointer-events: none; }
     .mode-card label {
-      display: block; min-height: 148px; padding: 17px; border: 1px solid var(--line); background: var(--ink-2); cursor: pointer;
+      display: block; min-height: 148px; padding: 17px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--ink-2); cursor: pointer;
       transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
     }
     .mode-card label:hover { border-color: var(--line-strong); transform: translateY(-2px); }
-    .mode-card input:checked + label { border-color: var(--orange); background: rgba(223,116,68,.085); }
+    .mode-card input:checked + label { border-color: var(--orange); background: rgba(232,160,74,.085); }
     .mode-card input:focus-visible + label { outline: 2px solid var(--orange-soft); outline-offset: 3px; }
-    .mode-card b { display: block; margin-bottom: 5px; color: var(--orange-soft); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; }
+    .mode-card b { display: block; margin-bottom: 5px; color: var(--orange-soft); font-size: 12px; font-weight: 650; }
     .mode-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
     .mode-card span { display: block; color: var(--muted); font-size: 11px; line-height: 1.55; }
     .mode-card em { display: block; margin-top: 10px; color: var(--paper-2); font-style: normal; font-family: var(--mono); font-size: 10px; }
     .capability-line { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted); font-size: 11px; }
-    .capability-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 4px rgba(216,180,106,.11); }
-    .capability-dot.is-good { background: var(--green); box-shadow: 0 0 0 4px rgba(169,200,135,.11); }
+    .capability-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+    .capability-dot.is-good { background: var(--green); }
     .form-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 28px; background: rgba(255,255,255,.016); }
     .form-actions p { margin: 0; color: var(--muted); font-size: 11px; }
     .btn {
-      min-height: 45px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 19px;
-      border: 1px solid var(--line-strong); color: var(--paper); background: var(--ink-3); cursor: pointer; font-size: 12px;
-      font-weight: 720; letter-spacing: .02em; transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, color 150ms ease;
-      clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+      min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 18px;
+      border: 1px solid var(--line-strong); border-radius: var(--radius); color: var(--paper); background: var(--ink-3); cursor: pointer; font-size: 13px;
+      font-weight: 650; transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, color 150ms ease;
     }
-    .btn:hover:not(:disabled) { border-color: var(--paper-2); background: #292e29; transform: translateY(-2px); }
+    .btn:hover:not(:disabled) { border-color: var(--paper-2); background: var(--ink-4, #232830); transform: translateY(-1px); }
     .btn:active:not(:disabled) { transform: translateY(0); }
-    .btn-primary { min-width: 190px; border-color: var(--orange); color: #140c08; background: var(--orange); }
+    .btn-primary { min-width: 190px; border-color: var(--orange); color: #17110d; background: var(--orange); }
     .btn-primary:hover:not(:disabled) { border-color: var(--orange-soft); background: var(--orange-soft); }
     .btn:disabled { opacity: .36; cursor: not-allowed; }
-    .btn-ghost { border-color: transparent; color: var(--muted); background: transparent; clip-path: none; }
+    .btn-ghost { border-color: transparent; color: var(--muted); background: transparent; }
     .btn-ghost:hover:not(:disabled) { color: var(--paper); background: rgba(255,255,255,.04); }
 
     .lab-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 22px; align-items: start; }
     .lab-main { min-width: 0; }
     .arena-shell {
-      overflow: hidden; border: 1px solid var(--line-strong); background: #101310; box-shadow: var(--shadow);
-      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius-card); background: var(--ink-2); box-shadow: var(--shadow);
     }
     .arena-toolbar {
       min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 17px;
@@ -189,36 +179,35 @@
     }
     .arena-title { display: flex; align-items: center; gap: 10px; }
     .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .live-dot.is-live { background: var(--orange); box-shadow: 0 0 0 5px rgba(223,116,68,.13); }
-    .arena-title strong { font-size: 12px; }
-    .arena-title span { color: var(--muted); font-family: var(--mono); font-size: 9px; }
+    .live-dot.is-live { background: var(--orange); }
+    .arena-title strong { font-size: 13px; }
+    .arena-title span { color: var(--muted); font-size: 12px; }
     .arena-metrics { display: flex; align-items: center; gap: 22px; }
     .arena-metric { text-align: right; }
-    .arena-metric span { display: block; color: var(--muted); font-family: var(--mono); font-size: 8px; letter-spacing: .12em; }
+    .arena-metric span { display: block; color: var(--muted); font-size: 11px; font-weight: 650; }
     .arena-metric strong { display: block; min-width: 54px; font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
     .arena {
       position: relative; height: min(56vw, 520px); min-height: 390px; overflow: hidden; touch-action: none; user-select: none;
       background:
         linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px),
-        radial-gradient(circle at center, rgba(255,255,255,.028), transparent 50%),
-        #101310;
-      background-size: 40px 40px, 40px 40px, auto, auto;
+        var(--ink);
+      background-size: 40px 40px, 40px 40px, auto;
     }
     .arena.is-locked { cursor: none; }
-    .arena::before, .arena::after { content: ""; position: absolute; z-index: 1; pointer-events: none; background: rgba(223,116,68,.10); }
+    .arena::before, .arena::after { content: ""; position: absolute; z-index: 1; pointer-events: none; background: rgba(232,160,74,.16); }
     .arena::before { left: 50%; top: 0; bottom: 0; width: 1px; }
     .arena::after { left: 0; right: 0; top: 50%; height: 1px; }
     .scene-target {
       position: absolute; z-index: 7; display: none; width: 48px; height: 48px; border: 2px solid var(--orange-soft); border-radius: 50%;
-      background: rgba(223,116,68,.13); box-shadow: 0 0 0 7px rgba(223,116,68,.055), inset 0 0 0 1px rgba(255,255,255,.18);
+      background: rgba(232,160,74,.13);
       transform: translate(-50%, -50%); pointer-events: none;
     }
     .scene-target::before, .scene-target::after { content: ""; position: absolute; left: 50%; top: 50%; background: var(--orange-soft); transform: translate(-50%, -50%); }
     .scene-target::before { width: 12px; height: 2px; }
     .scene-target::after { width: 2px; height: 12px; }
     .scene-target.is-visible { display: block; }
-    .scene-target.is-contact { border-color: var(--green); background: rgba(169,200,135,.18); box-shadow: 0 0 0 9px rgba(169,200,135,.07); }
+    .scene-target.is-contact { border-color: var(--green); background: rgba(125,206,154,.18); }
     .scene-target.is-offscreen { opacity: .16; }
     .virtual-crosshair { position: absolute; z-index: 12; left: 50%; top: 50%; width: 38px; height: 38px; transform: translate(-50%, -50%) translate3d(var(--reticle-x, 0px), var(--reticle-y, 0px), 0); pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.8)); will-change: transform; }
     .virtual-crosshair i { position: absolute; display: block; background: #ecf2e7; }
@@ -236,78 +225,75 @@
     }
     .arena-overlay[hidden] { display: none; }
     .overlay-content { max-width: 490px; }
-    .overlay-kicker { min-height: 16px; margin-bottom: 11px; color: var(--orange-soft); font-family: var(--mono); font-size: 9px; letter-spacing: .16em; }
-    .overlay-number { min-height: 82px; margin: 0; font-family: var(--display); font-size: 88px; line-height: .9; font-variant-numeric: tabular-nums; }
+    .overlay-kicker { min-height: 16px; margin-bottom: 11px; color: var(--orange-soft); font-size: 12px; font-weight: 650; }
+    .overlay-number { min-height: 82px; margin: 0; font-family: var(--display); font-size: 72px; font-weight: 700; line-height: .9; font-variant-numeric: tabular-nums; }
     .overlay-number[hidden] { display: none; }
     .overlay-title { margin-bottom: 8px; font-size: 25px; }
     .overlay-copy { margin: 0 auto 18px; color: var(--muted); font-size: 13px; text-wrap: pretty; }
     .overlay-action[hidden] { display: none; }
-    .lab-side { position: sticky; top: 90px; border-top: 2px solid var(--orange); background: var(--ink-2); }
+    .lab-side { position: sticky; top: 90px; border-top: 2px solid var(--orange); border-radius: var(--radius-card); background: var(--ink-2); }
     .side-section { padding: 18px; border: 1px solid var(--line); border-top: 0; }
-    .side-label { display: block; margin-bottom: 10px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
+    .side-label { display: block; margin-bottom: 10px; color: var(--muted); font-size: 12px; font-weight: 650; }
     .profile-mini { display: grid; grid-template-columns: 1fr auto; gap: 9px 12px; margin: 0; }
     .profile-mini dt { color: var(--muted); font-size: 11px; }
     .profile-mini dd { margin: 0; font-family: var(--mono); font-size: 11px; text-align: right; }
     .progress-track { height: 5px; overflow: hidden; background: var(--line); }
     .progress-fill { width: 0; height: 100%; background: var(--green); transition: width 220ms ease; }
     .queue-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-    .queue-item { padding: 11px; border: 1px solid var(--line); background: rgba(255,255,255,.018); }
-    .queue-item b { display: block; margin-bottom: 3px; color: var(--paper); font-family: var(--mono); font-size: 11px; }
+    .queue-item { padding: 11px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.018); }
+    .queue-item b { display: block; margin-bottom: 3px; color: var(--paper); font-size: 12px; }
     .queue-item span { display: block; color: var(--muted); font-size: 10px; }
-    .queue-item.is-current { border-color: var(--orange); background: rgba(223,116,68,.07); }
+    .queue-item.is-current { border-color: var(--orange); background: rgba(232,160,74,.07); }
     .queue-item.is-done { border-color: rgba(169,200,135,.45); }
     .side-actions { display: grid; gap: 8px; margin-top: 12px; }
     .side-actions .btn { width: 100%; }
 
     .result-hero {
       position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
-      border: 1px solid var(--line-strong); background: var(--ink-2); box-shadow: var(--shadow);
+      border: 1px solid var(--line-strong); border-radius: var(--radius-card); background: var(--ink-2); box-shadow: var(--shadow);
     }
-    .result-hero::after {
-      content: ""; position: absolute; width: 420px; height: 420px; right: -220px; top: -220px; border: 1px solid rgba(223,116,68,.22);
-      border-radius: 50%; box-shadow: 0 0 0 50px rgba(223,116,68,.025), 0 0 0 100px rgba(223,116,68,.018); pointer-events: none;
-    }
+    .result-hero::after { display: none; }
     .result-primary { padding: clamp(28px, 5vw, 54px); border-right: 1px solid var(--line); }
-    .result-label { margin-bottom: 10px; color: var(--orange-soft); font-family: var(--mono); font-size: 10px; letter-spacing: .14em; }
-    .sens-number { margin: 0; font-family: var(--display); font-size: clamp(78px, 14vw, 160px); line-height: .84; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+    .result-label { margin-bottom: 10px; color: var(--orange-soft); font-size: 13px; font-weight: 650; }
+    .sens-number { margin: 0; font-family: var(--display); font-size: clamp(64px, 11vw, 120px); font-weight: 700; line-height: .9; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
     .sens-unit { margin: 16px 0 25px; color: var(--muted); font-size: 12px; }
-    .command-box { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 10px 10px 15px; border: 1px solid var(--line-strong); background: #0e110f; }
+    .command-box { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 10px 10px 15px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--ink); }
     .command-box code { overflow: hidden; color: var(--green); font-family: var(--mono); font-size: clamp(12px, 2vw, 15px); text-overflow: ellipsis; white-space: nowrap; }
     .command-box .btn { min-height: 35px; padding: 0 12px; }
     .result-side { position: relative; z-index: 2; display: grid; grid-template-rows: repeat(3, 1fr); }
     .result-metric { display: flex; flex-direction: column; justify-content: center; padding: 25px 30px; border-bottom: 1px solid var(--line); }
     .result-metric:last-child { border-bottom: 0; }
-    .result-metric span { color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
+    .result-metric span { color: var(--muted); font-size: 12px; font-weight: 650; }
     .result-metric strong { margin: 4px 0 2px; font-family: var(--mono); font-size: 24px; font-variant-numeric: tabular-nums; }
     .result-metric small { color: var(--muted); font-size: 10px; }
     .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
-    .result-card { border: 1px solid var(--line); background: rgba(20,23,21,.78); }
+    .result-card { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--ink-2); }
     .result-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
     .result-card-head h3 { margin: 0; font-size: 15px; }
-    .result-card-head span { color: var(--muted); font-family: var(--mono); font-size: 9px; text-align: right; }
+    .result-card-head span { color: var(--muted); font-size: 12px; text-align: right; }
     .result-card-body { padding: 18px; }
     .fast-guide {
       display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(270px, .85fr); gap: 1px; margin-top: 18px;
-      border: 1px solid var(--line-strong); background: var(--line-strong); box-shadow: var(--shadow);
+      border: 1px solid var(--line-strong); border-radius: var(--radius-card); overflow: hidden; background: var(--line-strong); box-shadow: var(--shadow);
     }
     .fast-guide[hidden] { display: none; }
     .fast-guide-copy, .fast-guide-plan { padding: 22px; background: var(--ink-2); }
-    .fast-guide-kicker { display: block; margin-bottom: 8px; color: var(--orange-soft); font-family: var(--mono); font-size: 9px; letter-spacing: .14em; }
+    .fast-guide-kicker { display: block; margin-bottom: 8px; color: var(--orange-soft); font-size: 12px; font-weight: 650; }
     .fast-guide h3 { margin: 0 0 7px; font-size: 20px; }
     .fast-guide p { margin: 0; color: var(--muted); font-size: 12px; }
-    .fast-guide-plan > span { display: block; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: .12em; }
-    .fast-guide-plan > strong { display: block; margin: 5px 0; color: var(--paper); font-family: var(--display); font-size: 42px; line-height: 1; }
+    .fast-guide-plan > span { display: block; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .fast-guide-plan > strong { display: block; margin: 5px 0; color: var(--paper); font-family: var(--display); font-size: 36px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .fast-guide-plan > small { display: block; color: var(--paper-2); font-size: 10px; }
     .fast-guide-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
     .fast-guide-actions .btn { min-height: 38px; padding: 0 13px; }
     .range-list { display: grid; gap: 9px; }
-    .range-option { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); background: var(--ink-2); }
-    .range-option.is-main { border-color: var(--orange); background: rgba(223,116,68,.07); }
+    .range-option { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); }
+    .range-option.is-main { border-color: var(--orange); background: rgba(232,160,74,.07); }
     .range-option strong { display: block; color: var(--paper); font-size: 12px; }
     .range-option span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
     .range-option b { color: var(--paper); font-family: var(--mono); font-size: 16px; }
-    .range-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); background: var(--ink-2); }
-    .range-row.is-main { border-color: var(--orange); background: rgba(223,116,68,.07); }
+    .range-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); }
+    .range-row.is-main { border-color: var(--orange); background: rgba(232,160,74,.07); }
     .range-row > span { display: grid; gap: 3px; }
     .range-row b { color: var(--paper); font-family: var(--mono); font-size: 16px; font-weight: 600; }
     .range-row small { color: var(--muted); font-size: 10px; }
@@ -315,16 +301,16 @@
     .metric-list, .reason-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
     .metric-list li, .reason-list li { padding: 11px 12px; border-left: 2px solid var(--line-strong); color: var(--paper-2); font-size: 12px; }
     .metric-list b { color: var(--paper); font-family: var(--mono); font-weight: 600; }
-    .method-note { margin-top: 18px; padding: 15px 17px; border-left: 2px solid var(--orange); background: rgba(223,116,68,.055); color: var(--muted); font-size: 12px; }
+    .method-note { margin-top: 18px; padding: 15px 17px; border-left: 2px solid var(--orange); border-radius: 0 var(--radius) var(--radius) 0; background: rgba(232,160,74,.055); color: var(--muted); font-size: 12px; }
     .method-note strong { color: var(--paper); }
     .result-actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 22px; }
     .result-actions > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
-    .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid var(--line-strong); color: var(--paper-2); font-family: var(--mono); font-size: 9px; letter-spacing: .08em; }
-    .status-chip.is-good { border-color: rgba(169,200,135,.55); color: var(--green); }
-    .status-chip.is-warn { border-color: rgba(216,180,106,.55); color: var(--amber); }
+    .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--paper-2); font-size: 11px; font-weight: 650; }
+    .status-chip.is-good { border-color: rgba(125,206,154,.55); color: var(--green); }
+    .status-chip.is-warn { border-color: rgba(224,180,92,.55); color: var(--amber); }
     .toast {
-      position: fixed; z-index: 100; right: 20px; bottom: 20px; padding: 11px 14px; border: 1px solid rgba(169,200,135,.5);
-      color: var(--paper); background: #1d281b; box-shadow: var(--shadow); font-size: 12px; transform: translateY(16px); opacity: 0;
+      position: fixed; z-index: 100; right: 20px; bottom: 20px; padding: 11px 14px; border: 1px solid rgba(125,206,154,.5);
+      border-radius: var(--radius); color: var(--paper); background: var(--ink-3); box-shadow: var(--shadow); font-size: 12px; transform: translateY(16px); opacity: 0;
       pointer-events: none; transition: transform 180ms ease, opacity 180ms ease;
     }
     .toast.is-visible { transform: translateY(0); opacity: 1; }
@@ -367,8 +353,8 @@
     <div class="shell topbar-inner">
       <a class="brand" href="#" id="brandHome" aria-label="返回档案页">
         <span class="brand-mark" aria-hidden="true"></span>
-        <strong>CS2 SENS / LAB</strong>
-        <span>LOCAL · CANDIDATE SCREENING</span>
+        <strong>CS2 灵敏度实验室</strong>
+        <span>本机候选筛选</span>
       </a>
       <div class="stepper" aria-label="流程进度">
         <span class="step-dot is-active" data-step="profile"></span>
@@ -382,7 +368,7 @@
     <section class="view is-active" id="view-profile" data-view="profile">
       <div class="section-head">
         <div>
-          <div class="eyebrow">01 / calibration profile</div>
+          <div class="eyebrow">01 / 校准档案</div>
           <h1 id="profileHeading" tabindex="-1">从候选对照中筛选灵敏度</h1>
         </div>
         <p>不是一次网页成绩后套出小数值：每个候选都会实际改变虚拟视角增益，再用同条件的盲测比较速度、停稳与追踪。</p>
@@ -457,10 +443,10 @@
         <div class="form-section">
           <div class="form-section-title"><span class="form-index">01C</span><strong>选择测试深度</strong></div>
           <div class="mode-grid">
-            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio" checked><label for="mode-express"><b>EXPRESS · 首次推荐</b><strong>极速方向筛选</strong><span>约 100 秒比较 3 个候选，告诉你下一步应向慢、中心还是快的方向继续。</span><em>硬截止 120 秒 · 只给方向和粗筛带</em></label></div>
-            <div class="mode-card"><input id="mode-quick" name="mode" value="quick" type="radio"><label for="mode-quick"><b>QUICK</b><strong>快速粗筛</strong><span>3 个候选各测试一次，适合先排除明显不合适的方向。</span><em>约 4–6 分钟 · 不输出稳定候选</em></label></div>
-            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio"><label for="mode-standard"><b>STANDARD</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>基础约 13–15 分钟 · 外缘扩展会更久</em></label></div>
-            <div class="mode-card"><input id="mode-deep" name="mode" value="deep" type="radio"><label for="mode-deep"><b>DEEP</b><strong>深度细筛</strong><span>标准粗筛后，再完成三轮 ±6% 精筛。</span><em>通常 27–30 分钟 · 边界扩展会更久</em></label></div>
+            <div class="mode-card"><input id="mode-express" name="mode" value="express" type="radio" checked><label for="mode-express"><b>极速 · 首次推荐</b><strong>极速方向筛选</strong><span>约 100 秒比较 3 个候选，告诉你下一步应向慢、中心还是快的方向继续。</span><em>硬截止 120 秒 · 只给方向和粗筛带</em></label></div>
+            <div class="mode-card"><input id="mode-quick" name="mode" value="quick" type="radio"><label for="mode-quick"><b>快速</b><strong>快速粗筛</strong><span>3 个候选各测试一次，适合先排除明显不合适的方向。</span><em>约 4–6 分钟 · 不输出稳定候选</em></label></div>
+            <div class="mode-card"><input id="mode-standard" name="mode" value="standard" type="radio"><label for="mode-standard"><b>标准</b><strong>标准平衡比较</strong><span>3 个候选强制完成 ABC / BCA / CAB 三个平衡 pass。</span><em>基础约 13–15 分钟 · 外缘扩展会更久</em></label></div>
+            <div class="mode-card"><input id="mode-deep" name="mode" value="deep" type="radio"><label for="mode-deep"><b>深度</b><strong>深度细筛</strong><span>标准粗筛后，再完成三轮 ±6% 精筛。</span><em>通常 27–30 分钟 · 边界扩展会更久</em></label></div>
           </div>
           <div class="capability-line"><span class="capability-dot" id="capabilityDot"></span><span id="capabilityStatus" aria-live="polite">正在检测浏览器输入能力…</span></div>
         </div>
@@ -475,7 +461,7 @@
     <section class="view" id="view-lab" data-view="lab">
       <div class="section-head">
         <div>
-          <div class="eyebrow">02 / Aimlabs test <span class="status-chip is-warn">非官方网页模拟</span></div>
+          <div class="eyebrow">02 / 瞄准测试 <span class="status-chip is-warn">非官方网页模拟</span></div>
           <h2 id="labHeading" tabindex="-1">候选盲测：虚拟准星追向目标</h2>
         </div>
         <p>启动时锁定鼠标，移动会驱动虚拟准星追向目标。A/B/C 隐藏具体数值；每轮目标序列相同，只有候选灵敏度改变转动增益。</p>
@@ -490,20 +476,20 @@
         <div class="lab-main">
           <div class="arena-shell">
             <div class="arena-toolbar">
-              <div class="arena-title"><span class="live-dot" id="liveDot"></span><div><strong id="arenaTitle">等待开始</strong><span id="arenaSubtitle">CANDIDATE SCREENING / READY</span></div></div>
+              <div class="arena-title"><span class="live-dot" id="liveDot"></span><div><strong id="arenaTitle">等待开始</strong><span id="arenaSubtitle">候选筛选 · 就绪</span></div></div>
               <div class="arena-metrics">
-                <div class="arena-metric"><span>STATUS</span><strong id="arenaStatus">READY</strong></div>
-                <div class="arena-metric"><span>EVENT</span><strong id="arenaHits">00</strong></div>
-                <div class="arena-metric"><span>TIME</span><strong id="arenaTime">--</strong></div>
+                <div class="arena-metric"><span>状态</span><strong id="arenaStatus">就绪</strong></div>
+                <div class="arena-metric"><span>事件</span><strong id="arenaHits">00</strong></div>
+                <div class="arena-metric"><span>时间</span><strong id="arenaTime">--</strong></div>
               </div>
             </div>
             <div class="arena" id="arena" tabindex="0" aria-label="Aimlabs 测试区域">
               <div class="scene-target" id="sceneTarget" aria-hidden="true"></div>
               <div class="virtual-crosshair" id="virtualCrosshair" aria-hidden="true"><i class="h1"></i><i class="h2"></i><i class="v1"></i><i class="v2"></i></div>
-              <div class="arena-id" id="arenaId">MOVING RETICLE / RELATIVE INPUT</div>
+              <div class="arena-id" id="arenaId">相对输入 · 虚拟准星</div>
               <div class="arena-overlay" id="arenaOverlay">
                 <div class="overlay-content">
-                  <div class="overlay-kicker" id="overlayKicker">CANDIDATE SESSION READY</div>
+                  <div class="overlay-kicker" id="overlayKicker">候选会话已就绪</div>
                   <p class="overlay-number" id="overlayNumber" hidden>3</p>
                   <h3 class="overlay-title" id="overlayTitle">准备开始盲测</h3>
                   <p class="overlay-copy" id="overlayCopy">点击一次以锁定鼠标。测试开始后不用点击目标；持续停在目标内约 100 毫秒才算命中。</p>
@@ -516,7 +502,7 @@
 
         <aside class="lab-side">
           <div class="side-section">
-            <span class="side-label">SESSION PROFILE</span>
+            <span class="side-label">本次档案</span>
             <dl class="profile-mini">
               <dt>DPI</dt><dd id="miniDpi">800</dd>
               <dt>m_yaw</dt><dd id="miniYaw">0.022</dd>
@@ -524,10 +510,10 @@
               <dt>模式</dt><dd id="miniMode">标准配对</dd>
               <dt>输入</dt><dd id="miniInput">待锁定</dd>
             </dl>
-            <div style="margin-top:15px;"><span class="side-label">PROGRESS <b id="completionText" style="float:right;color:var(--paper);font-weight:500;">0 / 0</b></span><div class="progress-track" id="progressTrack" role="progressbar" aria-label="测试进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progressFill"></div></div></div>
+            <div style="margin-top:15px;"><span class="side-label">进度 <b id="completionText" style="float:right;color:var(--paper);font-weight:500;">0 / 0</b></span><div class="progress-track" id="progressTrack" role="progressbar" aria-label="测试进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progressFill"></div></div></div>
           </div>
           <div class="side-section">
-            <span class="side-label">BLIND QUEUE</span>
+            <span class="side-label">盲测队列</span>
             <ol class="queue-list" id="queueList"></ol>
             <div class="side-actions">
               <button class="btn btn-primary" id="startSession" type="button">锁定鼠标并开始</button>
@@ -541,21 +527,21 @@
 
     <section class="view" id="view-result" data-view="result">
       <div class="section-head">
-        <div><div class="eyebrow">03 / candidate result</div><h2 id="resultHeading" tabindex="-1">你的网页筛选候选范围</h2></div>
+        <div><div class="eyebrow">03 / 候选结果</div><h2 id="resultHeading" tabindex="-1">你的网页筛选候选范围</h2></div>
         <p>数值精确到三位是为了便于输入游戏，不代表网页能证明唯一最优。标准与深度模式的主推荐始终来自本次实际测试过的候选；极速与快速模式只保留范围。</p>
       </div>
 
       <div class="result-hero">
         <div class="result-primary">
-          <div class="result-label" id="resultPrimaryLabel">TESTED MAIN RECOMMENDATION</div>
+          <div class="result-label" id="resultPrimaryLabel">本次测试主推荐</div>
           <p class="sens-number" id="resultSens">1.000</p>
           <p class="sens-unit" id="resultUnit">CS2 sensitivity · 本次测试候选</p>
           <div class="command-box"><code id="commandText">sensitivity 1.000</code><button class="btn" id="copyCommand" type="button">复制命令</button></div>
         </div>
         <div class="result-side">
-          <div class="result-metric"><span id="rangeMetricLabel">TESTED RANGE</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
-          <div class="result-metric"><span>DISTANCE / 360°</span><strong id="resultCm">--</strong><small id="resultEdpi">--</small></div>
-          <div class="result-metric"><span>EVIDENCE</span><strong id="resultEvidence">--</strong><small id="evidenceCopy">网页测试状态</small></div>
+          <div class="result-metric"><span id="rangeMetricLabel">实测范围</span><strong id="rangeSens">--</strong><small id="rangeCopy">等待测试完成</small></div>
+          <div class="result-metric"><span>360° 距离</span><strong id="resultCm">--</strong><small id="resultEdpi">--</small></div>
+          <div class="result-metric"><span>证据</span><strong id="resultEvidence">--</strong><small id="evidenceCopy">网页测试状态</small></div>
         </div>
         <span id="precisionSens" hidden></span>
         <span id="speedSens" hidden></span>
@@ -564,12 +550,12 @@
 
       <section class="fast-guide" id="fastGuide" aria-labelledby="fastGuideTitle" hidden>
         <div class="fast-guide-copy">
-          <span class="fast-guide-kicker">FAST SCREENING / NEXT STEP</span>
+          <span class="fast-guide-kicker">快速筛选 · 下一步</span>
           <h3 id="fastGuideTitle">快速方向结论</h3>
           <p id="fastGuideCopy">单轮粗筛只负责确定下一步搜索方向，不把一次成绩包装成最终灵敏度。</p>
         </div>
         <div class="fast-guide-plan">
-          <span>NEXT SEARCH CENTER · 非最终推荐</span>
+          <span>下一步搜索中心 · 非最终推荐</span>
           <strong id="fastGuideCenter">--</strong>
           <small id="fastGuideEvidence">等待快速粗筛完成</small>
           <div class="fast-guide-actions">
@@ -581,19 +567,19 @@
 
       <div class="result-grid">
         <article class="result-card">
-          <div class="result-card-head"><h3 id="rangeCardTitle">实际测试过的范围</h3><span id="rangeCardMeta">CANDIDATE RANGE</span></div>
+          <div class="result-card-head"><h3 id="rangeCardTitle">实际测试过的范围</h3><span id="rangeCardMeta">候选范围</span></div>
           <div class="result-card-body"><div class="range-list" id="rangeList"></div></div>
         </article>
         <article class="result-card">
-          <div class="result-card-head"><h3>为什么得到这个结论</h3><span>REPEATABILITY</span></div>
+          <div class="result-card-head"><h3>为什么得到这个结论</h3><span>可复现性</span></div>
           <div class="result-card-body"><ul class="reason-list" id="reasonList"></ul></div>
         </article>
         <article class="result-card">
-          <div class="result-card-head"><h3>任务表现摘要</h3><span>ANGLE-NORMALIZED</span></div>
+          <div class="result-card-head"><h3>任务表现摘要</h3><span>角度归一</span></div>
           <div class="result-card-body"><ul class="metric-list" id="taskSummary"></ul></div>
         </article>
         <article class="result-card">
-          <div class="result-card-head"><h3>在 CS2 中复核</h3><span>MANUAL CHECK</span></div>
+          <div class="result-card-head"><h3>在 CS2 中复核</h3><span>手动核对</span></div>
           <div class="result-card-body">
             <ul class="reason-list" id="gameReviewList">
               <li>在控制台粘贴上方 <b>sensitivity</b> 命令并回车，再输入 <b>sensitivity</b> 查看回显。</li>
@@ -1817,10 +1803,10 @@
         els.arenaStatus.textContent = showCountdown ? "COUNT" : "ADAPT";
         els.arenaHits.textContent = "00";
         els.arenaTitle.textContent = "候选 " + candidateLabel(stage, block.candidateId) + " · 第 " + (block.pass + 1) + " 轮";
-        els.arenaSubtitle.textContent = "BLIND CANDIDATE / " + stage.id.toUpperCase();
+        els.arenaSubtitle.textContent = "盲测候选 / " + stage.id;
         if (showCountdown) {
           state.active.countdownEndAt = performance.now() + 3000;
-          setOverlay({ kicker: "INPUT LOCKED / GET READY", title: "虚拟准星即将开始", copy: "鼠标移动会驱动虚拟准星追向目标。触碰后请稍微停稳，首次擦过不会立即计分。", number: "3" });
+          setOverlay({ kicker: "输入已锁定 · 准备开始", title: "虚拟准星即将开始", copy: "鼠标移动会驱动虚拟准星追向目标。触碰后请稍微停稳，首次擦过不会立即计分。", number: "3" });
         } else {
           beginAdaptation(state.active);
         }
@@ -1832,7 +1818,7 @@
         run.adaptEndAt = performance.now() + run.mode.adaptMs;
         resetRunCamera(run);
         run.target = { yaw: 0, pitch: 0, radius: 1.7, inContact: false };
-        els.arenaStatus.textContent = "ADAPT";
+        els.arenaStatus.textContent = "适应";
         els.arenaTime.textContent = (run.mode.adaptMs / 1000).toFixed(1);
         hideOverlay();
       }
@@ -1859,9 +1845,9 @@
           trackReacquireAt: null
         };
         resetRunCamera(run);
-        els.arenaStatus.textContent = "LIVE";
+        els.arenaStatus.textContent = "进行中";
         els.arenaTitle.textContent = TASK_LABELS[run.taskName] + " · 候选 " + candidateLabel(run.stage, run.block.candidateId);
-        els.arenaSubtitle.textContent = "TEST " + (index + 1) + " / 3 · " + run.stage.id.toUpperCase();
+        els.arenaSubtitle.textContent = "测试 " + (index + 1) + " / 3 · " + run.stage.id;
         els.arenaHits.textContent = "00";
       }
       function spawnAcquisitionTarget(run, now) {
@@ -1977,7 +1963,7 @@
         if (run.taskIndex + 1 < TASK_ORDER.length) {
           run.phase = "between-task";
           run.betweenEndAt = performance.now() + 800;
-          setOverlay({ kicker: "TASK " + (run.taskIndex + 1) + " / 3 COMPLETE", title: TASK_LABELS[task] + "已记录", copy: "下一项会自动开始。候选数值仍保持隐藏。" });
+          setOverlay({ kicker: "任务 " + (run.taskIndex + 1) + " / 3 完成", title: TASK_LABELS[task] + "已记录", copy: "下一项会自动开始。候选数值仍保持隐藏。" });
         } else {
           finishBlock(run);
         }
@@ -2095,7 +2081,7 @@
         resetVirtualCrosshair();
         els.liveDot.classList.remove("is-live");
         els.arena.classList.remove("is-locked");
-        els.arenaStatus.textContent = "PAUSED";
+        els.arenaStatus.textContent = "已暂停";
         els.arenaTime.textContent = "--";
         state.session.status = "paused";
         state.session.interruption = reason;
@@ -2103,7 +2089,7 @@
         renderLab();
         if (document.pointerLockElement === els.arena && document.exitPointerLock) document.exitPointerLock();
         setOverlay({
-          kicker: "CURRENT BLOCK DISCARDED",
+          kicker: "当前分组已作废",
           title: "已暂停，完整分轮已保留",
           copy: reason + " 继续后会从当前候选的本轮开始。",
           actionLabel: "重新锁定并继续",
@@ -2353,7 +2339,7 @@
         current.phase = "between-block";
         current.betweenEndAt = performance.now() + 1050;
         setOverlay({
-          kicker: "BLOCK SAVED / NEXT AUTO START",
+          kicker: "分组已保存 · 自动进入下一项",
           title: "下一组候选准备中",
           copy: "候选 " + candidateLabel(currentStage(state.session), next.candidateId) + " · 第 " + (next.pass + 1) + " 轮。请继续握住鼠标，适应段会自动开始。"
         });
@@ -2440,7 +2426,7 @@
         saveState();
         renderLab();
         setOverlay({
-          kicker: "RAW INPUT NOT AVAILABLE",
+          kicker: "未加速输入不可用",
           title: "需要一次新的兼容输入确认",
           copy: "浏览器无法在同一次点击中可靠降级。再次点击后会以三候选单轮的兼容粗筛重新开始；不会混入原始输入数据，也不会输出稳定候选。",
           actionLabel: "使用兼容相对输入继续",
@@ -2468,7 +2454,7 @@
         state.session.status = "starting";
         state.awaitingLock = true;
         renderLab();
-        setOverlay({ kicker: "COMPATIBILITY INPUT", title: "正在请求兼容相对输入", copy: "将进行三候选单轮粗筛；结果会被限制为兼容估算。" });
+        setOverlay({ kicker: "兼容输入", title: "正在请求兼容相对输入", copy: "将进行三候选单轮粗筛；结果会被限制为兼容估算。" });
         requestPointerLock(false);
       }
       function sessionUsesCompatibilityInput(session) {
@@ -2482,7 +2468,7 @@
         saveState();
         renderLab();
         setOverlay({
-          kicker: "INPUT UNAVAILABLE",
+          kicker: "输入不可用",
           title: "无法锁定鼠标",
           copy: "请使用桌面 Chrome 或 Edge，确认页面拥有鼠标锁定权限后重试。",
           actionLabel: "重新尝试",
@@ -2498,11 +2484,11 @@
         renderLab();
         if (resumesCompatibilityScreen) {
           state.session.inputMode = "compat";
-          setOverlay({ kicker: "RESUMING COMPATIBILITY INPUT", title: "正在恢复兼容相对输入", copy: "该会话只进行三候选单轮粗筛；不会切换或混入未加速输入数据。" });
+          setOverlay({ kicker: "正在恢复兼容输入", title: "正在恢复兼容相对输入", copy: "该会话只进行三候选单轮粗筛；不会切换或混入未加速输入数据。" });
           requestPointerLock(false);
           return;
         }
-        setOverlay({ kicker: "REQUESTING POINTER LOCK", title: "正在锁定鼠标", copy: "如浏览器拒绝未加速输入，页面会要求一次新的点击确认兼容相对输入。" });
+        setOverlay({ kicker: "正在请求鼠标锁定", title: "正在锁定鼠标", copy: "如浏览器拒绝未加速输入，页面会要求一次新的点击确认兼容相对输入。" });
         requestPointerLock(true);
       }
       function onPointerLockChange() {
@@ -2580,7 +2566,7 @@
         els.rangeSens.textContent = stable.length === 1 ? formatSens(stable[0].sensitivity) : formatSens(stable[0].sensitivity) + " – " + formatSens(stable[stable.length - 1].sensitivity);
         els.rangeCopy.textContent = result.boundaryLimited ? "胜者触及已测外缘，保留邻近实际候选范围" : isRangeOnly ? "仅保留本次实际测试过的方向范围" : stable.length === 1 ? "当前数据区分出一个候选" : stable.length + " 个候选在复测噪声内接近";
         if (hasMain) {
-          els.resultPrimaryLabel.textContent = "TESTED MAIN RECOMMENDATION";
+          els.resultPrimaryLabel.textContent = "本次测试主推荐";
           els.resultSens.textContent = formatSens(main.sensitivity);
           els.resultUnit.textContent = "CS2 sensitivity · 候选 " + (result.stage.indexOf("fine") === 0 ? "深度细筛" : "粗筛") + "实际测试值";
           els.commandText.textContent = "sensitivity " + formatSens(main.sensitivity);
@@ -2588,7 +2574,7 @@
           els.resultCm.textContent = formatCm(main.cm) + " cm";
           els.resultEdpi.textContent = "eDPI " + Math.round(main.sensitivity * result.profile.dpi);
         } else {
-          els.resultPrimaryLabel.textContent = result.mode === "express" ? "EXPRESS SCREENING RANGE" : "QUICK SCREENING RANGE";
+          els.resultPrimaryLabel.textContent = result.mode === "express" ? "极速筛选范围" : "快速筛选范围";
           els.resultSens.textContent = "范围";
           els.resultUnit.textContent = rangeMode + " · 不提供单一 CS2 灵敏度或控制台命令";
           els.commandText.textContent = rangeMode + "不提供单一命令";
@@ -2709,7 +2695,7 @@
           saveState();
           renderLab();
           setOverlay({
-            kicker: "CANDIDATE SESSION READY",
+            kicker: "候选会话已就绪",
             title: "准备开始盲测",
             copy: "候选 A/B/C 的实际数值会隐藏。点击一次以锁定鼠标；倒计时与适应段完成后，目标无需点击。",
             actionLabel: "锁定鼠标并开始",
@@ -2730,7 +2716,7 @@
         saveState();
         renderLab();
         setOverlay({
-          kicker: "NEW BLIND SESSION",
+          kicker: "新的盲测会话",
           title: "已按相同档案重新建方案",
           copy: "新的随机种子会生成新的匹配目标序列。完整旧结果仍只保存在浏览器本地。",
           actionLabel: "锁定鼠标并开始",
@@ -2947,7 +2933,7 @@
       } else if (state.session) {
         renderLab();
         setOverlay({
-          kicker: "SAVED SESSION AVAILABLE",
+          kicker: "已保存会话可用",
           title: "可继续已保存的候选会话",
           copy: "页面只保留完整结束的分轮；上一次正在进行的测试已作废。重新锁定鼠标即可从下一组开始。",
           actionLabel: "重新锁定并继续",
@@ -3276,20 +3262,20 @@
       function updateToolbar(run, now) {
         var label = run.block.label;
         els.arenaTitle.textContent = "候选 " + label + " · PASS " + (run.block.pass + 1);
-        els.arenaSubtitle.textContent = "BLIND GAIN / " + run.block.stageId.toUpperCase();
+        els.arenaSubtitle.textContent = "盲测增益 / " + run.block.stageId;
         els.arenaHits.textContent = String(run.eventCount).padStart(2, "0");
         if (run.phase === "countdown") {
           var count = Math.max(1, Math.ceil((run.phaseEndsAt - now) / 1000));
-          els.arenaStatus.textContent = "READY";
+          els.arenaStatus.textContent = "就绪";
           els.arenaTime.textContent = String(count);
         } else if (run.phase === "adapt") {
-          els.arenaStatus.textContent = "ADAPT";
+          els.arenaStatus.textContent = "适应";
           els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
         } else if (run.phase === "task") {
           els.arenaStatus.textContent = TASK_LABELS[run.taskName] || "TEST";
           els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
         } else {
-          els.arenaStatus.textContent = "NEXT";
+          els.arenaStatus.textContent = "下一项";
           els.arenaTime.textContent = Math.max(0, (run.phaseEndsAt - now) / 1000).toFixed(1);
         }
       }
@@ -3555,7 +3541,7 @@
 
         if (run.phase === "countdown") {
           var count = Math.max(1, Math.ceil((run.phaseEndsAt - now) / 1000));
-          setOverlay({ kicker: "CANDIDATE " + run.block.label + " / PASS " + (run.block.pass + 1), title: "保持鼠标在测试区域", copy: "倒计时使用真实时钟；候选灵敏度将参与每次视角转动。", number: count });
+          setOverlay({ kicker: "候选 " + run.block.label + " / 第 " + (run.block.pass + 1) + " 轮", title: "保持鼠标在测试区域", copy: "倒计时使用真实时钟；候选灵敏度将参与每次视角转动。", number: count });
           if (now >= run.phaseEndsAt) beginAdaptation(run, now);
         } else if (run.phase === "adapt") {
           run.contact = Core.angularDistance(run.camera, run.target) <= run.target.radius;
@@ -3629,7 +3615,7 @@
           if (document.pointerLockElement === els.arena && document.exitPointerLock) { state.intentionalExit = true; document.exitPointerLock(); }
           saveState();
           renderLab();
-          setOverlay({ kicker: "BLOCK DISCARDED", title: "这一组没有记入", copy: issue + " 已完成的整组结果仍保留；本会话继续后只输出范围。", actionLabel: "继续范围筛选", action: requestSessionLock });
+          setOverlay({ kicker: "分组未计入", title: "这一组没有记入", copy: issue + " 已完成的整组结果仍保留；本会话继续后只输出范围。", actionLabel: "继续范围筛选", action: requestSessionLock });
           return;
         }
         var block = {
@@ -3687,7 +3673,7 @@
           if (document.pointerLockElement === els.arena) startBlock(pending);
           else {
             state.session.status = "paused";
-            setOverlay({ kicker: "NEXT BLIND BLOCK", title: "下一组已准备", copy: "重新锁定鼠标后继续；只保留完整结束的分组。", actionLabel: "锁定并继续", action: requestSessionLock });
+            setOverlay({ kicker: "下一组盲测", title: "下一组已准备", copy: "重新锁定鼠标后继续；只保留完整结束的分组。", actionLabel: "锁定并继续", action: requestSessionLock });
           }
           return;
         }
@@ -3765,7 +3751,7 @@
           finalizeExpressInsufficient(reason + " 剩余时间不足以在 120 秒内完成三个候选。");
           return;
         }
-        setOverlay({ kicker: "BLOCK INVALIDATED", title: "当前分组已作废", copy: reason + " 倒计时与计分已停止。本会话可继续完成范围筛选；如需唯一推荐，请在结果页重新建立无异常会话。", actionLabel: "继续范围筛选", action: requestSessionLock });
+        setOverlay({ kicker: "分组已作废", title: "当前分组已作废", copy: reason + " 倒计时与计分已停止。本会话可继续完成范围筛选；如需唯一推荐，请在结果页重新建立无异常会话。", actionLabel: "继续范围筛选", action: requestSessionLock });
       }
 
       function resetLockState() {
@@ -3812,7 +3798,7 @@
           state.intentionalExit = true;
           document.exitPointerLock();
         }
-        setOverlay({ kicker: "INPUT UNAVAILABLE", title: "兼容 Pointer Lock 也未能建立", copy: reason || "请确认页面位于前台，并使用桌面 Chrome / Edge 重试。", actionLabel: "重试", action: requestSessionLock });
+        setOverlay({ kicker: "输入不可用", title: "兼容 Pointer Lock 也未能建立", copy: reason || "请确认页面位于前台，并使用桌面 Chrome / Edge 重试。", actionLabel: "重试", action: requestSessionLock });
       }
       function maybeStartRawLock() {
         if (!state.lock.awaiting || state.lock.mode !== "raw") return;
@@ -3848,7 +3834,7 @@
         }
         renderLab();
         setOverlay({
-          kicker: "RAW INPUT NOT CONFIRMED",
+          kicker: "未加速输入未确认",
           title: "未能确认未加速输入",
           copy: (reason || "浏览器未返回可确认的 unadjustedMovement Promise。") + " 继续会使用新的 Express / Quick 兼容会话，并清空未完成的原始输入成绩。",
           actionLabel: "使用兼容粗筛重建会话",
@@ -4146,7 +4132,7 @@
         var isFastMode = isExpress || result.mode === "quick";
         var guidance = result.fastGuidance;
         var nextCenter = guidance && Number.isFinite(Number(guidance.nextCenterSensitivity)) ? Core.formatSensitivity(guidance.nextCenterSensitivity) : "--";
-        els.resultPrimaryLabel.textContent = isExpress ? "FAST DIRECTION SIGNAL" : main ? "SESSION MAIN RECOMMENDATION" : "TESTED RANGE · NO UNIQUE VALUE";
+        els.resultPrimaryLabel.textContent = isExpress ? "快速方向信号" : main ? "本次主推荐" : "实测范围 · 无唯一值";
         els.resultSens.textContent = isExpress ? (guidance ? guidance.directionLabel : "本轮无明确方向") : main ? Core.formatSensitivity(main.sensitivity) : rangeText(range);
         els.resultSens.style.fontSize = main ? "" : "clamp(42px, 7vw, 84px)";
         els.resultUnit.textContent = isExpress ? "下一轮搜索中心 " + nextCenter + " · 不是最终推荐" : main ? "CS2 sensitivity · 本次实测候选" : "当前测试无法进一步区分；请保留范围";
@@ -4156,7 +4142,7 @@
         els.rangeMetricLabel.textContent = result.insufficient ? "PLANNED BAND" : "TESTED RANGE";
         els.rangeCopy.textContent = result.insufficient ? "计划粗筛带；未完整测试三个候选" : result.anomalies && result.anomalies.length ? "数据异常，本次仅保留实测范围" : result.boundaryLimited ? "搜索触及已测外缘，保留邻近范围" : range.length > 1 ? "当前测试无法进一步区分" : "三轮对手均被支配";
         els.rangeCardTitle.textContent = result.insufficient ? "本轮计划粗筛带" : "实际测试过的范围";
-        els.rangeCardMeta.textContent = result.insufficient ? "INCOMPLETE SCREEN" : "CANDIDATE RANGE";
+        els.rangeCardMeta.textContent = result.insufficient ? "筛选未完成" : "候选范围";
         if (main) {
           els.resultCm.textContent = formatCm(main.cm) + " cm";
           els.resultEdpi.textContent = Math.round(main.sensitivity * result.profile.dpi) + " eDPI";
@@ -4350,7 +4336,7 @@
           state.result = null;
           saveState();
           renderLab();
-          setOverlay({ kicker: "V3 BALANCED CANDIDATES", title: "候选盲测已建立", copy: "首次会请求未加速 Pointer Lock。每个 pass 中三个候选共用相同任务种子；目标无需点击。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
+          setOverlay({ kicker: "平衡候选已建立", title: "候选盲测已建立", copy: "首次会请求未加速 Pointer Lock。每个 pass 中三个候选共用相同任务种子；目标无需点击。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
           els.formError.textContent = "候选已使用对数空间建立；档案只决定起点，不直接决定胜负。";
           els.formError.style.color = "var(--green)";
           showView("lab");
@@ -4366,7 +4352,7 @@
         state.session = createSession(state.profile);
         state.result = null;
         saveState(); renderLab();
-        setOverlay({ kicker: "NEW V3 SESSION", title: "已建立新的盲测会话", copy: "新标签映射和种子已生成。", actionLabel: "锁定并开始", action: requestSessionLock });
+        setOverlay({ kicker: "新的盲测会话", title: "已建立新的盲测会话", copy: "新标签映射和种子已生成。", actionLabel: "锁定并开始", action: requestSessionLock });
         showView("lab");
       }
       function startFastFollowup(mode) {
@@ -4385,7 +4371,7 @@
         saveState();
         renderLab();
         setOverlay({
-          kicker: mode === "express" ? "FAST DIRECTION RECHECK" : mode === "quick" ? "QUICK RANGE CHECK" : "STANDARD VERIFICATION",
+          kicker: mode === "express" ? "极速方向复核" : mode === "quick" ? "快速范围复核" : "标准复核",
           title: "已用 " + Core.formatSensitivity(center) + " 建立下一轮中心",
           copy: "这个数值仍只是候选网格中心，不是最终推荐。新会话使用新的标签映射与目标种子。",
           actionLabel: "锁定鼠标并开始",
@@ -4407,7 +4393,7 @@
         state.session = createSession(profile, { grid: state.result.finalGrid, confirmation: true, labelBySensitivity: state.result.labelBySensitivity });
         state.result = null;
         saveState(); renderLab();
-        setOverlay({ kicker: "COMPLEMENTARY ORDER", title: "跨日同网格确认任务", copy: "候选数值不插值，执行 CBA / ACB / BAC 互补顺序。", actionLabel: "锁定并开始", action: requestSessionLock });
+        setOverlay({ kicker: "互补顺序", title: "跨日同网格确认任务", copy: "候选数值不插值，执行 CBA / ACB / BAC 互补顺序。", actionLabel: "锁定并开始", action: requestSessionLock });
         showView("lab");
       }
       function leaveLabForProfile() {
@@ -4430,7 +4416,7 @@
           cancelLockAttempt(true);
           if (state.session && state.session.status !== "complete") state.session.status = "paused";
           saveState();
-          setOverlay({ kicker: "SESSION PAUSED", title: "会话已暂停", copy: "没有未完成分组被计入；重新锁定鼠标后可继续。", actionLabel: "重新锁定并继续", action: requestSessionLock });
+          setOverlay({ kicker: "会话已暂停", title: "会话已暂停", copy: "没有未完成分组被计入；重新锁定鼠标后可继续。", actionLabel: "重新锁定并继续", action: requestSessionLock });
         }
       });
       byId("backToProfile").addEventListener("click", leaveLabForProfile);
@@ -4531,7 +4517,7 @@
         showView("result");
       } else if (state.session) {
         renderLab();
-        setOverlay({ kicker: "SAVED V3 SESSION", title: "可继续已保存的候选会话", copy: "只恢复完整结束的分组；上一个未完成分组已作废。", actionLabel: "重新锁定并继续", action: requestSessionLock });
+        setOverlay({ kicker: "已保存会话", title: "可继续已保存的候选会话", copy: "只恢复完整结束的分组；上一个未完成分组已作废。", actionLabel: "重新锁定并继续", action: requestSessionLock });
         showView("lab");
       }
     }());

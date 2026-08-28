@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#10130f">
+  <meta name="theme-color" content="#0e1012">
   <title>OPT / LAB — Windows 游戏优化工作台</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -13,7 +13,7 @@
     <aside class="side-rail" aria-label="OPT / LAB 主导航">
       <a class="brand" href="#overview" data-navigate="overview" aria-label="OPT / LAB 总览">
         <span class="brand-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="brand-type"><strong>OPT / LAB</strong><small>WINDOWS PERFORMANCE</small></span>
+        <span class="brand-type"><strong>OPT / LAB</strong><small>Windows 开赛工作台</small></span>
       </a>
 
       <nav class="main-nav" aria-label="工作区">
@@ -49,7 +49,7 @@
       <div class="rail-footer">
         <div class="machine-chip" id="machineChip" aria-label="本机模式">
           <span class="machine-led" id="machineLed" aria-hidden="true"></span>
-          <div><small id="machineMode">CONNECTING</small><strong id="machineDetail">CHECKING HOST</strong></div>
+          <div><small id="machineMode">正在连接</small><strong id="machineDetail">检查宿主</strong></div>
         </div>
         <button class="nav-item settings-nav" data-view="settings" type="button" aria-label="设置">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12 .9 2.1 2.2.5 1.9-1.2 1.9 1.9-1.2 1.9.5 2.2 2.1.9v2.6l-2.1.9-.5 2.2 1.2 1.9-1.9 1.9-1.9-1.2-2.2.5-.9 2.1H10l-.9-2.1-2.2-.5-1.9 1.2-1.9-1.9 1.2-1.9-.5-2.2-2.1-.9v-2.6l2.1-.9.5-2.2-1.2-1.9 1.9-1.9 1.9 1.2 2.2-.5L10 3.5h2Z"/></svg>
@@ -61,11 +61,11 @@
     <main class="workspace">
       <header class="workspace-head" id="workspaceHead">
         <div class="head-location">
-          <span class="head-kicker" id="headKicker">WORKSTATION / OVERVIEW</span>
-          <h1 id="headTitle">本机状态</h1>
+          <span class="head-kicker" id="headKicker">本机状态</span>
+          <h1 id="headTitle">总览</h1>
         </div>
         <div class="head-actions">
-          <span class="update-channel"><i aria-hidden="true"></i> OFFICIAL MODULE CHANNEL</span>
+          <span class="update-channel"><i aria-hidden="true"></i> 官方模块通道</span>
           <button class="icon-button" data-view="settings" type="button" aria-label="打开设置">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-12 .9 2.1 2.2.5 1.9-1.2 1.9 1.9-1.2 1.9.5 2.2 2.1.9v2.6l-2.1.9-.5 2.2 1.2 1.9-1.9 1.9-1.9-1.2-2.2.5-.9 2.1H10l-.9-2.1-2.2-.5-1.9 1.2-1.9-1.9 1.2-1.9-.5-2.2-2.1-.9v-2.6l2.1-.9.5-2.2-1.2-1.9 1.9-1.9 1.9 1.2 2.2-.5L10 3.5h2Z"/></svg>
           </button>
@@ -73,30 +73,32 @@
       </header>
 
       <section class="view is-active" data-view-panel="overview" aria-labelledby="overviewHeading">
-        <div class="status-tape" aria-label="当前执行状态">
-          <div class="tape-main">
-            <span class="tape-index">STATUS / 0.1</span>
-            <h2 id="overviewHeading">先用三分钟确认真正影响 CS2 的项目。</h2>
-            <p>根据 Windows 版本、显卡和游戏平台给出适配步骤。每项都说明原因、验证方法与恢复边界。</p>
+        <div class="next-step-hero" aria-label="当前该做的事">
+          <span class="eyebrow">现在该做什么</span>
+          <h2 id="overviewHeading">先用三分钟确认真正影响 CS2 的项目。</h2>
+          <p>根据 Windows 版本、显卡和游戏平台给出适配步骤。每项都说明原因、验证方法与恢复边界。</p>
+          <div class="hero-actions">
+            <button class="button button-primary" data-view="optimizer" type="button">开始开赛检查 <span aria-hidden="true">→</span></button>
+            <button class="text-button" data-open-module="cs2-sensitivity" type="button">灵敏度实验室</button>
+            <button class="text-button" data-open-module="cs2-lineups" type="button">投掷物瞄点</button>
           </div>
-          <div class="tape-signals" aria-label="状态指标">
-            <div><span>ACTIVE CHANGES</span><strong id="activeChangeMetric">00</strong></div>
-            <div><span>READY CHECK</span><strong id="readinessMetric">0%</strong></div>
-            <div><span>RECOVERY STATE</span><strong id="recoveryMetric">CLEAR</strong></div>
+          <div class="status-chips" aria-label="状态指标">
+            <div><span>改动</span><strong id="activeChangeMetric">00</strong></div>
+            <div><span>就绪</span><strong id="readinessMetric">0%</strong></div>
+            <div><span>恢复</span><strong id="recoveryMetric">无</strong></div>
           </div>
-          <div class="tape-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
 
         <div class="host-strip" aria-label="桌面宿主能力">
-          <div><span>HOST MODE</span><strong id="hostModeLabel">正在确认</strong></div>
-          <div><span>RUNTIME</span><strong id="hostRuntimeLabel">LOCAL WEB</strong></div>
-          <div><span>WINDOWS LINKS</span><strong id="hostSettingsLabel">等待宿主</strong></div>
-          <div><span>SYSTEM WRITES</span><strong id="hostMutationLabel">DISABLED</strong></div>
+          <div><span>连接</span><strong id="hostModeLabel">正在确认</strong></div>
+          <div><span>运行环境</span><strong id="hostRuntimeLabel">浏览器预览</strong></div>
+          <div><span>系统设置</span><strong id="hostSettingsLabel">等待宿主</strong></div>
+          <div><span>系统写入</span><strong id="hostMutationLabel">关闭</strong></div>
         </div>
 
         <section class="section-block journey-block" aria-labelledby="journeyHeading">
           <div class="section-head journey-head">
-            <div><span class="eyebrow">MATCH SESSION / CONTROL FLOW</span><h2 id="journeyHeading">一次开赛，只看下一步</h2></div>
+            <div><span class="eyebrow">开赛流程</span><h2 id="journeyHeading">一次开赛，只看下一步</h2></div>
             <p id="journeySummary">正在汇总本机进度。</p>
           </div>
           <div class="journey-list" id="journeyList"></div>
@@ -105,26 +107,24 @@
         <div class="overview-grid">
           <article class="panel focus-panel">
             <div class="panel-head">
-              <div><span class="eyebrow">3-MINUTE START</span><h3>按你的电脑生成开赛检查</h3></div>
-              <span class="panel-code">PLAN / LIVE</span>
+              <div><span class="eyebrow">三分钟开始</span><h3>按你的电脑生成开赛检查</h3></div>
+              <span class="panel-code">进行中</span>
             </div>
             <p class="panel-copy">默认只保留最重要的项目：刷新率、Game Mode、会话后台、显卡低延迟能力和平台自己的当前优化入口。</p>
             <div class="calibration-readout" id="quickProgressReadout">
-              <span>QUICK PLAN</span>
+              <span>快速检查</span>
               <strong>尚未开始</strong>
               <small>完成状态仅保存在本机，由你逐项确认。</small>
             </div>
             <div class="panel-actions">
-              <button class="button button-primary" data-view="optimizer" type="button">开始开赛检查 <span aria-hidden="true">→</span></button>
-              <button class="text-button" data-open-module="cs2-sensitivity" type="button">灵敏度实验室</button>
-              <button class="text-button" data-open-module="cs2-lineups" type="button">投掷物瞄点</button>
+              <button class="button button-secondary" data-view="optimizer" type="button">打开开赛准备</button>
             </div>
           </article>
 
           <article class="panel contract-panel">
             <div class="panel-head">
-              <div><span class="eyebrow">AUTOMATION CONTRACT</span><h3>系统动作先经过恢复链路</h3></div>
-              <span class="panel-code">CORE / READY</span>
+              <div><span class="eyebrow">恢复约定</span><h3>系统动作先经过恢复链路</h3></div>
+              <span class="panel-code">底座就绪</span>
             </div>
             <ol class="contract-flow">
               <li><span>01</span><div><strong>检测</strong><small>确认系统、模块版本与前置条件。</small></div></li>
@@ -138,26 +138,26 @@
 
         <section class="section-block" aria-labelledby="moduleSnapshotHeading">
           <div class="section-head">
-            <div><span class="eyebrow">MODULE SNAPSHOT</span><h2 id="moduleSnapshotHeading">已装载能力</h2></div>
+            <div><span class="eyebrow">已装载能力</span><h2 id="moduleSnapshotHeading">模块入口</h2></div>
             <button class="text-button" data-view="modules" type="button">进入方案库</button>
           </div>
           <div class="module-snapshot-list">
             <article class="snapshot-row">
-              <div class="snapshot-state is-ready">READY</div>
+              <div class="snapshot-state is-ready">可用</div>
               <div class="snapshot-title"><strong>CS2 开赛准备</strong><span>Windows · 显卡 · Steam / 完美 / 5E 适配检查</span></div>
-              <div class="snapshot-permission">USER CONFIRM</div>
+              <div class="snapshot-permission">逐项确认</div>
               <button class="row-action" data-view="optimizer" type="button">开始 <span aria-hidden="true">↗</span></button>
             </article>
             <article class="snapshot-row">
-              <div class="snapshot-state is-ready">READY</div>
-              <div class="snapshot-title"><strong>CS2 SENS / LAB</strong><span>个人灵敏度校准 · 离线网页模块</span></div>
-              <div class="snapshot-permission">NO ADMIN</div>
+              <div class="snapshot-state is-ready">可用</div>
+              <div class="snapshot-title"><strong>CS2 灵敏度实验室</strong><span>个人灵敏度校准 · 离线网页模块</span></div>
+              <div class="snapshot-permission">无需管理员</div>
               <button class="row-action" data-open-module="cs2-sensitivity" type="button">打开 <span aria-hidden="true">↗</span></button>
             </article>
             <article class="snapshot-row">
-              <div class="snapshot-state is-ready">READY</div>
-              <div class="snapshot-title"><strong>CS2 LINEUPS</strong><span>投掷物瞄点 · 离线雷达目录</span></div>
-              <div class="snapshot-permission">NO ADMIN</div>
+              <div class="snapshot-state is-ready">可用</div>
+              <div class="snapshot-title"><strong>CS2 投掷物瞄点</strong><span>投掷物瞄点 · 离线雷达目录</span></div>
+              <div class="snapshot-permission">无需管理员</div>
               <button class="row-action" data-open-module="cs2-lineups" type="button">打开 <span aria-hidden="true">↗</span></button>
             </article>
           </div>
@@ -167,11 +167,11 @@
       <section class="view" data-view-panel="optimizer" aria-labelledby="optimizerHeading">
         <div class="optimizer-hero">
           <div>
-            <span class="eyebrow">EVIDENCE-BASED / LOCAL CHECKLIST</span>
+            <span class="eyebrow">有据可查 · 本机检查</span>
             <h2 id="optimizerHeading">CS2 开赛准备</h2>
             <p>先选环境，再一次只处理一项。OPT / LAB 不会在后台偷偷改注册表、停服务或结束反作弊进程。</p>
           </div>
-          <div class="research-stamp"><span>RESEARCH CUT-OFF</span><strong>2026-08-15</strong><small>官方资料优先</small></div>
+          <div class="research-stamp"><span>资料截止</span><strong>2026-08-15</strong><small>官方资料优先</small></div>
         </div>
 
         <div class="profile-strip" aria-label="优化适配信息">
@@ -185,7 +185,7 @@
         </div>
 
         <div class="profile-confirmation" id="profileConfirmation">
-          <div><span>ENVIRONMENT REVIEW</span><strong id="profileReviewText">请确认这套设备与平台信息</strong></div>
+          <div><span>环境确认</span><strong id="profileReviewText">请确认这套设备与平台信息</strong></div>
           <button class="button button-secondary" id="confirmProfileButton" type="button">确认这套环境</button>
         </div>
 
@@ -198,20 +198,20 @@
         <div class="recommendation-list" id="recommendationList"></div>
 
         <details class="rejected-tweaks">
-          <summary><span>GUARDRAILS</span> 本应用明确不做的“优化”</summary>
+          <summary><span>护栏</span> 本应用明确不做的“优化”</summary>
           <div><p>这些项目缺少当前一手证据、会扩大安全风险，或极易与游戏平台和反作弊冲突。</p><ul id="rejectedTweaksList"></ul></div>
         </details>
       </section>
 
       <section class="view" data-view-panel="modules" aria-labelledby="modulesHeading">
         <div class="section-head module-library-head">
-          <div><span class="eyebrow">OFFICIAL MODULES / LOCAL FIRST</span><h2 id="modulesHeading">已验证方案</h2></div>
+          <div><span class="eyebrow">官方模块 · 本机优先</span><h2 id="modulesHeading">已验证方案</h2></div>
           <p>只有经签名校验、明确说明影响范围并提供恢复策略的模块才能进入这里。</p>
         </div>
 
         <div class="module-library">
           <article class="module-card module-card-ready">
-            <div class="module-card-top"><span class="module-tag">MATCH READINESS</span><span class="module-state"><i></i> READY</span></div>
+            <div class="module-card-top"><span class="module-tag">开赛准备</span><span class="module-state"><i></i> 可用</span></div>
             <div class="module-ident"><span class="module-mark mark-bars" aria-hidden="true"></span><div><h3>CS2 开赛准备</h3><p>按系统、显卡与平台生成适配方案</p></div></div>
             <p class="module-description">把散落在 Windows、CS2、Steam、完美和 5E 中的可信设置整理为一条短流程；默认只展开低风险、高适用性的项目。</p>
             <dl class="module-facts"><div><dt>默认耗时</dt><dd>约 3 分钟</dd></div><div><dt>执行</dt><dd>用户逐项确认</dd></div><div><dt>依据</dt><dd>官方资料优先</dd></div></dl>
@@ -219,15 +219,15 @@
           </article>
 
           <article class="module-card module-card-featured">
-            <div class="module-card-top"><span class="module-tag">CALIBRATION</span><span class="module-state"><i></i> READY</span></div>
-            <div class="module-ident"><span class="module-mark mark-cross" aria-hidden="true"></span><div><h3>CS2 SENS / LAB</h3><p>Counter-Strike 2 个人灵敏度校准</p></div></div>
+            <div class="module-card-top"><span class="module-tag">灵敏度校准</span><span class="module-state"><i></i> 可用</span></div>
+            <div class="module-ident"><span class="module-mark mark-cross" aria-hidden="true"></span><div><h3>CS2 灵敏度实验室</h3><p>Counter-Strike 2 个人灵敏度校准</p></div></div>
             <p class="module-description">整合 DPI、鼠标空间、习惯与三项鼠标测试，输出一条可直接复制到 CS2 控制台的灵敏度命令。</p>
             <dl class="module-facts"><div><dt>权限</dt><dd>无管理员权限</dd></div><div><dt>数据</dt><dd>仅本机保存</dd></div><div><dt>恢复</dt><dd>不修改系统</dd></div></dl>
             <button class="button button-primary" data-open-module="cs2-sensitivity" type="button">开始校准 <span aria-hidden="true">→</span></button>
           </article>
 
           <article class="module-card module-card-contract">
-            <div class="module-card-top"><span class="module-tag">REFERENCE</span><span class="module-state"><i></i> READY</span></div>
+            <div class="module-card-top"><span class="module-tag">瞄点参考</span><span class="module-state"><i></i> 可用</span></div>
             <div class="module-ident"><span class="module-mark mark-bars" aria-hidden="true"></span><div><h3>CS2 投掷物瞄点</h3><p>雷达点击查询站位、瞄点与落点</p></div></div>
             <p class="module-description">按当前地图位置聚合附近起投站，展示烟/闪/火/雷三帧详情与开局路线。只读目录，进度保存在本机浏览器。</p>
             <dl class="module-facts"><div><dt>权限</dt><dd>无管理员权限</dd></div><div><dt>数据</dt><dd>仅本机收藏/备注</dd></div><div><dt>恢复</dt><dd>不修改系统</dd></div></dl>
@@ -235,7 +235,7 @@
           </article>
 
           <article class="module-card module-card-diagnostic">
-            <div class="module-card-top"><span class="module-tag">HOST DIAGNOSTICS</span><span class="module-state" id="diagnosticModuleState"><i></i> CHECKING</span></div>
+            <div class="module-card-top"><span class="module-tag">本机诊断</span><span class="module-state" id="diagnosticModuleState"><i></i> 检查中</span></div>
             <div class="module-ident"><span class="module-mark mark-pulse" aria-hidden="true"></span><div><h3>本机环境摘要</h3><p>桌面宿主、架构与能力边界</p></div></div>
             <p class="module-description">读取桌面宿主主动提供的非敏感运行信息，明确哪些能力已连接、哪些仍未发布；不会扫描进程、账号或游戏文件。</p>
             <dl class="module-facts"><div><dt>权限</dt><dd>只读</dd></div><div><dt>来源</dt><dd>桌面宿主</dd></div><div><dt>上传</dt><dd>从不自动</dd></div></dl>
@@ -245,7 +245,7 @@
         </div>
 
         <aside class="module-policy">
-          <span>MODULE POLICY</span>
+          <span>模块策略</span>
           <p>网页界面没有系统权限。即使将来模块涉及平台占用、启动项或进程优先级，它也只能提交声明式计划，由 Windows Broker 对白名单动作进行验证、执行和恢复。</p>
         </aside>
       </section>
@@ -253,24 +253,24 @@
       <section class="view module-view" data-view-panel="module" aria-labelledby="moduleHeading">
         <div class="module-host-head">
           <button class="back-button" data-view="modules" type="button"><span aria-hidden="true">←</span> 返回方案库</button>
-          <div class="module-host-title"><span class="eyebrow" id="moduleEyebrow">MODULE / CS2-SENSITIVITY</span><h2 id="moduleHeading">CS2 SENS / LAB</h2></div>
-          <div class="module-host-state"><span><i></i> LOCAL MODULE</span><small>NO SYSTEM CHANGES</small></div>
+          <div class="module-host-title"><span class="eyebrow" id="moduleEyebrow">离线模块</span><h2 id="moduleHeading">CS2 灵敏度实验室</h2></div>
+          <div class="module-host-state"><span><i></i> 本机模块</span><small>不修改系统</small></div>
         </div>
         <div class="module-frame-wrap">
           <div class="module-frame-loading" id="moduleFrameLoading"><span class="loader-mark" aria-hidden="true"></span><p id="moduleFrameStatus">正在加载离线校准模块…</p><button class="button button-secondary" id="retryModuleButton" type="button" hidden>重新加载</button></div>
-          <iframe id="moduleFrame" title="CS2 SENS / LAB 校准模块" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+          <iframe id="moduleFrame" title="CS2 灵敏度实验室" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
         </div>
       </section>
 
       <section class="view" data-view-panel="diagnostics" aria-labelledby="diagnosticsHeading">
         <div class="section-head diagnostics-head">
-          <div><span class="eyebrow">DESKTOP HOST / READ-ONLY</span><h2 id="diagnosticsHeading">本机环境摘要</h2></div>
+          <div><span class="eyebrow">桌面宿主 · 只读</span><h2 id="diagnosticsHeading">本机环境摘要</h2></div>
           <p>只展示桌面宿主主动提供的运行信息。浏览器预览不会伪装成 Windows 检测结果。</p>
         </div>
 
         <div class="diagnostics-hero">
           <div>
-            <span class="diagnostic-badge" id="diagnosticHostBadge">CONNECTING</span>
+            <span class="diagnostic-badge" id="diagnosticHostBadge">正在连接</span>
             <h3 id="diagnosticHostTitle">正在等待桌面宿主</h3>
             <p id="diagnosticHostCopy">若当前是普通浏览器，将自动切换为受限预览模式。</p>
           </div>
@@ -278,7 +278,7 @@
             <div><dt>系统</dt><dd id="diagnosticOs">等待宿主</dd></div>
             <div><dt>架构</dt><dd id="diagnosticArchitecture">—</dd></div>
             <div><dt>宿主版本</dt><dd id="diagnosticVersion">—</dd></div>
-            <div><dt>运行时</dt><dd id="diagnosticRuntime">LOCAL WEB</dd></div>
+            <div><dt>运行时</dt><dd id="diagnosticRuntime">浏览器预览</dd></div>
           </dl>
         </div>
 
@@ -292,14 +292,14 @@
         </div>
 
         <aside class="diagnostic-boundary">
-          <div><span>DATA BOUNDARY</span><strong>仅本机 · 不读取账号 · 不上传</strong><p>诊断说明只包含宿主模式、环境选择、完成计数和恢复状态，不包含鼠标轨迹、CS2 配置或平台账号。</p></div>
+          <div><span>数据边界</span><strong>仅本机 · 不读取账号 · 不上传</strong><p>诊断说明只包含宿主模式、环境选择、完成计数和恢复状态，不包含鼠标轨迹、CS2 配置或平台账号。</p></div>
           <button class="button button-secondary" data-export-diagnostics type="button">导出诊断说明</button>
         </aside>
       </section>
 
       <section class="view" data-view-panel="recovery" aria-labelledby="recoveryHeading">
         <div class="section-head recovery-head">
-          <div><span class="eyebrow">RECOVERY LEDGER</span><h2 id="recoveryHeading">当前恢复状态</h2></div>
+          <div><span class="eyebrow">恢复台账</span><h2 id="recoveryHeading">当前恢复状态</h2></div>
           <p>只显示真实由 OPT / LAB 创建并验证过的变更。未完成事务会在这里阻止新的自动化操作。</p>
         </div>
         <div class="recovery-status" id="recoveryStatus">
@@ -311,7 +311,7 @@
 
       <section class="view" data-view-panel="history" aria-labelledby="historyHeading">
         <div class="section-head history-head">
-          <div><span class="eyebrow">LOCAL ACTIVITY LOG</span><h2 id="historyHeading">校准与事务</h2></div>
+          <div><span class="eyebrow">本机记录</span><h2 id="historyHeading">校准与事务</h2></div>
           <button class="text-button" id="clearHistory" type="button">清空校准记录</button>
         </div>
         <div class="history-list" id="historyList"></div>
@@ -319,7 +319,7 @@
 
       <section class="view" data-view-panel="settings" aria-labelledby="settingsHeading">
         <div class="section-head settings-head">
-          <div><span class="eyebrow">LOCAL CONTROL PLANE</span><h2 id="settingsHeading">本机偏好</h2></div>
+          <div><span class="eyebrow">本机偏好</span><h2 id="settingsHeading">工作台设置</h2></div>
           <p>所有默认值以离线、安全和可解释为优先。</p>
         </div>
         <div class="settings-stack">

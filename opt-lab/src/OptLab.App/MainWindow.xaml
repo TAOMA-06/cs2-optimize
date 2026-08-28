@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="OPT / LAB">
-    <Grid x:Name="RootGrid" Background="#10130F" Loaded="OnRootLoaded">
+    <Grid x:Name="RootGrid" Background="#0E1012" Loaded="OnRootLoaded">
         <WebView2 x:Name="ShellView" />
         <Grid x:Name="FallbackPanel" Visibility="Collapsed" Padding="48">
             <StackPanel Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560">

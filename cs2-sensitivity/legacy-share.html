@@ -4,28 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0d0f0e">
-  <title>CS2 SENS / LAB — 专属灵敏度生成器</title>
+  <meta name="theme-color" content="#0e1012">
+  <title>CS2 灵敏度实验室 — 专属灵敏度生成器</title>
   <style>
     :root {
-      --ink: #0d0f0e;
-      --ink-2: #141715;
-      --ink-3: #1b1f1c;
-      --panel: #20241f;
-      --line: #353a34;
-      --line-strong: #535a51;
-      --paper: #eeeae0;
-      --paper-2: #c8c5bb;
-      --muted: #8e938a;
-      --orange: #df7444;
-      --orange-soft: #f09a6f;
-      --green: #a9c887;
-      --red: #e06e5f;
-      --amber: #d8b46a;
-      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
-      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      --display: Impact, Haettenschweiler, "Arial Narrow Bold", "Segoe UI Black", sans-serif;
+      --ink: #0e1012;
+      --ink-2: #16191d;
+      --ink-3: #1c2026;
+      --panel: #1c2026;
+      --line: rgba(255, 255, 255, 0.12);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --paper: #f2f0ea;
+      --paper-2: #9aa3ad;
+      --muted: #6b7380;
+      --orange: #e8a04a;
+      --orange-soft: #f3c57a;
+      --green: #7dce9a;
+      --red: #e06b66;
+      --amber: #e0b45c;
+      --shadow: 0 20px 48px rgba(0, 0, 0, .32);
+      --sans: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --display: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
       --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --radius: 8px;
     }
 
     * { box-sizing: border-box; }
@@ -37,12 +38,7 @@
       min-height: 100vh;
       overflow-x: hidden;
       color: var(--paper);
-      background:
-        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
-        radial-gradient(circle at 78% 0%, rgba(223,116,68,.08), transparent 32rem),
-        var(--ink);
-      background-size: 48px 48px, 48px 48px, auto, auto;
+      background: var(--ink);
       font-family: var(--sans);
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
@@ -104,7 +100,7 @@
       height: 31px;
       border: 1px solid var(--line-strong);
       background: var(--ink-3);
-      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+      border-radius: var(--radius);
     }
 
     .brand-mark::before,
@@ -163,7 +159,7 @@
       color: #dfd1b3;
       background: rgba(216,180,106,.065);
       font-size: 13px;
-      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+      border-radius: 12px;
     }
 
     .notice svg { flex: 0 0 auto; margin-top: 1px; color: var(--amber); }
@@ -282,14 +278,14 @@
       font-weight: 720;
       letter-spacing: .02em;
       transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, color 150ms ease;
-      clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+      border-radius: var(--radius);
     }
     .btn:hover:not(:disabled) { border-color: var(--paper-2); background: #292e29; transform: translateY(-2px); }
     .btn:active:not(:disabled) { transform: translateY(0); }
     .btn-primary { min-width: 190px; border-color: var(--orange); color: #140c08; background: var(--orange); }
     .btn-primary:hover:not(:disabled) { border-color: var(--orange-soft); background: var(--orange-soft); }
     .btn:disabled { opacity: .36; cursor: not-allowed; }
-    .btn-ghost { border-color: transparent; color: var(--muted); background: transparent; clip-path: none; }
+    .btn-ghost { border-color: transparent; color: var(--muted); background: transparent; }
     .btn-ghost:hover:not(:disabled) { color: var(--paper); background: rgba(255,255,255,.04); }
 
     .lab-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
@@ -300,7 +296,7 @@
       border: 1px solid var(--line-strong);
       background: #101310;
       box-shadow: var(--shadow);
-      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      border-radius: 12px;
     }
     .arena-toolbar {
       min-height: 54px;
