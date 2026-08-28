@@ -1,16 +1,16 @@
 # OPT / LAB 仓库
 
-本仓库按三个同级产品目录组织：
+本仓库按三个同级产品目录组织，入口是选板，不再互相包裹：
 
 | 目录 | 产品 | 职责 |
 |---|---|---|
-| [`opt-lab/`](opt-lab/README.md) | OPT / LAB 载体 | Windows 游戏优化工作台外壳、WinUI 宿主、Broker 与开赛准备 |
-| [`cs2-sensitivity/`](cs2-sensitivity/README.md) | CS2 灵敏度实验室 | 独立离线校准工具，也可由载体 iframe 加载 |
-| [`cs2-lineups/`](cs2-lineups/README.md) | CS2 投掷物瞄点 | 独立离线雷达目录，也可由载体 iframe 加载 |
+| [`opt-lab/`](opt-lab/README.md) | Windows 优化工作台 | 本机诊断、恢复中心、设置，以及 WinUI 宿主与 Broker |
+| [`cs2-sensitivity/`](cs2-sensitivity/README.md) | CS2 灵敏度实验室 | 独立离线校准工具 |
+| [`cs2-lineups/`](cs2-lineups/README.md) | CS2 投掷物瞄点 | 独立离线雷达目录 |
 
-根目录 `index.html` 只负责进入载体。`cs2-sensitivity-lab.html`、`cs2-sensitivity-friend.html`、`cs2-lineups-map.html` 是旧地址兼容跳转，不是实现源文件。
+根目录 `index.html` 是三选板。`cs2-sensitivity-lab.html`、`cs2-sensitivity-friend.html`、`cs2-lineups-map.html` 是旧地址兼容跳转，不是实现源文件。
 
-工具源码不放进 `opt-lab/web/`。预览服务器和 Windows 打包在运行时把产品映射到 `/modules/<id>/`。
+灵敏度和瞄点不再嵌进优化工作台 iframe。预览服务器仍保留 `/modules/<id>/` 别名，以免旧书签断开。
 
 ## 本地预览与检查
 
@@ -22,9 +22,10 @@ node scripts/check-web.mjs
 
 预览地址：
 
-- 载体：http://127.0.0.1:4173/
-- 灵敏度：http://127.0.0.1:4173/modules/cs2-sensitivity/
-- 投掷物瞄点：http://127.0.0.1:4173/modules/cs2-lineups/
+- 选板：http://127.0.0.1:4173/
+- 优化：http://127.0.0.1:4173/opt-lab/web/
+- 灵敏度：http://127.0.0.1:4173/cs2-sensitivity/
+- 投掷物瞄点：http://127.0.0.1:4173/cs2-lineups/
 
 ## Windows 构建
 
@@ -36,6 +37,6 @@ dotnet build OptLab.sln -c Release -p:Platform=x64
 
 ## 产品边界
 
-- 载体只引用工具，不复制工具业务实现。
-- 浏览器模块没有系统权限；灵敏度完成结果经 `module.result` 交给宿主校验。投掷物模块不发送校准结果。
+- 三个产品各自有可打开的 `index.html`，WinUI 同一个窗口用顶层导航在选板与三个产品之间切换。
+- 优化工作台不包含开赛检查清单，也不加载另外两个工具。
 - **尚未发布任何会修改 Windows、完美平台或游戏配置的自动化规则。**

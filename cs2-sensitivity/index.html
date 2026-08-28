@@ -47,7 +47,7 @@
     button, input, select { font: inherit; }
     button { color: inherit; }
     button, label, select { -webkit-tap-highlight-color: transparent; }
-    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
       outline: 2px solid var(--orange-soft);
       outline-offset: 3px;
     }
@@ -74,6 +74,14 @@
     .step-dot { width: 30px; height: 4px; border: 0; background: var(--line); transition: width 180ms ease, background 180ms ease; }
     .step-dot.is-active { width: 54px; background: var(--orange); }
     .step-dot.is-done { background: var(--green); }
+    .tools-home {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .tools-home:hover { color: var(--orange-soft); }
     main { padding: 54px 0 88px; }
     .view { display: none; animation: reveal 320ms ease both; }
     .view.is-active { display: block; }
@@ -361,8 +369,19 @@
         <span class="step-dot" data-step="lab"></span>
         <span class="step-dot" data-step="result"></span>
       </div>
+      <a class="tools-home" id="toolsHome" href="../index.html">全部工具</a>
     </div>
   </header>
+  <script>
+    (function () {
+      var link = document.getElementById("toolsHome");
+      if (!link) return;
+      var path = String(location.pathname || "").replace(/\\/g, "/");
+      if (location.protocol !== "file:" && /\/modules\//.test(path)) {
+        link.setAttribute("href", "/");
+      }
+    })();
+  </script>
 
   <main class="shell">
     <section class="view is-active" id="view-profile" data-view="profile">
