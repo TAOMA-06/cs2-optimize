@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,18 +18,25 @@ const files = [
   "cs2-lineups/index.html",
   "cs2-lineups/manifest.template.json"
 ];
-const requiredHtmlTokens = [
+const requiredWorkbenchTokens = [
   "OPT / LAB",
+  "全部工具",
+  'data-view-panel="overview"',
+  'data-view-panel="diagnostics"',
+  'data-view-panel="recovery"',
+  'data-view-panel="settings"',
+  'id="diagnosticHostBadge"',
+  'id="recoveryList"'
+];
+const retiredWorkbenchTokens = [
   'id="moduleFrame"',
   'id="retryModuleButton"',
   'id="journeyList"',
   'data-view-panel="optimizer"',
-  'data-view-panel="diagnostics"',
-  'id="diagnosticHostBadge"',
-  'id="recommendationList"',
-  'data-view-panel="recovery"',
   'data-open-module="cs2-sensitivity"',
-  'data-open-module="cs2-lineups"'
+  'data-open-module="cs2-lineups"',
+  "./modules/cs2-sensitivity/",
+  "./modules/cs2-lineups/"
 ];
 
 for (const file of files) {
@@ -41,25 +48,42 @@ for (const file of files) {
 }
 
 const html = readFileSync(path.join(workspace, "opt-lab/web/index.html"), "utf8");
-for (const token of requiredHtmlTokens) {
+for (const token of requiredWorkbenchTokens) {
   if (!html.includes(token)) {
-    throw new Error(`Missing required shell marker: ${token}`);
+    throw new Error(`Missing required workbench marker: ${token}`);
+  }
+}
+for (const token of retiredWorkbenchTokens) {
+  if (html.includes(token)) {
+    throw new Error(`Workbench still references retired shell marker: ${token}`);
   }
 }
 
 if (/https?:\/\//i.test(html)) {
-  throw new Error("The offline shell must not embed external URLs.");
+  throw new Error("The offline workbench must not embed external URLs.");
 }
 
 const rootEntry = readFileSync(path.join(workspace, "index.html"), "utf8");
-if (!rootEntry.includes("url=./opt-lab/web/index.html") || !rootEntry.includes("OPT / LAB")) {
-  throw new Error("The repository root must launch the OPT / LAB application.");
+if (/http-equiv\s*=\s*["']refresh["']/i.test(rootEntry) || rootEntry.includes("url=./opt-lab/web/index.html")) {
+  throw new Error("The repository root must be a three-product chooser, not a redirect into the workbench.");
+}
+for (const token of ["./opt-lab/web/index.html", "./cs2-sensitivity/index.html", "./cs2-lineups/index.html", "选择工具"]) {
+  if (!rootEntry.includes(token)) {
+    throw new Error(`The repository root chooser is missing ${token}.`);
+  }
 }
 
 const appSource = readFileSync(path.join(workspace, "opt-lab/web/app.js"), "utf8");
-for (const token of ["./modules/cs2-sensitivity/index.html", "./modules/cs2-lineups/index.html"]) {
-  if (!appSource.includes(token)) {
-    throw new Error(`The shell must load sibling tools through ${token}.`);
+for (const token of ["./modules/cs2-sensitivity/index.html", "./modules/cs2-lineups/index.html", "moduleFrame", "openModule("]) {
+  if (appSource.includes(token)) {
+    throw new Error(`The workbench must not load sibling tools through ${token}.`);
+  }
+}
+
+for (const product of ["cs2-sensitivity/index.html", "cs2-lineups/index.html"]) {
+  const productHtml = readFileSync(path.join(workspace, product), "utf8");
+  if (!productHtml.includes("全部工具") || !productHtml.includes('id="toolsHome"')) {
+    throw new Error(`${product} must offer a quiet link back to the product chooser.`);
   }
 }
 
@@ -77,8 +101,13 @@ const appProject = readFileSync(path.join(workspace, "opt-lab/src/OptLab.App/Opt
 if (appProject.includes("cs2-sensitivity-lab.html") || appProject.includes("cs2-lineups-map.html")) {
   throw new Error("The Windows app must package sibling product folders, not root-level compatibility pages.");
 }
-if (!appProject.includes("cs2-sensitivity\\index.html") || !appProject.includes("cs2-lineups\\index.html")) {
-  throw new Error("The Windows app must map both sibling tools into Assets/Shell/modules.");
+if (appProject.includes("Assets\\Shell\\modules") || appProject.includes("Assets\\Shell\\")) {
+  throw new Error("The Windows app must package products at the asset root, not under Assets/Shell/modules.");
+}
+for (const token of ["Assets\\index.html", "Assets\\opt-lab\\web\\", "Assets\\cs2-sensitivity\\index.html", "Assets\\cs2-lineups\\index.html"]) {
+  if (!appProject.includes(token)) {
+    throw new Error(`The Windows app must map packaged files to ${token}.`);
+  }
 }
 
 const nativeNavigation = readFileSync(path.join(workspace, "opt-lab/src/OptLab.App/Services/ExternalNavigationCatalog.cs"), "utf8");
@@ -89,6 +118,9 @@ for (const token of ["host.context", "host.acknowledged", "host.error"]) {
   if (!nativeHost.includes(`\"${token}\"`)) {
     throw new Error(`Native host response is missing: ${token}`);
   }
+}
+if (!nativeHost.includes("https://oplab.local/index.html")) {
+  throw new Error("Native host must start at the product chooser.");
 }
 for (const token of ["SystemMutations: false", "BrokerDiagnostics: false", "SignedUpdates: false"]) {
   if (!hostContextProvider.includes(token)) {
@@ -122,6 +154,19 @@ for (const os of ["windows11", "windows10"]) {
 for (const pageId of settingsPageIds) {
   if (!nativeNavigation.includes(`["${pageId}"]`)) {
     throw new Error(`Windows settings page is not present in the native allowlist: ${pageId}`);
+  }
+}
+
+const previewSource = readFileSync(path.join(workspace, "scripts/serve-preview.mjs"), "utf8");
+for (const token of ['pathname === "/"', "opt-lab/web", "cs2-sensitivity", "cs2-lineups", "\\/modules\\/"]) {
+  if (!previewSource.includes(token)) {
+    throw new Error(`Preview server is missing product routing token: ${token}`);
+  }
+}
+
+for (const file of ["opt-lab/web/index.html", "cs2-sensitivity/index.html", "cs2-lineups/index.html"]) {
+  if (!existsSync(path.join(workspace, file))) {
+    throw new Error(`Missing product entry: ${file}`);
   }
 }
 

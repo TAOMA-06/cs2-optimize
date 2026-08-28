@@ -1,19 +1,18 @@
 # 模块与 Broker 契约
 
-独立工具位于仓库同级产品目录。运行时由载体映射为 `/modules/<module-id>/`。
+独立工具位于仓库同级产品目录。预览服务器按产品路径提供页面，并保留 `/modules/<module-id>/` 别名。WinUI 从选板做顶层导航，不再用 iframe 装载工具。
 
-- CS2 灵敏度：源码 `cs2-sensitivity/index.html`，运行时 `/modules/cs2-sensitivity/index.html`
-- CS2 投掷物瞄点：源码 `cs2-lineups/index.html`，运行时 `/modules/cs2-lineups/index.html`
+- CS2 灵敏度：源码 `cs2-sensitivity/index.html`，预览 `/cs2-sensitivity/`
+- CS2 投掷物瞄点：源码 `cs2-lineups/index.html`，预览 `/cs2-lineups/`
+- 优化工作台：源码 `opt-lab/web/index.html`，预览 `/opt-lab/web/`
 
 根目录同名文件仅用于旧地址兼容，不得作为宿主、测试或打包来源。
 
 ## 模块边界
 
-浏览器模块不获得原生系统权限。它们只能向 WinUI 宿主发送下列版本化消息：
+浏览器模块不获得原生系统权限。优化工作台只能向 WinUI 宿主发送下列版本化消息：
 
 - `shell.ready`
-- `module.opened`
-- `module.result`
 - `settings.updated`
 - `updates.check`
 - `system.open-settings`
@@ -25,9 +24,9 @@
 - `host.acknowledged`：某个带 `requestId` 的请求已经由宿主真实完成。
 - `host.error`：请求被白名单拒绝、格式无效或宿主未能完成；外壳不得提前显示成功。
 
-普通浏览器没有可信宿主握手时，所有原生能力必须按关闭处理。浏览器预览可以运行离线模块、保存网页本地进度和复制操作路径，但不得显示为 Windows 已连接。
+普通浏览器没有可信宿主握手时，所有原生能力必须按关闭处理。浏览器预览可以查看诊断和恢复状态、保存网页本地偏好，但不得显示为 Windows 已连接。
 
-`module.result` 目前只接受 CS2 校准载荷：必须包含 `moduleId=cs2-sensitivity`、`sensitivity`、`command` 与完成时间。宿主再次检查 `0.100–8.000` 范围和 `sensitivity ` 命令前缀，才写入本机历史。投掷物模块（`kind=Reference`）不发送 `module.result`。
+灵敏度校准历史保存在实验室自己的存储中。外壳不再通过 iframe 读取或转写 `module.result`。
 
 `system.open-settings` 只能提交宿主编译内置的 `pageId`；当前白名单仅包含高级显示、Game Mode、图形、电源、启动应用和 Windows Update。网页不能发送任意 URI。
 
@@ -38,13 +37,3 @@
 ## 自动化边界
 
 未来优化模块只能提交 `OptimizationPlan`，其中每一个 `ActionRequest` 只能引用编译进 Broker 的 ID。Broker 当前只发布 `oplab.diagnostics.machine-summary`，没有任何写入、进程结束、优先级、服务、注册表或命令执行动作。
-
-要加入一个真实系统动作，实施任务必须同时提供：
-
-1. 兼容性与前置条件检查。
-2. 写入前的原值快照。
-3. 应用后的独立验证。
-4. 反向恢复实现和中断恢复测试。
-5. 签名模块清单、风险说明与 Windows 10/11 回归结果。
-
-没有这五项的规则不得进入公开 Beta。
