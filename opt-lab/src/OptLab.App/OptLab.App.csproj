@@ -23,28 +23,32 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\..\index.html">
+      <Link>Assets\index.html</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\web\**\*">
-      <Link>Assets\Shell\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>Assets\opt-lab\web\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\cs2-sensitivity\index.html">
-      <Link>Assets\Shell\modules\cs2-sensitivity\index.html</Link>
+      <Link>Assets\cs2-sensitivity\index.html</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\cs2-sensitivity\legacy-share.html">
-      <Link>Assets\Shell\modules\cs2-sensitivity\legacy-share.html</Link>
+      <Link>Assets\cs2-sensitivity\legacy-share.html</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\cs2-sensitivity\manifest.template.json">
-      <Link>Assets\Shell\modules\cs2-sensitivity\manifest.template.json</Link>
+      <Link>Assets\cs2-sensitivity\manifest.template.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\cs2-lineups\index.html">
-      <Link>Assets\Shell\modules\cs2-lineups\index.html</Link>
+      <Link>Assets\cs2-lineups\index.html</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\cs2-lineups\manifest.template.json">
-      <Link>Assets\Shell\modules\cs2-lineups\manifest.template.json</Link>
+      <Link>Assets\cs2-lineups\manifest.template.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

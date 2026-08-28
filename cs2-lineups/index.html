@@ -51,7 +51,7 @@
     button, input, select, textarea { font: inherit; }
     button { color: inherit; }
     button, [role="button"] { -webkit-tap-highlight-color: transparent; }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="button"]:focus-visible {
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [role="button"]:focus-visible, a:focus-visible {
       outline: 2px solid var(--signal);
       outline-offset: 3px;
     }
@@ -147,6 +147,18 @@
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); }
     .utility-button { cursor: pointer; }
     .utility-button:hover { border-color: var(--signal); color: var(--paper); }
+    .tools-home {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .tools-home:hover { color: var(--signal); }
     .demo-banner {
       display: flex;
       justify-content: center;
@@ -849,12 +861,23 @@
         </span>
       </div>
       <div class="top-actions">
+        <a class="tools-home" id="toolsHome" href="../index.html">全部工具</a>
         <span class="status-pill"><i class="status-dot"></i>本机 · 不读取游戏</span>
         <button class="utility-button" id="newRoundButton" type="button" title="清除本回合出生点与路线进度">
           <span aria-hidden="true">↻</span><span class="button-label">新回合</span>
         </button>
       </div>
     </header>
+    <script>
+      (function () {
+        var link = document.getElementById("toolsHome");
+        if (!link) return;
+        var path = String(location.pathname || "").replace(/\\/g, "/");
+        if (location.protocol !== "file:" && /\/modules\//.test(path)) {
+          link.setAttribute("href", "/");
+        }
+      })();
+    </script>
 
     <div class="demo-banner" role="status">
       <span aria-hidden="true">△</span>

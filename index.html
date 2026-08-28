@@ -4,21 +4,106 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0e1012">
-  <meta http-equiv="refresh" content="0; url=./opt-lab/web/index.html">
-  <title>OPT / LAB — Windows 游戏优化工作台</title>
+  <meta name="color-scheme" content="dark">
+  <title>OPT / LAB — 选择工具</title>
   <style>
-    :root { color-scheme: dark; font-family: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif; background: #0e1012; color: #f2f0ea; }
-    body { display: grid; min-height: 100vh; margin: 0; place-items: center; }
-    main { max-width: 540px; padding: 32px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; background: #16191d; }
-    p { color: #9aa3ad; line-height: 1.7; }
-    a { color: #f3c57a; }
+    :root {
+      color-scheme: dark;
+      --ink: #0e1012;
+      --ink-2: #16191d;
+      --ink-3: #1c2026;
+      --line: rgba(255, 255, 255, 0.08);
+      --paper: #f2f0ea;
+      --muted: #9aa3ad;
+      --dim: #6b7380;
+      --orange: #e8a04a;
+      --orange-bright: #f3c57a;
+      --sans: "Segoe UI Variable", "Segoe UI", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100vh; background: var(--ink); color: var(--paper); font-family: var(--sans); }
+    body { display: grid; place-items: center; padding: 32px 20px; }
+    main { width: min(920px, 100%); }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .mark {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: var(--ink-3);
+    }
+    .mark::before {
+      position: absolute;
+      inset: 7px;
+      border: 2px solid var(--orange);
+      border-radius: 50%;
+      content: "";
+    }
+    .mark::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+    h1 { margin: 0; font-size: 28px; letter-spacing: 0.04em; }
+    .lede { margin: 8px 0 28px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    a.card {
+      display: flex;
+      min-height: 220px;
+      flex-direction: column;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--ink-2);
+      color: inherit;
+      text-decoration: none;
+    }
+    a.card:hover { border-color: rgba(232, 160, 74, 0.45); }
+    a.card:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+    .kicker { color: var(--orange); font-size: 12px; font-weight: 650; }
+    a.card h2 { margin: 10px 0 8px; font-size: 20px; }
+    a.card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    a.card span { margin-top: auto; padding-top: 18px; color: var(--orange-bright); font-size: 13px; font-weight: 650; }
+    @media (max-width: 800px) {
+      .board { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>OPT / LAB</h1>
-    <p>正在打开 Windows 游戏优化工作台。灵敏度和投掷物瞄点作为独立产品目录，由载体加载。</p>
-    <a href="./opt-lab/web/index.html">如果没有自动进入，请点击这里</a>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><h1>OPT / LAB</h1></div>
+    <p class="lede">三个独立工具，各自打开，互不包裹。优化工作台只处理本机诊断与恢复；灵敏度和瞄点是完整页面，不再嵌进外壳。</p>
+    <nav class="board" aria-label="选择工具">
+      <a class="card" href="./opt-lab/web/index.html">
+        <div class="kicker">优化</div>
+        <h2>Windows 工作台</h2>
+        <p>查看本机宿主能力、恢复状态和本地偏好。不修改游戏，也不再包含开赛检查清单。</p>
+        <span>打开优化 →</span>
+      </a>
+      <a class="card" href="./cs2-sensitivity/index.html">
+        <div class="kicker">灵敏度</div>
+        <h2>CS2 灵敏度实验室</h2>
+        <p>离线候选对照与盲测，输出可复制到控制台的 sensitivity 命令。</p>
+        <span>打开实验室 →</span>
+      </a>
+      <a class="card" href="./cs2-lineups/index.html">
+        <div class="kicker">瞄点</div>
+        <h2>CS2 投掷物瞄点</h2>
+        <p>离线雷达目录，按地图查询站位、瞄点与落点。不读取游戏进程。</p>
+        <span>打开瞄点 →</span>
+      </a>
+    </nav>
   </main>
 </body>
 </html>

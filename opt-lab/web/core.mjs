@@ -1,6 +1,11 @@
 export const APP_STORAGE_KEY = "opt-lab.shell.v1";
 export const MAX_HISTORY_ITEMS = 20;
 export const APP_SCHEMA_VERSION = 3;
+export const WORKBENCH_VIEWS = ["overview", "diagnostics", "recovery", "settings"];
+
+export function normalizeView(view) {
+  return WORKBENCH_VIEWS.includes(view) ? view : "overview";
+}
 
 export function createInitialState() {
   return {
@@ -36,6 +41,7 @@ export function normalizeState(candidate) {
     ...initial,
     ...candidate,
     schemaVersion: APP_SCHEMA_VERSION,
+    activeView: normalizeView(candidate.activeView),
     calibrationHistory: Array.isArray(candidate.calibrationHistory)
       ? candidate.calibrationHistory.filter(isCalibrationRecord).slice(0, MAX_HISTORY_ITEMS)
       : [],

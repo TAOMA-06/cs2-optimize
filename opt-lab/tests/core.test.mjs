@@ -12,6 +12,7 @@ import {
   isOptimizationProfileReviewed,
   loadState,
   normalizeHostContext,
+  normalizeView,
   reviewOptimizationProfile,
   saveState,
   setOptimizationCheck,
@@ -57,7 +58,7 @@ test("schema v1 state migrates without losing existing calibration history", () 
   const migrated = loadState(storage);
   assert.equal(migrated.schemaVersion, APP_SCHEMA_VERSION);
   assert.equal(migrated.calibrationHistory.length, 1);
-  assert.equal(migrated.activeView, "history");
+  assert.equal(migrated.activeView, "overview");
   assert.equal(migrated.optimizationProfile.platform, "perfect");
   assert.equal(migrated.workspace.reviewedProfileKey, null);
 });
@@ -75,6 +76,7 @@ test("schema v2 state migrates into the composite workspace model", () => {
 
   const migrated = loadState(storage);
   assert.equal(migrated.schemaVersion, APP_SCHEMA_VERSION);
+  assert.equal(migrated.activeView, "overview");
   assert.equal(migrated.optimizationProfile.gpuVendor, "amd");
   assert.equal(migrated.workspace.reviewedProfileKey, null);
 });
@@ -153,7 +155,18 @@ test("profile review is tied to the exact environment selection", () => {
   assert.equal(isOptimizationProfileReviewed(state.workspace, { ...state.optimizationProfile, gpuVendor: "nvidia" }), false);
 });
 
-test("workspace journey advances without inventing system state", () => {
+test("retired optimizer and module views collapse to the workbench overview", () => {
+  assert.equal(normalizeView("overview"), "overview");
+  assert.equal(normalizeView("diagnostics"), "diagnostics");
+  assert.equal(normalizeView("recovery"), "recovery");
+  assert.equal(normalizeView("settings"), "settings");
+  assert.equal(normalizeView("optimizer"), "overview");
+  assert.equal(normalizeView("modules"), "overview");
+  assert.equal(normalizeView("module"), "overview");
+  assert.equal(normalizeView("history"), "overview");
+});
+
+test("catalog progress APIs still describe research checklists without a workbench page", () => {
   const state = createInitialState();
   const rules = getRecommendations(state.optimizationProfile, "quick");
   let journey = getWorkspaceJourney(state, rules);

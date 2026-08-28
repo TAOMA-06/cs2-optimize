@@ -82,7 +82,7 @@ public sealed partial class MainWindow : Window
 
             FallbackPanel.Visibility = Visibility.Collapsed;
             ShellView.Visibility = Visibility.Visible;
-            webView.Navigate("https://oplab.local/Shell/index.html");
+            webView.Navigate("https://oplab.local/index.html");
         }
         catch (Exception exception)
         {
