@@ -1738,7 +1738,7 @@ test("an anomalous raw Standard recovery can only produce a tested range, never 
   assert.equal(diagnostics.view, "result");
   assert.equal(diagnostics.hasMain, false);
   assert.match(diagnostics.evidence, /数据异常/);
-  assert.match(harness.elements.get("resultPrimaryLabel").textContent, /TESTED RANGE/);
+  assert.match(harness.elements.get("resultPrimaryLabel").textContent, /实测范围/);
   assert.equal(harness.elements.get("copyCommand").disabled, true);
   assert.match(harness.elements.get("commandText").textContent, /不提供单一命令/);
 });
