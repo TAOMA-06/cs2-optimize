@@ -65,22 +65,23 @@ function taskMetrics(factor = 1) {
     flick: {
       timePerId: 0.72 * factor,
       missRate: 0.08 * factor,
-      settleMs: 118 * factor,
+      clickError: 0.35 * factor,
       overshootCorrection: 0.18 * factor,
       pathInefficiency: 0.14 * factor
     },
     lateral: {
       timePerId: 0.84 * factor,
       missRate: 0.10 * factor,
-      settleMs: 132 * factor,
+      clickError: 0.42 * factor,
       overshootCorrection: 0.22 * factor,
       pathInefficiency: 0.17 * factor
     },
-    track: {
-      rmsError: 1.3 * factor,
-      offTargetRatio: 0.28 * factor,
-      reacquireMs: 190 * factor,
-      speedMismatch: 0.16 * factor
+    grid: {
+      timePerId: 0.78 * factor,
+      missRate: 0.09 * factor,
+      clickError: 0.38 * factor,
+      overshootCorrection: 0.20 * factor,
+      pathInefficiency: 0.16 * factor
     }
   };
 }
@@ -354,7 +355,7 @@ class FakeDocument extends FakeEventTarget {
 
     const inputValues = {
       dpi: "800",
-      currentSens: "",
+      currentSens: "1.25",
       padWidth: "45",
       polling: "1000",
       mYaw: "0.022",
@@ -594,6 +595,8 @@ function createAppHarness(options = {}) {
     },
     submitProfile(mode = "standard") {
       this.selectMode(mode);
+      const current = document.getElementById("currentSens");
+      if (!String(current.value || "").trim()) current.value = "1.25";
       document.getElementById("profileForm").dispatchEvent({ type: "submit" });
     },
     start() {
@@ -681,10 +684,14 @@ function advanceActivePhase(harness) {
   advanceClock(harness.clock, Math.max(0, end - harness.clock.now()));
 }
 
+function fireShot(harness) {
+  harness.document.dispatchEvent({ type: "mousedown", button: 0 });
+}
+
 function completeStaticTask(harness, hitCount) {
   for (let index = 0; index < hitCount; index += 1) {
     moveToActiveTarget(harness);
-    harness.clock.frame(Core.constants.dwellMs);
+    fireShot(harness);
     if (index < hitCount - 1) harness.clock.frame(120);
   }
   advanceActivePhase(harness);
@@ -703,13 +710,12 @@ function completeLiveExpressBlock(harness, options = {}) {
   assert.equal(harness.diagnostics().activePhase, "intermission");
   advanceActivePhase(harness);
 
-  assert.equal(harness.diagnostics().activeTask, "track");
-  addInputSamples(harness, 12);
-  advanceActivePhase(harness);
+  assert.equal(harness.diagnostics().activeTask, "lateral");
+  completeStaticTask(harness, staticHits);
   assert.equal(harness.diagnostics().activePhase, "intermission");
   advanceActivePhase(harness);
 
-  assert.equal(harness.diagnostics().activeTask, "lateral");
+  assert.equal(harness.diagnostics().activeTask, "grid");
   completeStaticTask(harness, staticHits);
 }
 
@@ -730,9 +736,9 @@ test("lab-core is extracted from the real HTML and exposes a frozen, DOM-free AP
   assert.equal(Object.isFrozen(Core), true);
   assert.equal(Object.isFrozen(Core.constants), true);
   assert.equal(Object.isFrozen(Core.constants.modes), true);
-  assert.equal(Core.version, "3.0.0");
-  assert.equal(Core.constants.taskVersion, "angles-3.1.0");
-  assert.equal(Core.constants.storageKey, "cs2-sens-lab-v3");
+  assert.equal(Core.version, "4.0.0");
+  assert.equal(Core.constants.taskVersion, "click-4.0.0");
+  assert.equal(Core.constants.storageKey, "cs2-sens-lab-v4");
   assert.doesNotMatch(scriptById("lab-core"), /\b(?:document|localStorage|requestAnimationFrame)\b/);
 });
 
@@ -752,12 +758,12 @@ test("lab-app initializes against the real core without console errors", () => {
   const harness = createAppHarness();
   const diagnostics = harness.diagnostics();
 
-  assert.equal(harness.app.version, "3.0.0");
+  assert.equal(harness.app.version, "4.0.0");
   assert.equal(diagnostics.view, "profile");
   assert.equal(diagnostics.active, false);
   assert.equal(diagnostics.pendingRaf, 0);
   assert.deepEqual(harness.errors, []);
-  assert.equal(harness.app.runSelfTests(), "CS2 SENS / LAB v3 smoke tests passed.");
+  assert.equal(harness.app.runSelfTests(), "CS2 SENS / LAB v4 smoke tests passed.");
 });
 
 test("an invalid completed fast result falls back to the profile instead of a disabled resume screen", () => {
@@ -916,12 +922,12 @@ test("Express keeps zero-hit candidates as worst evidence instead of retrying fo
   assert.equal(diagnostics.hasMain, false);
   assert.equal(harness.elements.get("copyCommand").disabled, true);
   for (const block of stored.session.blocks) {
-    for (const task of ["flick", "lateral"]) {
+    for (const task of ["flick", "lateral", "grid"]) {
       assert.equal(block.tasks[task].hits, 0);
       assert.ok(block.tasks[task].misses > 0);
       assert.equal(block.tasks[task].missRate, 1);
       assert.equal(block.tasks[task].timePerId, Core.constants.modes.express.taskMs);
-      assert.equal(block.tasks[task].settleMs, Core.constants.modes.express.taskMs);
+      assert.equal(block.tasks[task].clickError, Core.constants.clickErrorFallback);
       assert.equal(block.tasks[task].pathInefficiency, 3);
     }
   }
@@ -1363,54 +1369,37 @@ test("stall, resize, blur, and Pointer Lock loss invalidate the active block and
   assert.equal(lockLost.diagnostics().anomalyCount, 1);
 });
 
-test("mousemove exit and re-entry between RAF callbacks resets the continuous 100ms dwell", async () => {
+test("being on a target does not score until a left click, and leaving does not create a dwell hit", async () => {
   const harness = await reachFirstTask("express");
   moveToActiveTarget(harness);
-  const firstEntry = harness.diagnostics().activeTarget.dwell.enteredAt;
-  assert.equal(firstEntry, harness.clock.now());
+  harness.clock.frame(120);
+  assert.equal(harness.diagnostics().activeTaskHits, 0, "hovering must not count as a hit");
 
-  harness.clock.elapse(60);
   harness.document.dispatchEvent({ type: "mousemove", movementX: 200, movementY: 0 });
-  assert.equal(harness.diagnostics().activeTarget.dwell.enteredAt, null, "leaving before RAF must clear dwell immediately");
+  harness.clock.frame(120);
+  assert.equal(harness.diagnostics().activeTaskHits, 0);
 
-  harness.clock.elapse(10);
   moveToActiveTarget(harness);
-  const secondEntry = harness.diagnostics().activeTarget.dwell.enteredAt;
-  assert.equal(secondEntry, firstEntry + 70);
-
-  harness.clock.frame(40);
-  assert.equal(harness.diagnostics().activeTaskHits, 0, "the first contact's elapsed time must not leak across re-entry");
-  assert.equal(harness.diagnostics().activeTarget.dwell.hit, false);
-
-  harness.clock.frame(60);
-  assert.equal(harness.diagnostics().activeTaskHits, 1, "the second uninterrupted 100ms dwell should hit");
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 1);
 });
 
-test("100ms and 200ms RAF sampling produce the same logical dwell-hit timing metrics", async () => {
-  async function sampleAt(delayMs) {
-    const harness = await reachFirstTask("express");
-    const taskEndsAt = harness.diagnostics().activePhaseEndsAt;
-    moveToActiveTarget(harness);
-    harness.clock.frame(delayMs);
-    assert.equal(harness.diagnostics().activeTaskHits, 1);
-    advanceClock(harness.clock, taskEndsAt - harness.clock.now());
-    const result = harness.diagnostics().activeTaskResults.flick;
-    assert.equal(result.hits, 1);
-    return { timePerId: result.timePerId, settleMs: result.settleMs };
-  }
-
-  const exactSample = await sampleAt(100);
-  const lateSample = await sampleAt(200);
-  approximately(lateSample.timePerId, exactSample.timePerId, 1e-12);
-  approximately(lateSample.settleMs, exactSample.settleMs, 1e-12);
-  assert.equal(exactSample.settleMs, 100);
+test("click error is recorded at the shot instant and does not wait for a later RAF", async () => {
+  const harness = await reachFirstTask("express");
+  const taskEndsAt = harness.diagnostics().activePhaseEndsAt;
+  moveToActiveTarget(harness);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 1);
+  advanceClock(harness.clock, taskEndsAt - harness.clock.now());
+  const result = harness.diagnostics().activeTaskResults.flick;
+  assert.equal(result.hits, 1);
+  assert.ok(result.clickError < 1.2);
 });
 
-test("entering at 2150ms cannot beat a 2200ms target timeout when sampled at 2250ms", async () => {
+test("hovering on a target without clicking still times out as a miss", async () => {
   const harness = await reachFirstTask("express");
   advanceClock(harness.clock, 2150);
   moveToActiveTarget(harness);
-  assert.equal(harness.diagnostics().activeTarget.dwell.enteredAt, harness.clock.now());
 
   harness.clock.frame(100);
   assert.equal(harness.diagnostics().activeTaskHits, 0);
@@ -1431,6 +1420,8 @@ test("input at or after the task deadline cannot score and the last frame seals 
   const cameraBeforeLateInput = harness.diagnostics().activeCamera;
   harness.document.dispatchEvent({ type: "mousemove", movementX: 80, movementY: 80 });
   assert.deepEqual(harness.diagnostics().activeCamera, cameraBeforeLateInput, "late input must be ignored");
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 0, "shots after the deadline must not score");
 
   harness.clock.frame(1);
   const sealed = harness.diagnostics();
@@ -1451,57 +1442,86 @@ test("a late RAF timestamps a newly displayed static target at actual exposure t
   );
 
   moveToActiveTarget(harness);
-  harness.clock.frame(100);
+  fireShot(harness);
   assert.equal(harness.diagnostics().activeTaskHits, 1);
 
-  harness.clock.frame(300);
+  harness.clock.frame(120);
   assert.ok(harness.diagnostics().activeTarget, "the second target should become visible on this RAF");
+  harness.clock.frame(180);
   moveToActiveTarget(harness);
-  harness.clock.frame(100);
+  fireShot(harness);
   assert.equal(harness.diagnostics().activeTaskHits, 2);
 
   advanceClock(harness.clock, taskEndsAt - harness.clock.now());
   const result = harness.diagnostics().activeTaskResults.flick;
-  const expected = Core.median(sequence.targets.slice(0, 2).map((target) => (
-    Core.constants.dwellMs / Core.taskDifficulty(target.amplitude, target.radius)
-  )));
+  const expected = Core.median([
+    0 / Core.taskDifficulty(sequence.targets[0].amplitude, sequence.targets[0].radius),
+    180 / Core.taskDifficulty(sequence.targets[1].amplitude, sequence.targets[1].radius)
+  ]);
   assert.equal(result.hits, 2);
-  approximately(result.timePerId, expected, 1e-9, "late presentation time must not inflate target acquisition duration");
+  approximately(result.timePerId, expected, 1e-9, "click duration must use bornAt to shot time");
 });
 
 test("static tasks do not expose an un-hittable target near the deadline or create one on the deadline frame", async () => {
-  async function finishAfterRapidHits(initialDelayMs) {
-    const harness = await reachFirstTask("express");
-    const taskEndsAt = harness.diagnostics().activePhaseEndsAt;
-    if (initialDelayMs) harness.clock.frame(initialDelayMs);
-
-    for (let index = 0; index < 36; index += 1) {
-      moveToActiveTarget(harness);
-      harness.clock.frame(Core.constants.dwellMs);
-      assert.equal(harness.diagnostics().activeTaskHits, index + 1);
-      if (index < 35) harness.clock.frame(120);
-    }
-    return { harness, taskEndsAt };
+  const harness = await reachFirstTask("express");
+  const taskEndsAt = harness.diagnostics().activePhaseEndsAt;
+  advanceClock(harness.clock, Math.max(0, taskEndsAt - harness.clock.now() - 150));
+  if (harness.diagnostics().activeTarget) {
+    moveToActiveTarget(harness);
+    fireShot(harness);
   }
-
-  const lessThanDwell = await finishAfterRapidHits(0);
-  lessThanDwell.harness.clock.frame(120);
-  assert.equal(lessThanDwell.harness.clock.now(), lessThanDwell.taskEndsAt - 80);
+  harness.clock.frame(120);
   assert.equal(
-    lessThanDwell.harness.diagnostics().activeTarget,
+    harness.diagnostics().activeTarget,
     null,
-    "a target must not appear when less than the required 100ms dwell remains"
+    "a target must not appear when less than the click spawn guard remains"
   );
-  lessThanDwell.harness.clock.frame(80);
-  assert.equal(lessThanDwell.harness.diagnostics().activeTaskResults.flick.misses, 0);
+  harness.clock.frame(Math.max(0, taskEndsAt - harness.clock.now()));
+  assert.equal(harness.diagnostics().activePhase, "intermission");
+});
 
-  const exactDeadline = await finishAfterRapidHits(80);
-  assert.equal(exactDeadline.harness.clock.now(), exactDeadline.taskEndsAt - 120);
-  assert.equal(exactDeadline.harness.diagnostics().activeTarget, null);
-  exactDeadline.harness.clock.frame(120);
-  const sealed = exactDeadline.harness.diagnostics();
-  assert.equal(sealed.activePhase, "intermission");
-  assert.equal(sealed.activeTaskResults.flick.misses, 0, "the deadline frame must not spawn then miss a new target");
+test("countdown and empty clicks do not count as hits, and debounce ignores a second shot", async () => {
+  const harness = await startRawApp("express");
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, null);
+
+  advanceActivePhase(harness);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activePhase, "adapt");
+
+  advanceActivePhase(harness);
+  assert.equal(harness.diagnostics().activeTask, "flick");
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 0);
+  assert.equal(harness.diagnostics().activeEmptyClicks, 1);
+
+  harness.clock.frame(Core.constants.clickDebounceMs);
+  moveToActiveTarget(harness);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 1);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 1, "debounced second click must not fire");
+  harness.clock.frame(Core.constants.clickDebounceMs);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeEmptyClicks, 2);
+});
+
+test("grid keeps three concurrent targets and replaces only the clicked slot", async () => {
+  const harness = await reachFirstTask("express");
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  advanceActivePhase(harness);
+  assert.equal(harness.diagnostics().activeTask, "grid");
+  assert.equal(harness.diagnostics().activeTargetCount, 3);
+  const first = harness.diagnostics().activeTarget;
+  moveToActiveTarget(harness);
+  fireShot(harness);
+  assert.equal(harness.diagnostics().activeTaskHits, 1);
+  assert.equal(harness.diagnostics().activeTargetCount, 3);
+  assert.ok(
+    harness.diagnostics().activeTarget.yaw !== first.yaw || harness.diagnostics().activeTarget.pitch !== first.pitch
+  );
 });
 
 test("raw rejection requires the CTA before rebuilding a clean compatibility session", async () => {
@@ -2009,7 +2029,7 @@ test("task generation is deterministic for an identical task, seed, and duration
   }
 });
 
-test("10,000 seeded task sets obey true angular distance, speed, and tracking bounds", () => {
+test("10,000 seeded task sets obey flick, lateral, and grid placement bounds", () => {
   let violation = null;
 
   outer: for (let seed = 0; seed < 10000; seed += 1) {
@@ -2032,23 +2052,22 @@ test("10,000 seeded task sets obey true angular distance, speed, and tracking bo
       }
     }
 
-    const track = Core.createTaskSequence("track", seed, 25000);
-    let previousEnd = null;
-    for (const segment of track.segments) {
-      const durationSeconds = (segment.endMs - segment.startMs) / 1000;
-      const distance = Core.angularDistance(segment.end, segment.start);
-      const actualSpeed = distance / durationSeconds;
-      const points = [segment.start, segment.end, Core.trackPosition(track, (segment.startMs + segment.endMs) / 2)];
-      const inBounds = points.every((point) => Math.abs(point.yaw) <= 21 + 1e-9 && Math.abs(point.pitch) <= 11 + 1e-9);
-      const continuous = !previousEnd || (Math.abs(previousEnd.yaw - segment.start.yaw) <= 1e-9 && Math.abs(previousEnd.pitch - segment.start.pitch) <= 1e-9);
-      if (!inBounds || !continuous || !Number.isFinite(actualSpeed) || actualSpeed < 12 - 1e-9 || actualSpeed > 25 + 1e-9 || Math.abs(actualSpeed - segment.speed) > 1e-8) {
-        violation = { seed, task: "track", segment: plain(segment), actualSpeed, inBounds, continuous };
+    const grid = Core.createTaskSequence("grid", seed, 25000);
+    if (grid.placements.length !== 96 || grid.concurrent !== 3) {
+      violation = { seed, task: "grid-meta", placements: grid.placements.length };
+      break;
+    }
+    for (const placement of grid.placements) {
+      if (Math.abs(placement.yaw) > 24 + 1e-9 || Math.abs(placement.pitch) > 12 + 1e-9 || placement.radius !== 1.4) {
+        violation = { seed, task: "grid", placement: plain(placement) };
         break outer;
       }
-      previousEnd = segment.end;
     }
-    if (!track.segments.length || track.segments.at(-1).endMs < 27000) {
-      violation = { seed, task: "track-duration", endMs: track.segments.at(-1)?.endMs };
+    const first = Core.pickGridPlacement(grid, 0, [], { yaw: 0, pitch: 0 });
+    const second = Core.pickGridPlacement(grid, first.consumed, [first.spec], { yaw: 0, pitch: 0 });
+    const third = Core.pickGridPlacement(grid, first.consumed + second.consumed, [first.spec, second.spec], { yaw: 0, pitch: 0 });
+    if (![first.spec, second.spec, third.spec].every((item) => Math.abs(item.yaw) <= 24 + 1e-9 && Math.abs(item.pitch) <= 12 + 1e-9)) {
+      violation = { seed, task: "grid-pick", first: plain(first.spec), second: plain(second.spec), third: plain(third.spec) };
       break;
     }
   }
@@ -2056,72 +2075,25 @@ test("10,000 seeded task sets obey true angular distance, speed, and tracking bo
   assert.equal(violation, null, violation && JSON.stringify(violation));
 });
 
-test("tracking summary distinguishes perfect contact, never-acquired contact, and one continuous loss", () => {
-  const taskMs = 8000;
-  const perfect = Core.summarizeTracking({
-    sampleMs: taskMs,
-    errorSqMs: 0,
-    offTargetMs: 0,
-    speedMismatchSqMs: 0,
-    reacquireDurations: [],
-    offStartedAt: null,
-    contacts: 1
-  }, taskMs, taskMs);
-  assert.equal(perfect.reacquireMs, 0);
+test("resolveClick hits the nearest in-radius target and misses empty space", () => {
+  const miss = Core.resolveClick({ yaw: 0, pitch: 0 }, [{ yaw: 10, pitch: 0, radius: 1.2 }]);
+  assert.equal(miss, null);
 
-  const neverAcquired = Core.summarizeTracking({
-    sampleMs: taskMs,
-    errorSqMs: taskMs,
-    offTargetMs: taskMs,
-    speedMismatchSqMs: taskMs,
-    reacquireDurations: [],
-    offStartedAt: 0,
-    contacts: 0
-  }, taskMs, taskMs);
-  assert.equal(neverAcquired.reacquireMs, taskMs);
+  const hit = Core.resolveClick({ yaw: 10.1, pitch: 0 }, [{ yaw: 10, pitch: 0, radius: 1.2 }]);
+  assert.equal(hit.index, 0);
+  approximately(hit.error, 0.1, 1e-9);
 
-  const oneContinuousLoss = Core.summarizeTracking({
-    sampleMs: 5000,
-    errorSqMs: 5000,
-    offTargetMs: 3000,
-    speedMismatchSqMs: 5000,
-    reacquireDurations: [],
-    offStartedAt: 2000,
-    contacts: 1,
-    segmentIndex: 99
-  }, 5000, 5000);
-  assert.equal(oneContinuousLoss.reacquireMs, 3000, "trajectory segment changes must not split one physical off-target interval");
+  const nearer = Core.resolveClick({ yaw: 4, pitch: 0 }, [
+    { yaw: 5, pitch: 0, radius: 1.5 },
+    { yaw: 3.2, pitch: 0, radius: 1.5 }
+  ]);
+  assert.equal(nearer.index, 1);
 });
 
-test("dwell requires a continuous 100 ms contact and resets after a brush", () => {
-  let dwell = Core.createDwellState();
-  dwell = Core.updateDwell(dwell, true, 1000);
-  dwell = Core.updateDwell(dwell, true, 1099);
-  assert.equal(dwell.hit, false);
-  dwell = Core.updateDwell(dwell, true, 1100);
-  assert.equal(dwell.hit, true);
-  assert.equal(dwell.hitAt, 1100);
-
-  let coarseSample = Core.createDwellState();
-  coarseSample = Core.updateDwell(coarseSample, true, 1000);
-  coarseSample = Core.updateDwell(coarseSample, true, 1200);
-  assert.equal(coarseSample.hitAt, 1100, "a late RAF sample must preserve the logical 100ms hit timestamp");
-
-  let brush = Core.createDwellState();
-  brush = Core.updateDwell(brush, true, 2000);
-  brush = Core.updateDwell(brush, false, 2050);
-  assert.equal(brush.enteredAt, null);
-  assert.equal(brush.feedback, false);
-  assert.equal(brush.hitAt, null);
-  brush = Core.updateDwell(brush, true, 2100);
-  brush = Core.updateDwell(brush, true, 2199);
-  assert.equal(brush.hit, false);
-  brush = Core.updateDwell(brush, true, 2200);
-  assert.equal(brush.hit, true);
-  assert.equal(brush.hitAt, 2200);
-  brush = Core.updateDwell(brush, false, 2210);
-  assert.equal(brush.hit, false);
-  assert.equal(brush.hitAt, null);
+test("click debounce constant and spawn guard are the published click-model timings", () => {
+  assert.equal(Core.constants.clickDebounceMs, 50);
+  assert.equal(Core.constants.clickSpawnGuardMs, 200);
+  assert.equal(Core.constants.clickErrorFallback, 45);
 });
 
 test("principal-axis overshoot and correction work horizontally, vertically, and diagonally", () => {
@@ -2204,7 +2176,7 @@ test("losses are logarithmic and clamped, and role weights are normalized", () =
   approximately(Core.logRelativeLoss(1.08, 1), Math.log(1.08));
 
   for (const weights of Object.values(plain(Core.constants.roleWeights))) {
-    approximately(weights.flick + weights.lateral + weights.track, 1);
+    approximately(weights.flick + weights.lateral + weights.grid, 1);
   }
 });
 
@@ -2386,7 +2358,21 @@ test("v2 migration keeps only the profile and supplies the default m_pitch", () 
   assert.equal(JSON.stringify(legacy), before, "migration must not mutate its source payload");
 });
 
-test("v3 migration restores only matching algorithm data and caps history at 100", () => {
+test("v3 payloads keep only the profile so dwell sessions cannot mix into click scoring", () => {
+  const legacy = {
+    version: "3.0.0",
+    profile: baseProfile({ currentSens: 0.91, dpi: 700 }),
+    session: { id: "must-not-migrate", version: "3.0.0", taskVersion: "angles-3.1.0" },
+    result: { main: { sensitivity: 0.91 } }
+  };
+  const migrated = plain(Core.migratePersistedState({ v3: legacy }));
+  assert.equal(migrated.migratedFrom, "v3");
+  assert.equal(migrated.profile.currentSens, 0.91);
+  assert.equal(migrated.session, null);
+  assert.equal(migrated.result, null);
+});
+
+test("v4 migration restores only matching algorithm data and caps history at 100", () => {
   const profile = baseProfile();
   const candidates = Core.buildCandidates(profile, 1.25, 1.2, "restore");
   const stage = Core.createBalancedStage("restore-stage", candidates, 5150, 3, false);
@@ -2422,27 +2408,27 @@ test("v3 migration restores only matching algorithm data and caps history at 100
     },
     history
   };
-  const restored = plain(Core.migratePersistedState({ v3: current }));
+  const restored = plain(Core.migratePersistedState({ v4: current }));
   assert.equal(restored.session.id, "session");
   assert.equal(restored.result.id, "result");
   assert.equal(restored.history.length, 100);
   assert.equal(restored.history[0].id, "summary-5");
 
   const incompatible = plain(Core.migratePersistedState({
-    v3: { ...current, version: "3.0.1" }
+    v4: { ...current, version: "4.0.1" }
   }));
   assert.equal(incompatible.session, null);
   assert.equal(incompatible.result, null);
 
   const staleSession = plain(current);
   staleSession.session.taskVersion = "angles-3.0.0";
-  const withoutStaleSession = plain(Core.migratePersistedState({ v3: staleSession }));
+  const withoutStaleSession = plain(Core.migratePersistedState({ v4: staleSession }));
   assert.equal(withoutStaleSession.session, null, "a session from another task definition must be discarded");
   assert.equal(withoutStaleSession.result, null, "a result cannot survive without its matching completed session");
 
   const missingTaskVersion = plain(current);
   delete missingTaskVersion.session.taskVersion;
-  const withoutVersionedSession = plain(Core.migratePersistedState({ v3: missingTaskVersion }));
+  const withoutVersionedSession = plain(Core.migratePersistedState({ v4: missingTaskVersion }));
   assert.equal(withoutVersionedSession.session, null, "a session without an explicit task version must be discarded");
   assert.equal(withoutVersionedSession.result, null);
 
@@ -2450,7 +2436,7 @@ test("v3 migration restores only matching algorithm data and caps history at 100
   incompleteFastSession.session.mode = "express";
   incompleteFastSession.session.profile.mode = "express";
   delete incompleteFastSession.session.stages[0].searchCenterSensitivity;
-  const withoutFastCenter = plain(Core.migratePersistedState({ v3: incompleteFastSession }));
+  const withoutFastCenter = plain(Core.migratePersistedState({ v4: incompleteFastSession }));
   assert.equal(withoutFastCenter.session, null, "a current fast session without its true search center must be discarded");
   assert.equal(withoutFastCenter.result, null);
 
@@ -2460,18 +2446,18 @@ test("v3 migration restores only matching algorithm data and caps history at 100
   incompleteFastResult.session.stages[0].searchCenterSensitivity = 1.25;
   incompleteFastResult.result.mode = "express";
   delete incompleteFastResult.result.fastGuidance;
-  const withoutFastGuidance = plain(Core.migratePersistedState({ v3: incompleteFastResult }));
+  const withoutFastGuidance = plain(Core.migratePersistedState({ v4: incompleteFastResult }));
   assert.equal(withoutFastGuidance.session, null, "a completed session without a valid result must not deadlock restoration");
   assert.equal(withoutFastGuidance.result, null, "a current fast result without actionable guidance must be discarded");
 
   const staleResult = plain(current);
   staleResult.result.taskVersion = "angles-3.0.0";
-  const withoutStaleResult = plain(Core.migratePersistedState({ v3: staleResult }));
+  const withoutStaleResult = plain(Core.migratePersistedState({ v4: staleResult }));
   assert.equal(withoutStaleResult.session, null, "a completed session cannot remain after its result is discarded");
   assert.equal(withoutStaleResult.result, null, "a result from another task definition must be discarded");
 
   const filteredHistory = plain(Core.migratePersistedState({
-    v3: {
+    v4: {
       ...current,
       history: [
         { id: "matching-task", algorithmVersion: Core.version, taskVersion: Core.constants.taskVersion },
@@ -2482,7 +2468,7 @@ test("v3 migration restores only matching algorithm data and caps history at 100
   assert.deepEqual(filteredHistory.history.map((entry) => entry.id), ["matching-task"]);
 
   const malformed = plain(Core.migratePersistedState({
-    v3: {
+    v4: {
       version: Core.version,
       profile,
       session: { version: Core.version, taskVersion: Core.constants.taskVersion },
@@ -2614,6 +2600,45 @@ test("profile signatures distinguish both current sensitivity and speed-control 
     Core.profileSignature(baseProfile({ currentSens: null, priority: "balance" })),
     Core.profileSignature(baseProfile({ currentSens: 1.25, priority: "balance" }))
   );
+});
+
+test("current CS2 sensitivity is required and becomes the search center", () => {
+  const missing = Core.validateProfile(baseProfile({ currentSens: null }));
+  assert.equal(missing.valid, false);
+  assert.match(missing.errors[0], /当前 CS2 灵敏度/);
+
+  const empty = Core.validateProfile(baseProfile({ currentSens: "" }));
+  assert.equal(empty.valid, false);
+
+  const profile = baseProfile({ dpi: 700, currentSens: 0.91 });
+  assert.equal(Core.validateProfile(profile).valid, true);
+  assert.equal(Core.startingCenter(profile), 0.91);
+  assert.equal(Core.edpi(700, 0.91), 637);
+  assert.deepEqual(
+    plain(Core.buildCoarseCandidates(profile, "from-current").map((candidate) => Core.formatSensitivity(candidate.sensitivity))),
+    ["0.758", "0.910", "1.092"]
+  );
+});
+
+test("the profile form refuses to start a lab session without current sensitivity", () => {
+  const harness = createAppHarness();
+  harness.document.getElementById("currentSens").value = "";
+  harness.document.getElementById("profileForm").dispatchEvent({ type: "submit" });
+  assert.equal(harness.diagnostics().view, "profile");
+  assert.match(harness.elements.get("formError").textContent, /当前 CS2 灵敏度/);
+
+  harness.document.getElementById("dpi").value = "700";
+  harness.document.getElementById("currentSens").value = "0.91";
+  harness.document.getElementById("dpi").dispatchEvent({ type: "input" });
+  harness.document.getElementById("currentSens").dispatchEvent({ type: "input" });
+  assert.equal(harness.elements.get("edpiPreview").value, "637");
+  harness.document.getElementById("profileForm").dispatchEvent({ type: "submit" });
+  const stored = JSON.parse(harness.storage.getItem(Core.constants.storageKey));
+  assert.equal(harness.diagnostics().view, "lab");
+  assert.equal(stored.profile.currentSens, 0.91);
+  assert.equal(stored.session.stages[0].searchCenterSensitivity, 0.91);
+  assert.match(harness.elements.get("overlayCopy").textContent, /700 DPI × 0.910/);
+  assert.match(harness.elements.get("overlayCopy").textContent, /637 eDPI/);
 });
 
 test("session summaries retain whether the run used ordinary or complementary blind-label orders", () => {

@@ -64,7 +64,7 @@ for (const token of ["./modules/cs2-sensitivity/index.html", "./modules/cs2-line
 }
 
 const sensitivityManifest = JSON.parse(readFileSync(path.join(workspace, "cs2-sensitivity/manifest.template.json"), "utf8"));
-if (sensitivityManifest.id !== "cs2-sensitivity" || sensitivityManifest.version !== "3.0.0" || sensitivityManifest.entryPoint !== "index.html") {
+if (sensitivityManifest.id !== "cs2-sensitivity" || sensitivityManifest.version !== "4.0.0" || sensitivityManifest.entryPoint !== "index.html") {
   throw new Error("The sensitivity module manifest does not target its canonical product entry point.");
 }
 

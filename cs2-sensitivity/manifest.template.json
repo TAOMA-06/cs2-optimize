@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "cs2-sensitivity",
   "name": "CS2 SENS / LAB",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "kind": "Calibration",
   "entryPoint": "index.html",
   "minimumHostVersion": "0.1.0",

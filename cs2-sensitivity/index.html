@@ -371,7 +371,7 @@
           <div class="eyebrow">01 / 校准档案</div>
           <h1 id="profileHeading" tabindex="-1">从候选对照中筛选灵敏度</h1>
         </div>
-        <p>不是一次网页成绩后套出小数值：每个候选都会实际改变虚拟视角增益，再用同条件的盲测比较速度、停稳与追踪。</p>
+        <p>不是一次网页成绩后套出小数值：每个候选都会实际改变虚拟视角增益，再用同条件的盲测比较点击定位、急停与多目标切换。</p>
       </div>
 
       <div class="notice" role="note">
@@ -389,9 +389,14 @@
               <p class="field-hint">请以驱动中的实际 CPI/DPI 为准。</p>
             </div>
             <div class="field">
-              <label for="currentSens">当前 CS2 灵敏度（可不填）</label>
-              <div class="input-wrap"><input id="currentSens" type="number" min="0.1" max="8" step="0.001" placeholder="例如 1.250" inputmode="decimal"><span class="input-unit">SENS</span></div>
-              <p class="field-hint">填写后作为候选搜索中心，不会被直接回拉。</p>
+              <label for="currentSens">当前 CS2 灵敏度</label>
+              <div class="input-wrap"><input id="currentSens" type="number" min="0.1" max="8" step="0.001" placeholder="例如 0.910" inputmode="decimal" required><span class="input-unit">SENS</span></div>
+              <p class="field-hint">游戏内 sensitivity，必填。例如 700 DPI × 0.91。</p>
+            </div>
+            <div class="field">
+              <label for="edpiPreview">当前 eDPI</label>
+              <div class="input-wrap"><input id="edpiPreview" type="text" value="--" readonly tabindex="-1"><span class="input-unit">EDPI</span></div>
+              <p class="field-hint">DPI × 灵敏度。例如 700 × 0.91 = 637。</p>
             </div>
             <div class="field">
               <label for="padWidth">可用横向空间</label>
@@ -424,14 +429,14 @@
         <div class="form-section">
           <div class="form-section-title"><span class="form-index">01B</span><strong>发力方式与定位</strong></div>
           <div class="choice-grid">
-            <div class="choice"><input id="aim-wrist" name="aimStyle" value="wrist" type="radio"><label for="aim-wrist"><strong>手腕为主</strong><span>无当前数值时，从偏快的候选中心开始。</span></label></div>
-            <div class="choice"><input id="aim-hybrid" name="aimStyle" value="hybrid" type="radio" checked><label for="aim-hybrid"><strong>手臂 + 手腕</strong><span>无当前数值时，从平衡候选中心开始。</span></label></div>
-            <div class="choice"><input id="aim-arm" name="aimStyle" value="arm" type="radio"><label for="aim-arm"><strong>手臂为主</strong><span>无当前数值时，从偏稳候选中心开始。</span></label></div>
+            <div class="choice"><input id="aim-wrist" name="aimStyle" value="wrist" type="radio"><label for="aim-wrist"><strong>手腕为主</strong><span>记录发力习惯，不改搜索中心。</span></label></div>
+            <div class="choice"><input id="aim-hybrid" name="aimStyle" value="hybrid" type="radio" checked><label for="aim-hybrid"><strong>手臂 + 手腕</strong><span>记录发力习惯，不改搜索中心。</span></label></div>
+            <div class="choice"><input id="aim-arm" name="aimStyle" value="arm" type="radio"><label for="aim-arm"><strong>手臂为主</strong><span>记录发力习惯，不改搜索中心。</span></label></div>
           </div>
           <div class="choice-grid" style="margin-top:12px;">
-            <div class="choice"><input id="role-entry" name="role" value="entry" type="radio"><label for="role-entry"><strong>突破 / 近距离步枪</strong><span>横向急停在评分中占比更高。</span></label></div>
-            <div class="choice"><input id="role-rifle" name="role" value="rifle" type="radio" checked><label for="role-rifle"><strong>步枪 / 全能</strong><span>目标获取、急停与追踪均衡评估。</span></label></div>
-            <div class="choice"><input id="role-awp" name="role" value="awp" type="radio"><label for="role-awp"><strong>狙击 / 架点</strong><span>小角度获取与停稳在评分中占比更高。</span></label></div>
+            <div class="choice"><input id="role-entry" name="role" value="entry" type="radio"><label for="role-entry"><strong>突破 / 近距离步枪</strong><span>横向急停与多目标点击占比更高。</span></label></div>
+            <div class="choice"><input id="role-rifle" name="role" value="rifle" type="radio" checked><label for="role-rifle"><strong>步枪 / 全能</strong><span>点射获取、急停与多目标切换均衡评估。</span></label></div>
+            <div class="choice"><input id="role-awp" name="role" value="awp" type="radio"><label for="role-awp"><strong>狙击 / 架点</strong><span>小角度点射获取在评分中占比更高。</span></label></div>
           </div>
           <div class="choice-grid" style="margin-top:12px;">
             <div class="choice"><input id="priority-speed" name="priority" value="speed" type="radio"><label for="priority-speed"><strong>速度优先</strong><span>范围内优先较快的实际测试候选。</span></label></div>
@@ -452,7 +457,7 @@
         </div>
 
         <div class="form-actions">
-          <p id="formError" role="alert">点击后会创建盲测候选；开始时需一次点击以锁定鼠标，之后无需点击目标。</p>
+          <p id="formError" role="alert">必须先填写 DPI 与当前灵敏度。锁定鼠标后，把准星对准目标并按左键才算命中。</p>
           <button class="btn btn-primary" type="submit">建立候选方案 <span aria-hidden="true">→</span></button>
         </div>
       </form>
@@ -462,9 +467,9 @@
       <div class="section-head">
         <div>
           <div class="eyebrow">02 / 瞄准测试 <span class="status-chip is-warn">非官方网页模拟</span></div>
-          <h2 id="labHeading" tabindex="-1">候选盲测：虚拟准星追向目标</h2>
+          <h2 id="labHeading" tabindex="-1">候选盲测：对准后左键确认</h2>
         </div>
-        <p>启动时锁定鼠标，移动会驱动虚拟准星追向目标。A/B/C 隐藏具体数值；每轮目标序列相同，只有候选灵敏度改变转动增益。</p>
+        <p>启动时锁定鼠标，移动驱动虚拟准星。对准目标后按下左键才算命中。A/B/C 隐藏具体数值；每轮目标序列相同，只有候选灵敏度改变转动增益。</p>
       </div>
 
       <div class="notice" role="note">
@@ -485,6 +490,8 @@
             </div>
             <div class="arena" id="arena" tabindex="0" aria-label="Aimlabs 测试区域">
               <div class="scene-target" id="sceneTarget" aria-hidden="true"></div>
+              <div class="scene-target" id="sceneTargetB" aria-hidden="true"></div>
+              <div class="scene-target" id="sceneTargetC" aria-hidden="true"></div>
               <div class="virtual-crosshair" id="virtualCrosshair" aria-hidden="true"><i class="h1"></i><i class="h2"></i><i class="v1"></i><i class="v2"></i></div>
               <div class="arena-id" id="arenaId">相对输入 · 虚拟准星</div>
               <div class="arena-overlay" id="arenaOverlay">
@@ -492,7 +499,7 @@
                   <div class="overlay-kicker" id="overlayKicker">候选会话已就绪</div>
                   <p class="overlay-number" id="overlayNumber" hidden>3</p>
                   <h3 class="overlay-title" id="overlayTitle">准备开始盲测</h3>
-                  <p class="overlay-copy" id="overlayCopy">点击一次以锁定鼠标。测试开始后不用点击目标；持续停在目标内约 100 毫秒才算命中。</p>
+                  <p class="overlay-copy" id="overlayCopy">点击一次以锁定鼠标。测试开始后，把准星对准目标并按左键才算命中；锁定与倒计时期间的点击不计枪。</p>
                   <button class="btn btn-primary overlay-action" id="overlayAction" type="button">锁定鼠标并开始</button>
                 </div>
               </div>
@@ -505,6 +512,8 @@
             <span class="side-label">本次档案</span>
             <dl class="profile-mini">
               <dt>DPI</dt><dd id="miniDpi">800</dd>
+              <dt>灵敏度</dt><dd id="miniSens">--</dd>
+              <dt>eDPI</dt><dd id="miniEdpi">--</dd>
               <dt>m_yaw</dt><dd id="miniYaw">0.022</dd>
               <dt>m_pitch</dt><dd id="miniPitch">0.022</dd>
               <dt>模式</dt><dd id="miniMode">标准配对</dd>
@@ -591,7 +600,7 @@
         </article>
       </div>
 
-      <div class="method-note"><strong>方法与边界：</strong>画面中的虚拟准星随相对鼠标增量移动，目标不会被鼠标带动；命中由角度坐标判定，不使用浏览器绝对屏幕坐标。页面使用 m_yaw <span id="methodYaw">0.022</span> 与 m_pitch <span id="methodPitch">0.022</span>，并把输出限制在本工具兼容范围 0.100–8.000（非 Valve 官方边界）。本页是非官方网页模拟，不连接 Aim Lab；未经过 CS2 游戏内提升验证。</div>
+      <div class="method-note"><strong>方法与边界：</strong>画面中的虚拟准星随相对鼠标增量移动，目标不会被鼠标带动；命中由点击瞬间的角度坐标判定，不使用浏览器绝对屏幕坐标。页面使用 m_yaw <span id="methodYaw">0.022</span> 与 m_pitch <span id="methodPitch">0.022</span>，并把输出限制在本工具兼容范围 0.100–8.000（非 Valve 官方边界）。本页是非官方网页模拟，不连接 Aim Lab；未经过 CS2 游戏内提升验证。</div>
       <div class="result-actions">
         <button class="btn btn-ghost" id="restartTests" type="button">以相同档案重新建方案</button>
         <div><button class="btn" id="confirmSession" type="button" hidden>建立跨日确认任务</button><button class="btn" id="copyReport" type="button">复制完整报告</button><button class="btn btn-primary" id="newProfile" type="button">重新填写档案</button></div>
@@ -610,40 +619,42 @@
       var RANGE_MAX = 8.000;
       var DEFAULT_YAW = 0.022;
       var DEFAULT_PITCH = 0.022;
-      var DWELL_MS = 100;
+      var CLICK_DEBOUNCE_MS = 50;
+      var CLICK_SPAWN_GUARD_MS = 200;
+      var CLICK_ERROR_FALLBACK = 45;
       var STALL_MS = 350;
       // Three passes are a very small sample. This 0.2% log guard is reported
       // separately from the specified MAD/drift threshold and only makes a
       // unique recommendation harder, keeping the fixed synthetic FPR gate.
       var DECISION_EPSILON = Math.log(1.002);
-      var ALGORITHM_VERSION = "3.0.0";
-      var TASK_VERSION = "angles-3.1.0";
-      var STORAGE_KEY = "cs2-sens-lab-v3";
-      var PREVIOUS_STORAGE_KEYS = ["cs2-sens-lab-v2", "cs2-sens-lab-v1"];
-      var TASKS = ["flick", "track", "lateral"];
+      var ALGORITHM_VERSION = "4.0.0";
+      var TASK_VERSION = "click-4.0.0";
+      var STORAGE_KEY = "cs2-sens-lab-v4";
+      var PREVIOUS_STORAGE_KEYS = ["cs2-sens-lab-v3", "cs2-sens-lab-v2", "cs2-sens-lab-v1"];
+      var TASKS = ["flick", "lateral", "grid"];
       var MODES = {
         express: { label: "极速方向筛选", passes: 1, adaptMs: 4000, taskMs: 8000, budgetMs: 120000, rangeOnly: true, deep: false },
-        quick: { label: "快速粗筛", passes: 1, adaptMs: 12000, taskMs: 25000, rangeOnly: true, deep: false },
-        standard: { label: "标准平衡比较", passes: 3, adaptMs: 12000, taskMs: 25000, rangeOnly: false, deep: false },
-        deep: { label: "深度细筛", passes: 3, adaptMs: 12000, taskMs: 25000, rangeOnly: false, deep: true }
+        quick: { label: "快速粗筛", passes: 1, adaptMs: 12000, taskMs: 25000, budgetMs: 0, rangeOnly: true, deep: false },
+        standard: { label: "标准平衡比较", passes: 3, adaptMs: 12000, taskMs: 25000, budgetMs: 0, rangeOnly: false, deep: false },
+        deep: { label: "深度细筛", passes: 3, adaptMs: 12000, taskMs: 25000, budgetMs: 0, rangeOnly: false, deep: true }
       };
       var ROLE_WEIGHTS = {
-        entry: { flick: 0.30, lateral: 0.45, track: 0.25 },
-        rifle: { flick: 0.40, lateral: 0.35, track: 0.25 },
-        awp: { flick: 0.50, lateral: 0.35, track: 0.15 }
+        entry: { flick: 0.30, lateral: 0.40, grid: 0.30 },
+        rifle: { flick: 0.40, lateral: 0.30, grid: 0.30 },
+        awp: { flick: 0.50, lateral: 0.35, grid: 0.15 }
       };
       var METRIC_SPECS = {
         flick: [
-          ["timePerId", 0.40], ["missRate", 0.20], ["settleMs", 0.20],
+          ["clickError", 0.30], ["missRate", 0.25], ["timePerId", 0.25],
           ["overshootCorrection", 0.15], ["pathInefficiency", 0.05]
         ],
         lateral: [
-          ["timePerId", 0.35], ["missRate", 0.20], ["settleMs", 0.20],
+          ["clickError", 0.30], ["missRate", 0.25], ["timePerId", 0.20],
           ["overshootCorrection", 0.15], ["pathInefficiency", 0.10]
         ],
-        track: [
-          ["rmsError", 0.45], ["offTargetRatio", 0.25], ["reacquireMs", 0.15],
-          ["speedMismatch", 0.15]
+        grid: [
+          ["clickError", 0.30], ["missRate", 0.25], ["timePerId", 0.25],
+          ["overshootCorrection", 0.15], ["pathInefficiency", 0.05]
         ]
       };
 
@@ -705,7 +716,7 @@
       function validateProfile(profile) {
         var errors = [];
         if (!profile || !Number.isFinite(Number(profile.dpi)) || profile.dpi < 100 || profile.dpi > 32000) errors.push("DPI 必须在 100–32000 之间。");
-        if (profile && profile.currentSens !== null && profile.currentSens !== undefined && profile.currentSens !== "" && (!Number.isFinite(Number(profile.currentSens)) || profile.currentSens < RANGE_MIN || profile.currentSens > RANGE_MAX)) errors.push("当前灵敏度必须在 0.100–8.000 之间。");
+        if (!profile || !Number.isFinite(Number(profile.currentSens)) || profile.currentSens < RANGE_MIN || profile.currentSens > RANGE_MAX) errors.push("请填写当前 CS2 灵敏度（0.100–8.000）。");
         if (!profile || !Number.isFinite(Number(profile.padWidth)) || profile.padWidth < 15 || profile.padWidth > 120) errors.push("可用空间必须在 15–120 cm 之间。");
         if (!profile || !Number.isFinite(Number(profile.mYaw)) || profile.mYaw < 0.001 || profile.mYaw > 0.1) errors.push("m_yaw 必须在 0.001–0.100 之间。");
         if (!profile || !Number.isFinite(Number(profile.mPitch)) || Math.abs(profile.mPitch) < 0.001 || Math.abs(profile.mPitch) > 0.1) errors.push("m_pitch 必须在 -0.100–-0.001 或 0.001–0.100 之间。");
@@ -791,12 +802,9 @@
           return makeCandidate(prefix || "candidate", value, profile, index);
         });
       }
+      function edpi(dpi, sensitivity) { return Math.round(Number(dpi) * Number(sensitivity)); }
       function startingCenter(profile) {
-        if (profile.currentSens !== null && profile.currentSens !== undefined && profile.currentSens !== "") return Number(profile.currentSens);
-        var defaultsCm = { wrist: 28, hybrid: 38, arm: 49 };
-        var cm = defaultsCm[profile.aimStyle] || 38;
-        cm = Math.min(cm, Number(profile.padWidth) * 1.8);
-        return sensitivityForCm(profile.dpi, cm, profile.mYaw);
+        return Number(formatSensitivity(profile.currentSens));
       }
       function buildCoarseCandidates(profile, prefix) { return buildCandidates(profile, startingCenter(profile), 1.20, prefix || "coarse"); }
       function buildFineCandidates(profile, leader, prefix) { return buildCandidates(profile, leader.sensitivity, 1.06, prefix || "fine"); }
@@ -850,7 +858,7 @@
       function candidateLabel(stage, key) { return stage.keyToLabel[key] || "?"; }
 
       function createTaskSequence(task, seed, durationMs) {
-        var rng = createRng((Number(seed) ^ (task === "flick" ? 0xF11C : task === "lateral" ? 0x1A73 : 0x7AC4)) >>> 0);
+        var rng = createRng((Number(seed) ^ (task === "flick" ? 0xF11C : task === "lateral" ? 0x1A73 : 0x6E1D)) >>> 0);
         if (task === "flick") {
           var flicks = [];
           for (var i = 0; i < 96; i += 1) {
@@ -868,76 +876,53 @@
           }
           return { task: task, targets: lateral, seed: seed };
         }
-        var bounds = { yaw: 21, pitch: 11 };
-        var start = { yaw: (rng() * 2 - 1) * 12, pitch: (rng() * 2 - 1) * 6 };
-        var segments = [];
-        var elapsed = 0;
-        while (elapsed < durationMs + 2000) {
-          var end = null;
-          var distanceToEnd = 0;
-          for (var attempt = 0; attempt < 80 && !end; attempt += 1) {
-            var candidate = { yaw: (rng() * 2 - 1) * bounds.yaw, pitch: (rng() * 2 - 1) * bounds.pitch };
-            var distanceCandidate = angularDistance(candidate, start);
-            if (distanceCandidate >= 5 && distanceCandidate <= 18) { end = candidate; distanceToEnd = distanceCandidate; }
-          }
-          if (!end) {
-            end = { yaw: clamp(-start.yaw, -bounds.yaw, bounds.yaw), pitch: clamp(-start.pitch, -bounds.pitch, bounds.pitch) };
-            distanceToEnd = Math.max(5, angularDistance(end, start));
-          }
-          var speed = 12 + rng() * 13;
-          var segmentMs = distanceToEnd / speed * 1000;
-          segments.push({ startMs: elapsed, endMs: elapsed + segmentMs, start: clone(start), end: clone(end), speed: speed, radius: 1.5 });
-          elapsed += segmentMs;
-          start = end;
+        var bounds = { yaw: 24, pitch: 12 };
+        var placements = [];
+        for (var g = 0; g < 96; g += 1) {
+          var yaw = (rng() * 2 - 1) * bounds.yaw;
+          var pitch = (rng() * 2 - 1) * bounds.pitch;
+          var amplitude = Math.sqrt(yaw * yaw + pitch * pitch);
+          placements.push({ yaw: yaw, pitch: pitch, yawOffset: yaw, pitchOffset: pitch, radius: 1.4, amplitude: amplitude, timeoutMs: 3500 });
         }
-        return { task: task, segments: segments, durationMs: durationMs, bounds: bounds, radius: 1.5, seed: seed };
-      }
-      function trackPosition(sequence, elapsedMs) {
-        var segments = sequence.segments || [];
-        if (!segments.length) return { yaw: 0, pitch: 0, radius: 1.5, speed: 0, segmentIndex: 0 };
-        var time = clamp(Number(elapsedMs), 0, segments[segments.length - 1].endMs);
-        var index = segments.findIndex(function (segment) { return time <= segment.endMs; });
-        if (index < 0) index = segments.length - 1;
-        var segment = segments[index];
-        var progress = clamp((time - segment.startMs) / Math.max(1, segment.endMs - segment.startMs), 0, 1);
         return {
-          yaw: segment.start.yaw + (segment.end.yaw - segment.start.yaw) * progress,
-          pitch: segment.start.pitch + (segment.end.pitch - segment.start.pitch) * progress,
-          radius: segment.radius,
-          speed: segment.speed,
-          segmentIndex: index
+          task: "grid",
+          placements: placements,
+          concurrent: 3,
+          radius: 1.4,
+          minSeparation: 7,
+          minCameraDistance: 8,
+          timeoutMs: 3500,
+          bounds: bounds,
+          seed: seed
         };
       }
-
-      function createDwellState() { return { enteredAt: null, feedback: false, hit: false, hitAt: null }; }
-      function updateDwell(dwell, inside, now) {
-        var next = clone(dwell || createDwellState());
-        if (!inside) { next.enteredAt = null; next.feedback = false; next.hit = false; next.hitAt = null; return next; }
-        if (next.enteredAt === null || next.enteredAt === undefined) next.enteredAt = now;
-        next.feedback = true;
-        if (now - next.enteredAt >= DWELL_MS) {
-          next.hit = true;
-          next.hitAt = next.enteredAt + DWELL_MS;
+      function pickGridPlacement(sequence, startIndex, existingTargets, camera) {
+        var placements = sequence && Array.isArray(sequence.placements) ? sequence.placements : [];
+        var existing = Array.isArray(existingTargets) ? existingTargets : [];
+        var minSeparation = Number(sequence && sequence.minSeparation) || 7;
+        var minCamera = Number(sequence && sequence.minCameraDistance) || 8;
+        var count = placements.length;
+        if (!count) return { spec: { yaw: 12, pitch: 0, yawOffset: 12, pitchOffset: 0, radius: 1.4, amplitude: 12, timeoutMs: 3500 }, consumed: 1 };
+        for (var i = 0; i < count; i += 1) {
+          var spec = placements[(Math.max(0, Number(startIndex) || 0) + i) % count];
+          var overlaps = existing.some(function (target) { return angularDistance(target, spec) < minSeparation; });
+          var tooClose = camera ? angularDistance(camera, spec) < minCamera : false;
+          if (!overlaps && !tooClose) return { spec: spec, consumed: i + 1 };
         }
-        return next;
+        return { spec: placements[Math.max(0, Number(startIndex) || 0) % count], consumed: 1 };
       }
-      function summarizeTracking(data, taskMs, endedAt) {
-        var source = data || {};
-        var durations = Array.isArray(source.reacquireDurations) ? source.reacquireDurations.slice() : [];
-        var offStartedAt = Number(source.offStartedAt);
-        if (source.offStartedAt !== null && source.offStartedAt !== undefined && Number.isFinite(offStartedAt) && Number.isFinite(Number(endedAt))) {
-          durations.push(Math.max(0, Number(endedAt) - offStartedAt));
+      function resolveClick(camera, targets) {
+        var list = Array.isArray(targets) ? targets : [];
+        var best = null;
+        for (var i = 0; i < list.length; i += 1) {
+          var target = list[i];
+          if (!target) continue;
+          var error = angularDistance(camera, target);
+          if (error <= Number(target.radius || 0) && (!best || error < best.error)) {
+            best = { index: i, target: target, error: error };
+          }
         }
-        var sampleMs = Math.max(1, Number(source.sampleMs) || 0);
-        var contacts = Math.max(0, Number(source.contacts) || 0);
-        return {
-          rmsError: Math.sqrt(Math.max(0, Number(source.errorSqMs) || 0) / sampleMs),
-          offTargetRatio: Math.max(0, Number(source.offTargetMs) || 0) / sampleMs,
-          reacquireMs: durations.length ? median(durations) : contacts ? 0 : Math.max(0, Number(taskMs) || 0),
-          speedMismatch: Math.sqrt(Math.max(0, Number(source.speedMismatchSqMs) || 0) / sampleMs),
-          sampleMs: Math.max(0, Number(source.sampleMs) || 0),
-          contacts: contacts
-        };
+        return best;
       }
       function createAxisState(origin, target) {
         var dx = wrapAngle(target.yaw - origin.yaw);
@@ -989,7 +974,7 @@
           });
           passBlocks.forEach(function (block) {
             var combined = TASKS.reduce(function (sum, task) { return sum + roleWeights[task] * taskLossByKey[task][block.candidateKey]; }, 0);
-            rows.push({ pass: pass, candidateKey: block.candidateKey, loss: combined, taskLosses: { flick: taskLossByKey.flick[block.candidateKey], lateral: taskLossByKey.lateral[block.candidateKey], track: taskLossByKey.track[block.candidateKey] }, orderIndex: Number(block.orderIndex || 0) });
+            rows.push({ pass: pass, candidateKey: block.candidateKey, loss: combined, taskLosses: TASKS.reduce(function (acc, task) { acc[task] = taskLossByKey[task][block.candidateKey]; return acc; }, {}), orderIndex: Number(block.orderIndex || 0) });
           });
         }
         return rows;
@@ -1192,7 +1177,7 @@
       }
       function migratePersistedState(payloads) {
         payloads = payloads || {};
-        var current = payloads.v3;
+        var current = payloads.v4;
         if (current && current.version === ALGORITHM_VERSION && current.profile) {
           var session = restorableSession(current.session) ? clone(current.session) : null;
           var result = restorableResult(current.result) ? clone(current.result) : null;
@@ -1200,8 +1185,8 @@
           if (session && session.status === "complete" && !result) session = null;
           return { profile: normalizeProfile(current.profile), session: session, result: result, history: Array.isArray(current.history) ? current.history.filter(function (item) { return item && item.algorithmVersion === ALGORITHM_VERSION && item.taskVersion === TASK_VERSION; }).slice(-100) : [], migratedFrom: null };
         }
-        var previous = payloads.v2 || payloads.v1;
-        if (previous && previous.profile) return { profile: normalizeProfile(previous.profile), session: null, result: null, history: [], migratedFrom: payloads.v2 ? "v2" : "v1" };
+        var previous = payloads.v3 || payloads.v2 || payloads.v1;
+        if (previous && previous.profile) return { profile: normalizeProfile(previous.profile), session: null, result: null, history: [], migratedFrom: payloads.v3 ? "v3" : payloads.v2 ? "v2" : "v1" };
         return { profile: null, session: null, result: null, history: [], migratedFrom: null };
       }
       function createRafScheduler(dependencies) {
@@ -1222,7 +1207,8 @@
 
       var constants = deepFreeze({
         range: { min: RANGE_MIN, max: RANGE_MAX }, defaultYaw: DEFAULT_YAW, defaultPitch: DEFAULT_PITCH,
-        dwellMs: DWELL_MS, stallMs: STALL_MS, decisionEpsilon: DECISION_EPSILON, algorithmVersion: ALGORITHM_VERSION, taskVersion: TASK_VERSION,
+        clickDebounceMs: CLICK_DEBOUNCE_MS, clickSpawnGuardMs: CLICK_SPAWN_GUARD_MS, clickErrorFallback: CLICK_ERROR_FALLBACK,
+        stallMs: STALL_MS, decisionEpsilon: DECISION_EPSILON, algorithmVersion: ALGORITHM_VERSION, taskVersion: TASK_VERSION,
         storageKey: STORAGE_KEY, previousStorageKeys: PREVIOUS_STORAGE_KEYS, tasks: TASKS, modes: MODES,
         roleWeights: ROLE_WEIGHTS, metricSpecs: METRIC_SPECS
       });
@@ -1231,14 +1217,13 @@
         constants: constants,
         clone: clone, clamp: clamp, round: round, mean: mean, median: median, mad: mad,
         formatSensitivity: formatSensitivity, wrapAngle: wrapAngle, angularDistance: angularDistance,
-        cmForSensitivity: cmForSensitivity, sensitivityForCm: sensitivityForCm, taskDifficulty: taskDifficulty,
+        cmForSensitivity: cmForSensitivity, sensitivityForCm: sensitivityForCm, edpi: edpi, taskDifficulty: taskDifficulty,
         createRng: createRng, shuffled: shuffled, validateProfile: validateProfile, applyPointerDelta: applyPointerDelta,
         projectAngularPoint: projectAngularPoint, projectTarget: projectTarget, projectReticle: projectReticle,
         startingCenter: startingCenter, buildCandidates: buildCandidates, buildCoarseCandidates: buildCoarseCandidates,
         buildFineCandidates: buildFineCandidates, buildBoundaryCandidates: buildBoundaryCandidates,
         createBalancedStage: createBalancedStage, candidateLabel: candidateLabel,
-        createTaskSequence: createTaskSequence, trackPosition: trackPosition,
-        createDwellState: createDwellState, updateDwell: updateDwell, summarizeTracking: summarizeTracking,
+        createTaskSequence: createTaskSequence, pickGridPlacement: pickGridPlacement, resolveClick: resolveClick,
         createAxisState: createAxisState, updateAxisState: updateAxisState,
         logRelativeLoss: logRelativeLoss, calculatePassLosses: calculatePassLosses, theilSenSlope: theilSenSlope,
         sessionDrift: sessionDrift, evaluateStage: evaluateStage, createFastGuidance: createFastGuidance, isBoundaryLeader: isBoundaryLeader,
@@ -2949,7 +2934,7 @@
       var Core = window.CS2SensLabCore;
       if (!Core) throw new Error("CS2 SENS / LAB core failed to load.");
       var C = Core.constants;
-      var TASK_LABELS = { flick: "小目标获取", track: "平滑追踪", lateral: "横向急停" };
+      var TASK_LABELS = { flick: "小目标点射", lateral: "横向急停点击", grid: "多目标点击" };
       var MIN_INPUT_EVENTS = 16;
       var MIN_RAW_DISTANCE = 80;
       var INTER_TASK_MS = 800;
@@ -2957,10 +2942,10 @@
 
       var els = {};
       [
-        "profileForm", "formError", "arena", "sceneTarget", "virtualCrosshair", "arenaOverlay",
+        "profileForm", "formError", "edpiPreview", "arena", "sceneTarget", "sceneTargetB", "sceneTargetC", "virtualCrosshair", "arenaOverlay",
         "overlayKicker", "overlayNumber", "overlayTitle", "overlayCopy", "overlayAction", "liveDot",
         "arenaTitle", "arenaSubtitle", "arenaStatus", "arenaHits", "arenaTime", "arenaId",
-        "capabilityDot", "capabilityStatus", "inputRequirement", "miniDpi", "miniYaw", "miniPitch",
+        "capabilityDot", "capabilityStatus", "inputRequirement", "miniDpi", "miniSens", "miniEdpi", "miniYaw", "miniPitch",
         "miniMode", "miniInput", "completionText", "progressTrack", "progressFill", "queueList", "startSession",
         "pauseSession", "resultSens", "resultPrimaryLabel", "resultUnit", "commandText", "copyCommand",
         "rangeSens", "rangeCopy", "rangeMetricLabel", "resultCm", "resultEdpi", "resultEvidence", "evidenceCopy",
@@ -3068,11 +3053,26 @@
           : "当前浏览器没有 Pointer Lock，无法运行候选对照。";
       }
 
+      function edpiText(dpi, sensitivity) {
+        if (!Number.isFinite(Number(dpi)) || !Number.isFinite(Number(sensitivity))) return "--";
+        return String(Core.edpi(dpi, sensitivity));
+      }
+      function updateEdpiPreview() {
+        if (!els.edpiPreview) {
+          els.edpiPreview = byId("edpiPreview");
+        }
+        var preview = els.edpiPreview || byId("edpiPreview");
+        if (!preview) return;
+        var dpi = Number(byId("dpi").value);
+        var currentRaw = byId("currentSens").value.trim();
+        var current = currentRaw === "" ? NaN : Number(currentRaw);
+        preview.value = edpiText(dpi, current);
+      }
       function readProfile() {
         var currentRaw = byId("currentSens").value.trim();
         var profile = {
           dpi: Number(byId("dpi").value),
-          currentSens: currentRaw === "" ? null : Number(currentRaw),
+          currentSens: currentRaw === "" ? NaN : Number(currentRaw),
           padWidth: Number(byId("padWidth").value),
           polling: Number(byId("polling").value),
           mYaw: Number(byId("mYaw").value),
@@ -3096,6 +3096,7 @@
         byId("mYaw").value = profile.mYaw === undefined ? C.defaultYaw : profile.mYaw;
         byId("mPitch").value = profile.mPitch === undefined ? C.defaultPitch : profile.mPitch;
         ["aimStyle", "role", "priority", "mode"].forEach(function (name) { setRadio(name, profile[name]); });
+        updateEdpiPreview();
       }
 
       function candidateFromSensitivity(prefix, value, profile, index) {
@@ -3187,6 +3188,8 @@
       function renderLab() {
         if (!state.profile || !state.session) return;
         els.miniDpi.textContent = String(state.profile.dpi);
+        els.miniSens.textContent = Core.formatSensitivity(state.profile.currentSens);
+        els.miniEdpi.textContent = edpiText(state.profile.dpi, state.profile.currentSens);
         els.miniYaw.textContent = formatCvar(state.profile.mYaw);
         els.miniPitch.textContent = formatCvar(state.profile.mPitch);
         els.miniMode.textContent = C.modes[state.session.mode].label;
@@ -3206,11 +3209,36 @@
         els.startSession.textContent = state.intentionalExit ? "正在等待浏览器释放鼠标…" : state.lock.awaiting ? "正在等待浏览器确认…" : state.session.status === "paused" ? "重新锁定并继续" : "锁定鼠标并开始";
         renderQueue();
       }
+      function targetElements() { return [els.sceneTarget, els.sceneTargetB, els.sceneTargetC]; }
+      function liveTargets(run) {
+        if (!run) return [];
+        if (run.targets && run.targets.length) return run.targets;
+        return run.target ? [run.target] : [];
+      }
       function resetScene() {
-        setTargetVisible(false);
-        setTargetContact(false);
+        targetElements().forEach(function (node) {
+          if (!node) return;
+          node.classList.remove("is-visible", "is-contact", "is-offscreen");
+        });
+        els.virtualCrosshair.classList.remove("is-contact");
         els.virtualCrosshair.style.setProperty("--reticle-x", "0px");
         els.virtualCrosshair.style.setProperty("--reticle-y", "0px");
+      }
+      function renderTargetNode(node, item, run, viewport) {
+        if (!node) return;
+        if (!item) {
+          node.classList.remove("is-visible", "is-contact", "is-offscreen");
+          return;
+        }
+        var projected = Core.projectTarget(item, run.presentationCamera, viewport);
+        node.style.left = projected.x.toFixed(2) + "px";
+        node.style.top = projected.y.toFixed(2) + "px";
+        var size = Math.max(12, projected.radiusPx * 2);
+        node.style.width = size.toFixed(2) + "px";
+        node.style.height = size.toFixed(2) + "px";
+        node.classList.add("is-visible");
+        node.classList.toggle("is-contact", Core.angularDistance(run.camera, item) <= item.radius);
+        node.classList.toggle("is-offscreen", !projected.onScreen);
       }
       function renderScene(run) {
         if (!run) { resetScene(); return; }
@@ -3218,16 +3246,12 @@
         var reticle = Core.projectReticle(run.camera, run.presentationCamera, viewport);
         els.virtualCrosshair.style.setProperty("--reticle-x", (reticle.x - viewport.width / 2).toFixed(2) + "px");
         els.virtualCrosshair.style.setProperty("--reticle-y", (reticle.y - viewport.height / 2).toFixed(2) + "px");
-        if (!run.target) { setTargetVisible(false); setTargetContact(false); return; }
-        var target = Core.projectTarget(run.target, run.presentationCamera, viewport);
-        els.sceneTarget.style.left = target.x.toFixed(2) + "px";
-        els.sceneTarget.style.top = target.y.toFixed(2) + "px";
-        var size = Math.max(12, target.radiusPx * 2);
-        els.sceneTarget.style.width = size.toFixed(2) + "px";
-        els.sceneTarget.style.height = size.toFixed(2) + "px";
-        els.sceneTarget.classList.toggle("is-offscreen", !target.onScreen);
-        setTargetVisible(true);
-        setTargetContact(Boolean(run.contact));
+        var targets = liveTargets(run);
+        var nodes = targetElements();
+        nodes.forEach(function (node, index) { renderTargetNode(node, targets[index] || null, run, viewport); });
+        var anyContact = targets.some(function (item) { return Core.angularDistance(run.camera, item) <= item.radius; });
+        els.virtualCrosshair.classList.toggle("is-contact", anyContact);
+        run.contact = anyContact;
       }
       function createRun(block, now) {
         var mode = C.modes[state.session.mode];
@@ -3243,7 +3267,9 @@
           camera: { yaw: 0, pitch: 0 },
           presentationCamera: { yaw: 0, pitch: 0 },
           target: null,
+          targets: [],
           contact: false,
+          lastClickAt: 0,
           inputEvents: 0,
           rawDistance: 0,
           pathDegrees: 0,
@@ -3301,21 +3327,30 @@
         run.pathDegrees = 0;
         run.sequenceIndex = 0;
         run.targetNextAt = 0;
-        var seedOffset = taskName === "flick" ? 101 : taskName === "track" ? 211 : 307;
+        run.lastClickAt = 0;
+        run.targets = [];
+        run.target = null;
+        var seedOffset = taskName === "flick" ? 101 : taskName === "grid" ? 211 : 307;
         run.sequence = Core.createTaskSequence(taskName, (run.block.seed + seedOffset) >>> 0, run.mode.taskMs);
-        if (taskName === "track") {
-          var initial = Core.trackPosition(run.sequence, 0);
-          run.target = { yaw: initial.yaw, pitch: initial.pitch, radius: initial.radius };
-          run.taskData = {
-            sampleMs: 0, errorSqMs: 0, offTargetMs: 0, speedMismatchSqMs: 0,
-            reacquireDurations: [], offStartedAt: null, wasInside: false,
-            lastCamera: { yaw: 0, pitch: 0 }, lastTarget: { yaw: initial.yaw, pitch: initial.pitch },
-            lastSampleAt: now, contacts: 0, initialized: false
-          };
-        } else {
-          run.taskData = { hits: [], misses: 0, overshoots: 0, corrections: 0, undershoots: 0, overshotFinals: 0 };
-          spawnStaticTarget(run, now);
-        }
+        run.taskData = { hits: [], misses: 0, overshoots: 0, corrections: 0, undershoots: 0, overshotFinals: 0, emptyClicks: 0 };
+        if (taskName === "grid") spawnGridTargets(run, now);
+        else spawnStaticTarget(run, now);
+      }
+      function createLiveTarget(spec, now, pathDegrees, origin) {
+        var yaw = spec.yawOffset !== undefined ? spec.yawOffset : spec.yaw;
+        var pitch = spec.pitchOffset !== undefined ? spec.pitchOffset : spec.pitch;
+        var originPoint = origin || { yaw: 0, pitch: 0 };
+        return {
+          yaw: yaw,
+          pitch: pitch,
+          radius: spec.radius,
+          amplitude: spec.amplitude,
+          bornAt: now,
+          timeoutAt: now + spec.timeoutMs,
+          axisState: Core.createAxisState(originPoint, { yaw: yaw, pitch: pitch }),
+          pathAtBorn: pathDegrees,
+          firstContactAt: null
+        };
       }
       function spawnStaticTarget(run, now) {
         var targets = run.sequence.targets;
@@ -3324,148 +3359,138 @@
         run.camera = { yaw: 0, pitch: 0 };
         run.presentationCamera = { yaw: 0, pitch: 0 };
         run.contact = false;
-        run.target = {
-          yaw: spec.yawOffset,
-          pitch: spec.pitchOffset,
-          radius: spec.radius,
-          amplitude: spec.amplitude,
-          bornAt: now,
-          timeoutAt: now + spec.timeoutMs,
-          dwell: Core.createDwellState(),
-          axisState: Core.createAxisState({ yaw: 0, pitch: 0 }, { yaw: spec.yawOffset, pitch: spec.pitchOffset }),
-          pathAtBorn: run.pathDegrees,
-          firstContactAt: null
-        };
+        run.target = createLiveTarget(spec, now, run.pathDegrees);
+        run.targets = [run.target];
         run.targetNextAt = 0;
       }
-      function recordStaticMiss(run) {
-        if (!run.target) return;
+      function spawnGridTargets(run, now) {
+        run.targets = [];
+        var count = run.sequence.concurrent || 3;
+        for (var i = 0; i < count; i += 1) {
+          var picked = Core.pickGridPlacement(run.sequence, run.sequenceIndex, run.targets, run.camera);
+          run.sequenceIndex += picked.consumed;
+          run.targets.push(createLiveTarget(picked.spec, now, run.pathDegrees, run.camera));
+        }
+        run.target = run.targets[0] || null;
+      }
+      function replaceGridTarget(run, index, now) {
+        var remaining = run.targets.filter(function (_, slot) { return slot !== index; });
+        var picked = Core.pickGridPlacement(run.sequence, run.sequenceIndex, remaining, run.camera);
+        run.sequenceIndex += picked.consumed;
+        run.targets[index] = createLiveTarget(picked.spec, now, run.pathDegrees, run.camera);
+        run.target = run.targets[0] || null;
+      }
+      function recordStaticMiss(run, target, now) {
+        var item = target || run.target;
+        if (!item) return;
         run.taskData.misses += 1;
-        var signed = run.target.axisState && Number(run.target.axisState.signedError);
-        if (!Number.isFinite(signed)) signed = run.target.axisState ? run.target.axisState.lastError : 0;
+        var signed = item.axisState && Number(item.axisState.signedError);
+        if (!Number.isFinite(signed)) signed = item.axisState ? item.axisState.lastError : 0;
         if (signed >= 0) run.taskData.undershoots += 1;
         else run.taskData.overshotFinals += 1;
-        run.target = null;
-        run.contact = false;
+        if (run.taskName === "grid") {
+          var index = run.targets.indexOf(item);
+          if (index >= 0) replaceGridTarget(run, index, now || item.timeoutAt);
+        } else {
+          run.target = null;
+          run.targets = [];
+          run.contact = false;
+        }
       }
-      function recordStaticHit(run, now) {
-        var target = run.target;
-        var axis = target.axisState;
-        var duration = now - target.bornAt;
-        var traveled = Math.max(0, run.pathDegrees - target.pathAtBorn);
+      function recordStaticHit(run, now, target, clickError) {
+        var item = target || run.target;
+        if (!item) return;
+        var axis = item.axisState;
+        var duration = now - item.bornAt;
+        var traveled = Math.max(0, run.pathDegrees - item.pathAtBorn);
         run.taskData.hits.push({
           durationMs: duration,
-          timePerId: duration / Core.taskDifficulty(target.amplitude, target.radius),
-          settleMs: Math.max(0, now - (target.firstContactAt === null ? target.dwell.enteredAt : target.firstContactAt)),
+          timePerId: duration / Core.taskDifficulty(item.amplitude, item.radius),
+          clickError: Number.isFinite(Number(clickError)) ? Number(clickError) : Core.angularDistance(run.camera, item),
           overshoots: axis.overshoots,
           corrections: axis.corrections,
           signedError: axis.signedError,
-          pathRatio: traveled / Math.max(0.001, target.amplitude)
+          pathRatio: traveled / Math.max(0.001, item.amplitude)
         });
         run.taskData.overshoots += axis.overshoots;
         run.taskData.corrections += axis.corrections;
         run.eventCount += 1;
-        run.target = null;
-        run.contact = false;
-        run.targetNextAt = now + 120;
+        if (run.taskName === "grid") {
+          var index = run.targets.indexOf(item);
+          if (index >= 0) replaceGridTarget(run, index, now);
+        } else {
+          run.target = null;
+          run.targets = [];
+          run.contact = false;
+          run.targetNextAt = now + 120;
+        }
       }
       function updateStaticTask(run, now) {
+        if (run.taskName === "grid") {
+          run.targets.forEach(function (item) {
+            if (item && now >= item.timeoutAt) recordStaticMiss(run, item, now);
+          });
+          run.target = run.targets[0] || null;
+          return;
+        }
         if (!run.target) {
-          if (run.targetNextAt && now >= run.targetNextAt && now < run.phaseEndsAt && now + C.dwellMs <= run.phaseEndsAt) spawnStaticTarget(run, now);
+          if (run.targetNextAt && now >= run.targetNextAt && now < run.phaseEndsAt && now + C.clickSpawnGuardMs <= run.phaseEndsAt) spawnStaticTarget(run, now);
           return;
         }
         var inside = Core.angularDistance(run.camera, run.target) <= run.target.radius;
         if (inside && run.target.firstContactAt === null) run.target.firstContactAt = now;
-        run.target.dwell = Core.updateDwell(run.target.dwell, inside, now);
         run.contact = inside;
-        if (run.target.dwell.hit && run.target.dwell.hitAt <= run.target.timeoutAt) {
-          recordStaticHit(run, run.target.dwell.hitAt);
-          return;
-        }
         if (now >= run.target.timeoutAt) {
           var timedOutAt = run.target.timeoutAt;
-          recordStaticMiss(run);
+          recordStaticMiss(run, run.target);
           run.targetNextAt = timedOutAt + 100;
         }
       }
-      function updateTrackingTask(run, now) {
-        var elapsed = Math.max(0, now - run.taskStartedAt);
-        var position = Core.trackPosition(run.sequence, elapsed);
-        run.target = { yaw: position.yaw, pitch: position.pitch, radius: position.radius };
-        var data = run.taskData;
-        var dt = Math.max(0, now - data.lastSampleAt);
-        if (dt <= 0) return;
-        var error = Core.angularDistance(run.camera, run.target);
-        var inside = error <= position.radius;
-        data.sampleMs += dt;
-        data.errorSqMs += error * error * dt;
-        if (!inside) data.offTargetMs += dt;
-        var cameraSpeed = Core.angularDistance(run.camera, data.lastCamera) / (dt / 1000);
-        var targetSpeed = Core.angularDistance(run.target, data.lastTarget) / (dt / 1000);
-        var mismatch = Math.abs(cameraSpeed - targetSpeed);
-        data.speedMismatchSqMs += mismatch * mismatch * dt;
-        if (!data.initialized) {
-          data.initialized = true;
-          data.wasInside = inside;
-          if (inside) { data.contacts += 1; run.eventCount += 1; data.offStartedAt = null; }
-          else data.offStartedAt = run.taskStartedAt;
-        } else {
-          if (!inside && data.wasInside) data.offStartedAt = now;
-          if (inside && !data.wasInside) {
-            data.contacts += 1;
-            run.eventCount += 1;
-            if (data.offStartedAt !== null) {
-              data.reacquireDurations.push(now - data.offStartedAt);
-              data.offStartedAt = null;
-            }
-          }
+      function applyShot(run, now) {
+        if (run.phase !== "task") return;
+        if (now >= run.phaseEndsAt) return;
+        if (run.lastClickAt && now - run.lastClickAt < C.clickDebounceMs) return;
+        run.lastClickAt = now;
+        var targets = liveTargets(run);
+        var resolved = Core.resolveClick(run.camera, targets);
+        if (resolved) recordStaticHit(run, now, resolved.target, resolved.error);
+        else {
+          run.taskData.misses += 1;
+          run.taskData.emptyClicks += 1;
         }
-        data.wasInside = inside;
-        data.lastCamera = { yaw: run.camera.yaw, pitch: run.camera.pitch };
-        data.lastTarget = { yaw: run.target.yaw, pitch: run.target.pitch };
-        data.lastSampleAt = now;
-        run.contact = inside;
       }
       function medianOr(values, fallback) { return values.length ? Core.median(values) : fallback; }
       function finishCurrentTask(run, now) {
         var task = run.taskName;
-        if (task === "track") {
-          var data = run.taskData;
-          run.taskResults.track = Core.summarizeTracking(data, run.mode.taskMs, now);
-          data.offStartedAt = null;
-          run.validTaskMs += data.sampleMs;
-        } else {
-          // A target still alive at the task deadline is right-censored. It did
-          // not reach its timeout, so counting it as a miss would reward or
-          // punish candidates according to frame timing rather than aim.
-          var staticData = run.taskData;
-          var hits = staticData.hits;
-          var trials = hits.length + staticData.misses;
-          run.taskResults[task] = {
-            timePerId: medianOr(hits.map(function (hit) { return hit.timePerId; }), run.mode.taskMs),
-            missRate: trials ? staticData.misses / trials : 1,
-            settleMs: medianOr(hits.map(function (hit) { return hit.settleMs; }), run.mode.taskMs),
-            overshootCorrection: trials ? (staticData.overshoots + staticData.corrections) / trials : 1,
-            pathInefficiency: medianOr(hits.map(function (hit) { return Math.max(1, hit.pathRatio); }), 3),
-            hits: hits.length,
-            misses: staticData.misses,
-            overshoots: staticData.overshoots,
-            corrections: staticData.corrections,
-            undershoots: staticData.undershoots,
-            overshotFinals: staticData.overshotFinals,
-            sampleMs: Math.min(run.mode.taskMs, Math.max(0, now - run.taskStartedAt))
-          };
-          run.validTaskMs += run.taskResults[task].sampleMs;
-        }
+        var staticData = run.taskData;
+        var hits = staticData.hits;
+        var trials = hits.length + staticData.misses;
+        run.taskResults[task] = {
+          timePerId: medianOr(hits.map(function (hit) { return hit.timePerId; }), run.mode.taskMs),
+          missRate: trials ? staticData.misses / trials : 1,
+          clickError: medianOr(hits.map(function (hit) { return hit.clickError; }), C.clickErrorFallback),
+          overshootCorrection: trials ? (staticData.overshoots + staticData.corrections) / trials : 1,
+          pathInefficiency: medianOr(hits.map(function (hit) { return Math.max(1, hit.pathRatio); }), 3),
+          hits: hits.length,
+          misses: staticData.misses,
+          emptyClicks: staticData.emptyClicks || 0,
+          overshoots: staticData.overshoots,
+          corrections: staticData.corrections,
+          undershoots: staticData.undershoots,
+          overshotFinals: staticData.overshotFinals,
+          sampleMs: Math.min(run.mode.taskMs, Math.max(0, now - run.taskStartedAt))
+        };
+        run.validTaskMs += run.taskResults[task].sampleMs;
         run.target = null;
+        run.targets = [];
         run.contact = false;
       }
       function blockValidityIssue(run) {
         if (run.inputEvents < MIN_INPUT_EVENTS || run.rawDistance < MIN_RAW_DISTANCE) return "鼠标输入样本不足，本组未记入。";
         var minimumHits = state.session.mode === "express" ? 0 : 3;
-        if (minimumHits && (!run.taskResults.flick || run.taskResults.flick.hits < minimumHits)) return "小目标获取的有效命中不足，本组未记入。";
-        if (minimumHits && (!run.taskResults.lateral || run.taskResults.lateral.hits < minimumHits)) return "横向急停的有效命中不足，本组未记入。";
-        if (!run.taskResults.track || run.taskResults.track.sampleMs < run.mode.taskMs * 0.9) return "追踪样本时长不足，本组未记入。";
+        if (minimumHits && (!run.taskResults.flick || run.taskResults.flick.hits < minimumHits)) return "小目标点射的有效命中不足，本组未记入。";
+        if (minimumHits && (!run.taskResults.lateral || run.taskResults.lateral.hits < minimumHits)) return "横向急停点击的有效命中不足，本组未记入。";
+        if (minimumHits && (!run.taskResults.grid || run.taskResults.grid.hits < minimumHits)) return "多目标点击的有效命中不足，本组未记入。";
         return "";
       }
       function scheduleRun(run) {
@@ -3551,8 +3576,7 @@
           }
         } else if (run.phase === "task") {
           var effectiveNow = Math.min(now, run.phaseEndsAt);
-          if (run.taskName === "track") updateTrackingTask(run, effectiveNow);
-          else updateStaticTask(run, effectiveNow);
+          updateStaticTask(run, effectiveNow);
           if (now >= run.phaseEndsAt) {
             finishCurrentTask(run, run.phaseEndsAt);
             if (run.taskIndex < C.tasks.length - 1) {
@@ -3578,7 +3602,9 @@
         if (run.phase !== "adapt" && run.phase !== "task") return;
         var eventNow = performance.now();
         if (run.phase === "task" && eventNow >= run.phaseEndsAt) return;
-        if (run.phase === "task" && run.taskName !== "track") updateStaticTask(run, eventNow);
+        liveTargets(run).forEach(function (item) {
+          if (item.firstContactAt === null && Core.angularDistance(run.camera, item) <= item.radius) item.firstContactAt = eventNow;
+        });
         var dx = Number(event.movementX || 0);
         var dy = Number(event.movementY || 0);
         if (!dx && !dy) return;
@@ -3591,10 +3617,24 @@
         run.pathDegrees += update.pathDelta;
         run.inputEvents += 1;
         run.rawDistance += Math.sqrt(dx * dx + dy * dy);
-        if (run.phase === "task" && run.taskName !== "track" && run.target) {
-          run.target.axisState = Core.updateAxisState(run.target.axisState, run.camera);
+        if (run.phase === "task") {
+          liveTargets(run).forEach(function (item) {
+            item.axisState = Core.updateAxisState(item.axisState, run.camera);
+            if (item.firstContactAt === null && Core.angularDistance(run.camera, item) <= item.radius) item.firstContactAt = eventNow;
+          });
           updateStaticTask(run, eventNow);
         }
+        renderScene(run);
+      }
+      function onMouseDown(event) {
+        if (event.button !== 0) return;
+        var run = state.active;
+        if (!run || document.pointerLockElement !== els.arena) return;
+        if (run.phase !== "task") return;
+        var eventNow = performance.now();
+        if (eventNow >= run.phaseEndsAt) return;
+        if (typeof event.preventDefault === "function") event.preventDefault();
+        applyShot(run, eventNow);
         renderScene(run);
       }
       function finishBlock(run, now) {
@@ -3975,6 +4015,7 @@
         return {
           flick: {
             missRate: Core.mean(values("flick", "missRate")),
+            clickError: Core.mean(values("flick", "clickError")),
             overshoots: Core.mean(values("flick", "overshoots")),
             corrections: Core.mean(values("flick", "corrections")),
             undershoots: Core.mean(values("flick", "undershoots")),
@@ -3982,16 +4023,19 @@
           },
           lateral: {
             missRate: Core.mean(values("lateral", "missRate")),
+            clickError: Core.mean(values("lateral", "clickError")),
             overshoots: Core.mean(values("lateral", "overshoots")),
             corrections: Core.mean(values("lateral", "corrections")),
             undershoots: Core.mean(values("lateral", "undershoots")),
             pathInefficiency: Core.mean(values("lateral", "pathInefficiency"))
           },
-          track: {
-            rmsError: Core.mean(values("track", "rmsError")),
-            offTargetRatio: Core.mean(values("track", "offTargetRatio")),
-            reacquireMs: Core.mean(values("track", "reacquireMs")),
-            speedMismatch: Core.mean(values("track", "speedMismatch"))
+          grid: {
+            missRate: Core.mean(values("grid", "missRate")),
+            clickError: Core.mean(values("grid", "clickError")),
+            overshoots: Core.mean(values("grid", "overshoots")),
+            corrections: Core.mean(values("grid", "corrections")),
+            undershoots: Core.mean(values("grid", "undershoots")),
+            pathInefficiency: Core.mean(values("grid", "pathInefficiency"))
           }
         };
       }
@@ -4206,9 +4250,9 @@
         var tasks = result.tasks;
         var repeatability = result.repeatability || repeatabilitySummary(result.evaluation);
         var taskRows = [
-          "<li><span>小目标获取</span><b>漏失 " + formatPercent(tasks.flick.missRate) + " · 欠冲 " + tasks.flick.undershoots.toFixed(1) + " · 过冲 " + tasks.flick.overshoots.toFixed(1) + "</b></li>",
-          "<li><span>横向急停</span><b>漏失 " + formatPercent(tasks.lateral.missRate) + " · 回拉 " + tasks.lateral.corrections.toFixed(1) + "</b></li>",
-          "<li><span>平滑追踪</span><b>RMS " + tasks.track.rmsError.toFixed(2) + "° · 脱靶 " + formatPercent(tasks.track.offTargetRatio) + "</b></li>"
+          "<li><span>小目标点射</span><b>漏失 " + formatPercent(tasks.flick.missRate) + " · 点击误差 " + (tasks.flick.clickError || 0).toFixed(2) + "° · 欠冲 " + (tasks.flick.undershoots || 0).toFixed(1) + "</b></li>",
+          "<li><span>横向急停点击</span><b>漏失 " + formatPercent(tasks.lateral.missRate) + " · 点击误差 " + (tasks.lateral.clickError || 0).toFixed(2) + "° · 回拉 " + (tasks.lateral.corrections || 0).toFixed(1) + "</b></li>",
+          "<li><span>多目标点击</span><b>漏失 " + formatPercent(tasks.grid.missRate) + " · 点击误差 " + (tasks.grid.clickError || 0).toFixed(2) + "° · 过冲 " + (tasks.grid.overshoots || 0).toFixed(1) + "</b></li>"
         ];
         if (isFastMode) taskRows.push("<li><span>单轮证据</span><b>未估计复测 MAD / 漂移 · 只能用于下一步搜索方向</b></li>");
         else taskRows.push(
@@ -4306,7 +4350,12 @@
         try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (error) { return null; }
       }
       function restoreState() {
-        var migrated = Core.migratePersistedState({ v3: parseStored(C.storageKey), v2: parseStored(C.previousStorageKeys[0]), v1: parseStored(C.previousStorageKeys[1]) });
+          var migrated = Core.migratePersistedState({
+            v4: parseStored(C.storageKey),
+            v3: parseStored(C.previousStorageKeys[0]),
+            v2: parseStored(C.previousStorageKeys[1]),
+            v1: parseStored(C.previousStorageKeys[2])
+          });
         state.profile = migrated.profile;
         state.session = migrated.session;
         state.result = migrated.result;
@@ -4336,8 +4385,16 @@
           state.result = null;
           saveState();
           renderLab();
-          setOverlay({ kicker: "平衡候选已建立", title: "候选盲测已建立", copy: "首次会请求未加速 Pointer Lock。每个 pass 中三个候选共用相同任务种子；目标无需点击。", actionLabel: "锁定鼠标并开始", action: requestSessionLock });
-          els.formError.textContent = "候选已使用对数空间建立；档案只决定起点，不直接决定胜负。";
+          var center = Core.formatSensitivity(profile.currentSens);
+          var previewEdpi = edpiText(profile.dpi, profile.currentSens);
+          setOverlay({
+            kicker: "平衡候选已建立",
+            title: "候选盲测已建立",
+            copy: "将以 " + profile.dpi + " DPI × " + center + "（" + previewEdpi + " eDPI）为搜索中心，生成 ±20% 盲测候选。锁定鼠标后对准目标并按左键才算命中；锁定与倒计时点击不计枪。",
+            actionLabel: "锁定鼠标并开始",
+            action: requestSessionLock
+          });
+          els.formError.textContent = "候选已围绕当前灵敏度建立；档案决定搜索中心，不直接决定胜负。";
           els.formError.style.color = "var(--green)";
           showView("lab");
         } catch (error) {
@@ -4409,6 +4466,11 @@
         showView("profile");
       }
       els.profileForm.addEventListener("submit", function (event) { event.preventDefault(); startFromProfile(); });
+      ["dpi", "currentSens"].forEach(function (id) {
+        byId(id).addEventListener("input", updateEdpiPreview);
+        byId(id).addEventListener("change", updateEdpiPreview);
+      });
+      updateEdpiPreview();
       els.startSession.addEventListener("click", requestSessionLock);
       els.pauseSession.addEventListener("click", function () {
         if (state.active) invalidateActive("用户暂停，当前分组已作废。", "user-pause");
@@ -4431,6 +4493,7 @@
       byId("newProfile").addEventListener("click", function () { cancelLockAttempt(true); clearExpressBudgetTimer(); state.session = null; state.result = null; saveState(); showView("profile"); });
       els.confirmSession.addEventListener("click", startConfirmationSession);
       document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mousedown", onMouseDown);
       document.addEventListener("pointerlockchange", onPointerLockChange);
       document.addEventListener("pointerlockerror", function () {
         if (!state.lock.awaiting) return;
@@ -4457,18 +4520,19 @@
         var candidates = Core.buildCoarseCandidates(profile, "smoke");
         var stage = Core.createBalancedStage("smoke", candidates, 123, 3, false);
         expect(stage.orders.length === 3 && new Set(stage.orders[0]).size === 3, "balanced stage");
-        var dwell = Core.updateDwell(Core.createDwellState(), true, 0);
-        dwell = Core.updateDwell(dwell, true, 99);
-        expect(!dwell.hit, "99ms dwell");
-        dwell = Core.updateDwell(dwell, true, 100);
-        expect(dwell.hit, "100ms dwell");
+        var hit = Core.resolveClick({ yaw: 10, pitch: 0 }, [{ yaw: 10.2, pitch: 0, radius: 1.2 }]);
+        expect(hit && hit.error < 1.2, "click inside radius hits");
+        var miss = Core.resolveClick({ yaw: 0, pitch: 0 }, [{ yaw: 10, pitch: 0, radius: 1.2 }]);
+        expect(!miss, "click outside radius misses");
+        expect(Core.edpi(700, 0.91) === 637, "eDPI preview");
+        expect(Core.validateProfile({ dpi: 800, currentSens: null, padWidth: 45, polling: 1000, mYaw: 0.022, mPitch: 0.022, aimStyle: "hybrid", role: "rifle", priority: "balance", mode: "standard" }).valid === false, "current sens required");
         var queued = [];
         var fake = Core.createRafScheduler({ requestFrame: function (callback) { queued.push(callback); return queued.length - 1; }, cancelFrame: function () {} });
         fake.request(function () {}); fake.request(function () {});
         expect(queued.length === 1 && fake.pendingCount() === 1, "single RAF including id zero");
         fake.destroy();
         if (failures.length) throw new Error(failures.join(", "));
-        return "CS2 SENS / LAB v3 smoke tests passed.";
+        return "CS2 SENS / LAB v4 smoke tests passed.";
       }
       function diagnostics() {
         var run = state.active;
@@ -4499,9 +4563,14 @@
           activePhaseEndsAt: run ? run.phaseEndsAt : null,
           activeCandidateSensitivity: run ? run.block.candidate.sensitivity : null,
           activeCamera: run ? Core.clone(run.camera) : null,
-          activeTarget: run && run.target ? Core.clone({ yaw: run.target.yaw, pitch: run.target.pitch, radius: run.target.radius, dwell: run.target.dwell }) : null,
+          activeTarget: (function () {
+            var item = run && liveTargets(run)[0];
+            return item ? Core.clone({ yaw: item.yaw, pitch: item.pitch, radius: item.radius, timeoutAt: item.timeoutAt, bornAt: item.bornAt }) : null;
+          }()),
+          activeTargetCount: run ? liveTargets(run).length : 0,
           activeTaskResults: run ? Core.clone(run.taskResults) : null,
-          activeTaskHits: run && run.taskData && Array.isArray(run.taskData.hits) ? run.taskData.hits.length : null
+          activeTaskHits: run && run.taskData && Array.isArray(run.taskData.hits) ? run.taskData.hits.length : null,
+          activeEmptyClicks: run && run.taskData ? run.taskData.emptyClicks || 0 : null
         });
       }
       window.CS2SensLab = Object.freeze({ version: C.algorithmVersion, core: Core, runSelfTests: runSelfTests, getDiagnostics: diagnostics, reportText: reportText });
